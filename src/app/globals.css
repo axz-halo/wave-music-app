@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --wave-blue: #007AFF;
+  --wave-blue-light: #5AC8FA;
+  --wave-blue-dark: #0051D5;
+  --wave-gray: #8E8E93;
+  --wave-gray-light: #C7C7CC;
+  --wave-gray-dark: #3A3A3C;
+  --wave-orange: #FF9500;
+  --wave-orange-light: #FFB340;
+  --wave-green: #34C759;
+  --wave-red: #FF3B30;
+  --wave-bg: #FFFFFF;
+  --wave-bg-secondary: #F2F2F7;
+  --wave-bg-tertiary: #E5E5EA;
+  --wave-text-primary: #000000;
+  --wave-text-secondary: #8E8E93;
+  --wave-text-tertiary: #C7C7CC;
+  --wave-separator: #C6C6C8;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', 'Arial', sans-serif;
+  background: var(--wave-bg-secondary);
+  color: var(--wave-text-primary);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Responsive breakpoints */
+@media (min-width: 1024px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 1280px) {
+  html {
+    font-size: 20px;
+  }
+}
+
+body {
+  background: var(--wave-bg-secondary);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* iPod/iTunes inspired components */
+.ipod-container {
+  background: var(--wave-bg);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--wave-separator);
+}
+
+.ipod-button {
+  background: var(--wave-blue);
+  border-radius: 8px;
+  border: none;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 122, 255, 0.3);
+}
+
+.ipod-button:hover {
+  background: var(--wave-blue-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+}
+
+.ipod-button-secondary {
+  background: var(--wave-bg);
+  border: 1px solid var(--wave-separator);
+  border-radius: 8px;
+  color: var(--wave-blue);
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.ipod-button-secondary:hover {
+  background: var(--wave-bg-secondary);
+  border-color: var(--wave-blue);
+}
+
+.ipod-card {
+  background: var(--wave-bg);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--wave-separator);
+  overflow: hidden;
+}
+
+.ipod-card-elevated {
+  background: var(--wave-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--wave-separator);
+  overflow: hidden;
+}
+
+.ipod-text-primary {
+  color: var(--wave-text-primary);
+  font-weight: 600;
+}
+
+.ipod-text-secondary {
+  color: var(--wave-text-secondary);
+  font-weight: 400;
+}
+
+.ipod-text-tertiary {
+  color: var(--wave-text-tertiary);
+  font-weight: 400;
+}
+
+/* Custom scrollbar - iPod style */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--wave-gray-light);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--wave-gray);
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Focus styles */
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--wave-blue);
+  outline-offset: 2px;
+}
+
+/* Selection styles */
+::selection {
+  background: var(--wave-blue-light);
+  color: white;
+}
