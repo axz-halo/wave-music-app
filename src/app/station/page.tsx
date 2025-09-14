@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import PlaylistCard from '@/components/station/PlaylistCard';
 import ChannelCard from '@/components/station/ChannelCard';
@@ -9,7 +9,7 @@ import { dummyPlaylists, dummyUsers } from '@/lib/dummy-data';
 import { CardSkeleton } from '@/components/common/Skeleton';
 import Navigation from '@/components/layout/Navigation';
 
-export default function StationPage() {
+function StationPageContent() {
   const search = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -120,5 +120,13 @@ export default function StationPage() {
     </div>
     <Navigation />
     </>
+  );
+}
+
+export default function StationPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <StationPageContent />
+    </Suspense>
   );
 }
