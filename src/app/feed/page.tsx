@@ -182,23 +182,19 @@ export default function FeedPage() {
         {/* Radio Display */}
         <RadioDisplay />
 
-        {/* Filter Tabs */}
-        <div className="flex space-x-sk4-sm overflow-x-auto pb-sk4-sm scrollbar-hide">
-          <button className="px-sk4-sm sm:px-sk4-md py-sk4-sm sk4-text-xs sm:sk4-text-sm font-medium bg-sk4-orange text-sk4-white whitespace-nowrap">
-            전체
-          </button>
-          <button className="px-sk4-sm sm:px-sk4-md py-sk4-sm sk4-text-xs sm:sk4-text-sm font-medium bg-sk4-white text-sk4-dark-gray border border-sk4-gray hover:bg-sk4-light-gray whitespace-nowrap">
-            친구만
-          </button>
-          <button className="px-sk4-sm sm:px-sk4-md py-sk4-sm sk4-text-xs sm:sk4-text-sm font-medium bg-sk4-white text-sk4-dark-gray border border-sk4-gray hover:bg-sk4-light-gray whitespace-nowrap">
-            팔로잉
-          </button>
-          <button className="px-sk4-sm sm:px-sk4-md py-sk4-sm sk4-text-xs sm:sk4-text-sm font-medium bg-sk4-white text-sk4-dark-gray border border-sk4-gray hover:bg-sk4-light-gray whitespace-nowrap">
-            인기 웨이브
-          </button>
+        {/* Popular carousel */}
+        <div className="space-y-sk4-sm">
+          <h2 className="sk4-text-sm text-sk4-dark-gray">인기 웨이브</h2>
+          <div className="flex space-x-sk4-sm overflow-x-auto scrollbar-hide pb-sk4-sm">
+            {dummyWaves.slice(0,5).map((wave)=> (
+              <div key={wave.id} className="min-w-[260px]">
+                <WaveCard wave={wave} onLike={handleLike} onComment={handleComment} onSave={handleSave} onShare={handleShare} onPlay={handlePlay} />
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Wave Feed */}
+        {/* All Feed */}
         <div className="space-y-sk4-sm">
           {dummyWaves.map((wave) => (
             <WaveCard
