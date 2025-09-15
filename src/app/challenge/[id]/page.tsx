@@ -41,7 +41,7 @@ export default function ChallengeDetailPage() {
       <header className="hidden lg:block bg-cream-100 border-b border-cream-200 px-6 py-4 sticky top-0 z-30 shadow-minimal">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-hierarchy-2xl font-semibold text-beige-800">{challenge.title}</h1>
-          <button onClick={handleToggleJoin} className={`px-4 py-2 rounded-medium text-sm font-medium transition-all duration-150 shadow-minimal ${isParticipant ? 'bg-cream-200 text-beige-700 hover:bg-cream-300' : 'bg-primary-500 text-white hover:bg-primary-600'}`}>{isParticipant ? '참여 취소' : '참여하기'}</button>
+          <button onClick={handleToggleJoin} className={`px-sk4-md py-sk4-sm rounded sk4-text-sm font-medium transition-all duration-200 ${isParticipant ? 'bg-sk4-light-gray text-sk4-charcoal hover:bg-sk4-gray' : 'bg-sk4-orange text-sk4-white hover:bg-opacity-90'}`}>{isParticipant ? '참여 취소' : '참여하기'}</button>
         </div>
       </header>
 
@@ -49,7 +49,7 @@ export default function ChallengeDetailPage() {
       <header className="lg:hidden bg-cream-100 border-b border-cream-200 px-4 py-4 sticky top-0 z-40 shadow-minimal">
         <div className="flex items-center justify-between">
           <h1 className="text-hierarchy-xl font-semibold text-beige-800">{challenge.title}</h1>
-          <button onClick={handleToggleJoin} className={`px-3 py-2 rounded-medium text-sm font-medium transition-all duration-150 shadow-minimal ${isParticipant ? 'bg-cream-200 text-beige-700' : 'bg-primary-500 text-white'}`}>{isParticipant ? '취소' : '참여'}</button>
+          <button onClick={handleToggleJoin} className={`px-sk4-md py-sk4-sm rounded sk4-text-sm font-medium transition-all duration-200 ${isParticipant ? 'bg-sk4-light-gray text-sk4-charcoal hover:bg-sk4-gray' : 'bg-sk4-orange text-sk4-white hover:bg-opacity-90'}`}>{isParticipant ? '취소' : '참여'}</button>
         </div>
       </header>
 
@@ -67,7 +67,7 @@ export default function ChallengeDetailPage() {
             <span className="text-xs text-beige-600">외 {Math.max(0, participants - previewAvatars.length)}명 참여중</span>
           </div>
 
-          <button onClick={handleToggleJoin} className={`w-full py-3 rounded-medium text-sm font-medium transition-all duration-150 shadow-minimal ${isParticipant ? 'bg-cream-200 text-beige-700 hover:bg-cream-300' : 'bg-primary-500 text-white hover:bg-primary-600'}`}>{isParticipant ? '참여 취소' : '참여하기'}</button>
+          <button onClick={handleToggleJoin} className={`w-full py-sk4-md rounded sk4-text-sm font-medium transition-all duration-200 ${isParticipant ? 'bg-sk4-light-gray text-sk4-charcoal hover:bg-sk4-gray' : 'bg-sk4-orange text-sk4-white hover:bg-opacity-90'}`}>{isParticipant ? '참여 취소' : '참여하기'}</button>
         </section>
 
         {/* Leader Preview */}
@@ -86,7 +86,7 @@ export default function ChallengeDetailPage() {
         {/* Voting */}
         <section className="bg-cream-100 rounded-medium shadow-minimal border border-cream-200 p-6">
           <h3 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">투표하기</h3>
-          <div className="mb-4 text-sm text-beige-600">추천하고 싶은 곡이 있나요? <button onClick={()=>setIsRecommendOpen(true)} className="ml-2 px-3 py-1.5 rounded-medium bg-primary-50 text-primary-700 border border-primary-200 hover:bg-primary-100 transition-all duration-150">곡 추천하기</button></div>
+          <div className="mb-sk4-md sk4-text-sm text-sk4-dark-gray">추천하고 싶은 곡이 있나요? <button onClick={()=>setIsRecommendOpen(true)} className="ml-sk4-sm px-sk4-sm py-sk4-sm rounded bg-sk4-orange bg-opacity-10 text-sk4-orange border border-sk4-orange hover:bg-opacity-20 transition-all duration-200">곡 추천하기</button></div>
           <ul className="space-y-3">
             {dummyTracks.slice(0,5).map(t=> (
               <li key={t.id} className="py-3 px-4 bg-cream-50 rounded-medium shadow-minimal border border-cream-200 flex items-center gap-3">
@@ -95,10 +95,10 @@ export default function ChallengeDetailPage() {
                   <p className="font-medium text-beige-800 truncate">{t.title}</p>
                   <p className="text-xs text-beige-600 truncate">{t.artist}</p>
                 </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <button onClick={()=>setVotes(v=>({ ...v, [t.id]: (v[t.id]||0)+1 }))} className="px-3 py-1.5 rounded-medium border border-cream-200 bg-cream-100 hover:bg-cream-200 transition-all duration-150 shadow-minimal">👍</button>
-                  <button onClick={()=>setVotes(v=>({ ...v, [t.id]: Math.max(0,(v[t.id]||0)-1) }))} className="px-3 py-1.5 rounded-medium border border-cream-200 bg-cream-100 hover:bg-cream-200 transition-all duration-150 shadow-minimal">👎</button>
-                  <span className="text-beige-600 w-10 text-right font-medium">{votes[t.id]||0}</span>
+                <div className="flex items-center gap-sk4-sm sk4-text-xs">
+                  <button onClick={()=>setVotes(v=>({ ...v, [t.id]: (v[t.id]||0)+1 }))} className="px-sk4-sm py-sk4-sm rounded border border-sk4-gray bg-sk4-white hover:bg-sk4-light-gray transition-all duration-200">👍</button>
+                  <button onClick={()=>setVotes(v=>({ ...v, [t.id]: Math.max(0,(v[t.id]||0)-1) }))} className="px-sk4-sm py-sk4-sm rounded border border-sk4-gray bg-sk4-white hover:bg-sk4-light-gray transition-all duration-200">👎</button>
+                  <span className="text-sk4-dark-gray w-10 text-right font-medium">{votes[t.id]||0}</span>
                 </div>
               </li>
             ))}

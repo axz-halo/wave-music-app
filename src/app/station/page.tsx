@@ -50,7 +50,7 @@ function StationPageContent() {
               <header className="hidden lg:block bg-cream-100 border-b border-cream-200 px-6 py-4 sticky top-0 z-30 shadow-minimal">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                   <h1 className="text-hierarchy-2xl font-semibold text-beige-800">스테이션</h1>
-                  <a href="/station/create" className="px-4 py-2 rounded-medium bg-primary-500 text-white text-sm font-medium shadow-minimal hover:bg-primary-600 transition-all duration-150">스테이션 만들기</a>
+                  <a href="/station/create" className="px-sk4-md py-sk4-sm rounded bg-sk4-orange text-sk4-white sk4-text-sm font-medium hover:bg-opacity-90 transition-all duration-200">스테이션 만들기</a>
                 </div>
               </header>
 
@@ -61,7 +61,7 @@ function StationPageContent() {
             <h2 className="text-hierarchy-lg font-semibold text-beige-800">Hot List</h2>
             <div className="flex items-center gap-2 text-xs">
               {(['오늘','이번 주','이번 달'] as const).map((p) => (
-                <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 rounded-medium border transition-all duration-150 ${period===p? 'bg-primary-500 text-white border-primary-500 shadow-minimal':'bg-cream-100 text-beige-700 border-cream-200 hover:bg-cream-200'}`}>{p}</button>
+                <button key={p} onClick={() => setPeriod(p)} className={`px-sk4-sm py-sk4-sm rounded border transition-all duration-200 ${period===p? 'bg-sk4-orange text-sk4-white border-sk4-orange':'bg-sk4-light-gray text-sk4-charcoal border-sk4-gray hover:bg-sk4-gray'}`}>{p}</button>
               ))}
             </div>
           </div>
@@ -98,8 +98,8 @@ function StationPageContent() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-gray-900">전체 스테이션</h2>
             <div className="flex items-center gap-2">
-              <button onClick={() => setSortBy('인기순')} className={`text-xs px-3 py-1.5 rounded-medium border transition-all duration-200 ${sortBy==='인기순' ? 'bg-primary-500 text-white border-primary-500 shadow-tactile':'bg-white text-gray-700 border-gray-200'}`}>인기순</button>
-              <button onClick={() => setSortBy('최신순')} className={`text-xs px-3 py-1.5 rounded-medium border transition-all duration-200 ${sortBy==='최신순' ? 'bg-primary-500 text-white border-primary-500 shadow-tactile':'bg-white text-gray-700 border-gray-200'}`}>최신순</button>
+              <button onClick={() => setSortBy('인기순')} className={`sk4-text-xs px-sk4-sm py-sk4-sm rounded border transition-all duration-200 ${sortBy==='인기순' ? 'bg-sk4-orange text-sk4-white border-sk4-orange':'bg-sk4-white text-sk4-charcoal border-sk4-gray hover:bg-sk4-light-gray'}`}>인기순</button>
+              <button onClick={() => setSortBy('최신순')} className={`sk4-text-xs px-sk4-sm py-sk4-sm rounded border transition-all duration-200 ${sortBy==='최신순' ? 'bg-sk4-orange text-sk4-white border-sk4-orange':'bg-sk4-white text-sk4-charcoal border-sk4-gray hover:bg-sk4-light-gray'}`}>최신순</button>
             </div>
           </div>
           <CategoryFilter value={category} onChange={setCategory} />

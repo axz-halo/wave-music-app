@@ -63,7 +63,7 @@ export default function ChallengePage() {
       <header className="hidden lg:block bg-cream-100 border-b border-cream-200 px-6 py-4 sticky top-0 z-30 shadow-minimal">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-hierarchy-2xl font-semibold text-beige-800">챌린지</h1>
-          <Link href="/challenge/create" className="px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-medium hover:bg-primary-600 transition-all duration-150 shadow-minimal">
+          <Link href="/challenge/create" className="px-sk4-md py-sk4-sm bg-sk4-orange text-sk4-white sk4-text-sm font-medium rounded hover:bg-opacity-90 transition-all duration-200">
             챌린지 만들기
           </Link>
         </div>
@@ -73,7 +73,7 @@ export default function ChallengePage() {
       <header className="lg:hidden bg-cream-100 border-b border-cream-200 px-4 py-4 sticky top-0 z-40 shadow-minimal">
         <div className="flex items-center justify-between">
           <h1 className="text-hierarchy-xl font-semibold text-beige-800">챌린지</h1>
-          <Link href="/challenge/create" className="w-9 h-9 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-all duration-150 shadow-minimal">
+          <Link href="/challenge/create" className="w-9 h-9 bg-sk4-orange rounded-full flex items-center justify-center text-sk4-white hover:bg-opacity-90 transition-all duration-200">
             <Plus className="w-5 h-5" />
           </Link>
         </div>
@@ -87,10 +87,10 @@ export default function ChallengePage() {
               <button
                 key={status}
                 onClick={() => setSelectedStatus(status)}
-                className={`px-4 py-2 rounded-medium text-sm font-medium transition-all duration-150 whitespace-nowrap ${
+                className={`px-sk4-md py-sk4-sm rounded sk4-text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                   selectedStatus === status
-                    ? 'bg-primary-500 text-white shadow-minimal'
-                    : 'bg-cream-50 text-beige-700 hover:bg-cream-200'
+                    ? 'bg-sk4-orange text-sk4-white'
+                    : 'bg-sk4-light-gray text-sk4-charcoal hover:bg-sk4-gray'
                 }`}
               >
                 {status}
