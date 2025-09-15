@@ -178,22 +178,22 @@ export default function FeedPage() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-sk4-md py-sk4-lg space-y-sk4-lg">
+      <div className="max-w-sm sm:max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-sk4-sm sm:px-sk4-md py-sk4-md sm:py-sk4-lg space-y-sk4-md sm:space-y-sk4-lg">
         {/* Radio Display */}
         <RadioDisplay />
 
         {/* Filter Tabs */}
-        <div className="flex space-x-sk4-sm overflow-x-auto pb-sk4-sm">
-          <button className="px-sk4-md py-sk4-sm sk4-text-sm font-medium bg-sk4-orange text-sk4-white">
+        <div className="flex space-x-sk4-sm overflow-x-auto pb-sk4-sm scrollbar-hide">
+          <button className="px-sk4-sm sm:px-sk4-md py-sk4-sm sk4-text-xs sm:sk4-text-sm font-medium bg-sk4-orange text-sk4-white whitespace-nowrap">
             전체
           </button>
-          <button className="px-sk4-md py-sk4-sm sk4-text-sm font-medium bg-sk4-white text-sk4-dark-gray border border-sk4-gray hover:bg-sk4-light-gray">
+          <button className="px-sk4-sm sm:px-sk4-md py-sk4-sm sk4-text-xs sm:sk4-text-sm font-medium bg-sk4-white text-sk4-dark-gray border border-sk4-gray hover:bg-sk4-light-gray whitespace-nowrap">
             친구만
           </button>
-          <button className="px-sk4-md py-sk4-sm sk4-text-sm font-medium bg-sk4-white text-sk4-dark-gray border border-sk4-gray hover:bg-sk4-light-gray">
+          <button className="px-sk4-sm sm:px-sk4-md py-sk4-sm sk4-text-xs sm:sk4-text-sm font-medium bg-sk4-white text-sk4-dark-gray border border-sk4-gray hover:bg-sk4-light-gray whitespace-nowrap">
             팔로잉
           </button>
-          <button className="px-sk4-md py-sk4-sm sk4-text-sm font-medium bg-sk4-white text-sk4-dark-gray border border-sk4-gray hover:bg-sk4-light-gray">
+          <button className="px-sk4-sm sm:px-sk4-md py-sk4-sm sk4-text-xs sm:sk4-text-sm font-medium bg-sk4-white text-sk4-dark-gray border border-sk4-gray hover:bg-sk4-light-gray whitespace-nowrap">
             인기 웨이브
           </button>
         </div>

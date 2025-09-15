@@ -228,3 +228,13 @@ select:focus-visible {
   background: var(--sk4-orange);
   color: var(--sk4-white);
 }
+
+/* Utility classes */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
