@@ -52,23 +52,23 @@ export default function LPRecord({
         <img 
           src={src} 
           alt={alt}
-          className="w-full h-full border-sk4-circle object-cover"
+          className="w-full h-full rounded-full object-cover"
         />
         
         {/* Center Hole */}
-        <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${centerSizeClasses[size]} bg-sk4-white border-sk4-circle`}></div>
+        <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${centerSizeClasses[size]} bg-sk4-white rounded-full`}></div>
         
         {/* Groove Lines - 3 concentric circles */}
-        <div className="absolute inset-0 border-sk4-circle">
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 border border-sk4-dark-gray border-opacity-8 border-sk4-circle"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 border border-sk4-dark-gray border-opacity-8 border-sk4-circle"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/4 h-1/4 border border-sk4-dark-gray border-opacity-8 border-sk4-circle"></div>
+        <div className="absolute inset-0 rounded-full">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 border border-sk4-dark-gray border-opacity-8 rounded-full"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 border border-sk4-dark-gray border-opacity-8 rounded-full"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/4 h-1/4 border border-sk4-dark-gray border-opacity-8 rounded-full"></div>
         </div>
         
         {/* Play/Pause Overlay */}
         {onPlay && (
-          <div className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 border-sk4-circle transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-            <div className={`${centerSizeClasses[size]} bg-sk4-white border-sk4-circle flex items-center justify-center`}>
+          <div className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 rounded-full transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+            <div className={`${centerSizeClasses[size]} bg-sk4-white rounded-full flex items-center justify-center`}>
               {isPlaying ? (
                 <Pause className={`${iconSizeClasses[size]} text-sk4-charcoal ml-0.5`} />
               ) : (

@@ -73,7 +73,7 @@ a {
   /* SK4 LP Record - Perfect Circle */
   .sk4-lp-record {
     @apply bg-sk4-charcoal border-sk4-medium-gray;
-    @apply border-sk4-circle;
+    @apply rounded-full;
     @apply transition-all duration-200 ease-out;
   }
   
@@ -84,7 +84,7 @@ a {
   /* SK4 Action Button - Circular */
   .sk4-action-button {
     @apply w-10 h-10 bg-transparent border-sk4-gray;
-    @apply border-sk4-circle flex items-center justify-center;
+    @apply rounded-full flex items-center justify-center;
     @apply transition-all duration-200 ease-out;
     @apply hover:bg-sk4-light-gray;
   }
@@ -96,7 +96,7 @@ a {
   /* SK4 User Avatar */
   .sk4-user-avatar {
     @apply w-8 h-8 border-sk4-gray;
-    @apply border-sk4-circle;
+    @apply rounded-full;
   }
   
   /* SK4 Radio Display */
