@@ -14,6 +14,7 @@ import FilterModal from '@/components/feed/FilterModal';
 import EmptyState from '@/components/feed/EmptyState';
 import { dummyWaves, dummyTracks, dummyPlaylists } from '@/lib/dummy-data';
 import { TrackInfo, Wave } from '@/types';
+import GlobalPlayer from '@/components/music/GlobalPlayer';
 
 export default function FeedPage() {
   const [currentTrack, setCurrentTrack] = useState<TrackInfo | null>(null);
@@ -29,8 +30,6 @@ export default function FeedPage() {
     const track = dummyTracks.find(t => t.id === trackId);
     if (track) {
       setCurrentTrack(track);
-      setIsPlaying(true);
-      toast.success(`${track.title} 재생 시작`);
     }
   };
 
@@ -211,6 +210,7 @@ export default function FeedPage() {
       </div>
 
       <Navigation onCreateWave={() => setIsCreateWaveModalOpen(true)} />
+      <GlobalPlayer track={currentTrack} onClose={() => setCurrentTrack(null)} />
 
       {/* Modals */}
       <CreateWaveModal
