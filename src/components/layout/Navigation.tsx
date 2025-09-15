@@ -19,9 +19,9 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
 
   return (
     <>
-      {/* Mobile Bottom Navigation - Floating Design */}
+      {/* Mobile Bottom Navigation - Minimal Floating Design */}
       <nav className="lg:hidden fixed bottom-4 left-4 right-4 z-50 safe-area-pb">
-        <div className="flex items-center justify-around max-w-sm mx-auto bg-cream-100/90 backdrop-blur-lg rounded-large shadow-tactile border border-cream-200 p-2">
+        <div className="flex items-center justify-around max-w-sm mx-auto bg-cream-100/95 backdrop-blur-sm rounded-medium shadow-minimal border border-cream-200 p-1">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -30,9 +30,9 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
               <a
                 key={item.name}
                 href={item.href}
-                className={`flex flex-col items-center py-3 px-4 rounded-medium transition-all duration-200 min-w-0 flex-1 ${
+                className={`flex flex-col items-center py-2 px-3 rounded-medium transition-all duration-150 min-w-0 flex-1 ${
                   isActive
-                    ? 'bg-primary-500 text-white shadow-tactile'
+                    ? 'bg-primary-500 text-white shadow-minimal'
                     : 'text-beige-600 hover:text-primary-500 hover:bg-cream-200'
                 }`}
               >

@@ -47,8 +47,8 @@ export default function WaveCard({
   };
 
   return (
-    <div className="bg-cream-50 rounded-large p-4 shadow-soft border border-cream-200 fade-in hover:shadow-tactile transition-all duration-200">
-      <div className="space-y-3">
+    <div className="bg-cream-50 rounded-medium p-4 shadow-minimal border border-cream-200 fade-in hover:shadow-tactile transition-all duration-150">
+      <div className="space-y-4">
         {/* User Info */}
         <Link href={`/wave/${wave.id}`} className="flex items-center space-x-3">
           <img 

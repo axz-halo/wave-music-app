@@ -51,7 +51,7 @@ export default function LPRecord({
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Outer Record */}
-      <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-beige-300 to-beige-400 shadow-tactile relative overflow-hidden transition-transform duration-300 ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }}>
+      <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-beige-300 to-beige-400 shadow-minimal border border-beige-200 relative overflow-hidden transition-transform duration-300 ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }}>
         {/* Album Art */}
         <img 
           src={src} 
@@ -71,7 +71,7 @@ export default function LPRecord({
         {/* Play/Pause Overlay */}
         {onPlay && (
           <div className={`absolute inset-0 flex items-center justify-center bg-black/20 rounded-full transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-            <div className={`${centerSizeClasses[size]} bg-white/90 rounded-full flex items-center justify-center shadow-tactile`}>
+            <div className={`${centerSizeClasses[size]} bg-white/90 rounded-full flex items-center justify-center shadow-minimal border border-beige-200`}>
               {isPlaying ? (
                 <Pause className={`${iconSizeClasses[size]} text-beige-800 ml-0.5`} />
               ) : (

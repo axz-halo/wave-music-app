@@ -40,11 +40,11 @@ export default function RadioDisplay({
   };
 
   return (
-    <div className="bg-gradient-to-br from-cream-100 to-beige-100 rounded-large p-6 shadow-neumorphic border border-cream-300">
+    <div className="bg-gradient-to-br from-cream-100 to-beige-100 rounded-medium p-6 shadow-minimal border border-cream-200">
       {/* Radio Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center shadow-tactile">
+          <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center shadow-minimal">
             <Radio className="w-5 h-5 text-white" />
           </div>
           <div>

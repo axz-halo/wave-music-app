@@ -72,10 +72,12 @@ module.exports = {
         'large': '20px',
       },
       boxShadow: {
-        'neumorphic': '8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff',
-        'neumorphic-inset': 'inset 8px 8px 16px #d1d9e6, inset -8px -8px 16px #ffffff',
-        'soft': '0 4px 20px rgba(0, 0, 0, 0.08)',
-        'tactile': '0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
+        'neumorphic': '2px 2px 4px rgba(0, 0, 0, 0.06), -2px -2px 4px rgba(255, 255, 255, 0.8)',
+        'neumorphic-inset': 'inset 1px 1px 2px rgba(0, 0, 0, 0.06), inset -1px -1px 2px rgba(255, 255, 255, 0.8)',
+        'soft': '0 1px 3px rgba(0, 0, 0, 0.04)',
+        'tactile': '0 1px 2px rgba(0, 0, 0, 0.04)',
+        'minimal': '0 1px 1px rgba(0, 0, 0, 0.02)',
+        'elevated': '0 2px 4px rgba(0, 0, 0, 0.06)',
       },
       fontFamily: {
         'system': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],

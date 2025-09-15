@@ -44,42 +44,42 @@ a {
 }
 
 @layer components {
-  /* Neumorphic Components */
+  /* Minimal Neumorphic Components */
   .neumorphic {
-    @apply bg-surface-100 shadow-neumorphic;
+    @apply bg-cream-100 shadow-minimal border border-cream-200;
   }
   
   .neumorphic-inset {
-    @apply bg-surface-200 shadow-neumorphic-inset;
+    @apply bg-cream-200 shadow-neumorphic-inset;
   }
   
   .neumorphic-pressed {
-    @apply bg-surface-200 shadow-neumorphic-inset;
+    @apply bg-cream-200 shadow-neumorphic-inset;
   }
   
-  /* Tactile Buttons */
+  /* Minimal Tactile Buttons */
   .btn-tactile {
-    @apply relative overflow-hidden transition-all duration-200 ease-out;
-    @apply bg-surface-100 shadow-tactile rounded-medium;
-    @apply active:scale-95 active:shadow-neumorphic-inset;
+    @apply relative overflow-hidden transition-all duration-150 ease-out;
+    @apply bg-cream-100 shadow-minimal rounded-medium border border-cream-200;
+    @apply active:scale-98 active:shadow-neumorphic-inset;
   }
   
   .btn-tactile:active {
-    transform: scale(0.98);
+    transform: scale(0.99);
   }
   
-  /* Physical Controls */
+  /* Minimal Physical Controls */
   .knob {
-    @apply w-12 h-12 rounded-full bg-surface-100 shadow-neumorphic;
+    @apply w-10 h-10 rounded-full bg-cream-100 shadow-minimal border border-cream-200;
     @apply flex items-center justify-center cursor-pointer;
-    @apply transition-all duration-200 ease-out;
-    @apply hover:shadow-soft active:shadow-neumorphic-inset;
+    @apply transition-all duration-150 ease-out;
+    @apply hover:shadow-tactile active:shadow-neumorphic-inset;
   }
   
   .toggle-switch {
-    @apply relative w-12 h-6 bg-neutral-300 rounded-full;
-    @apply transition-all duration-300 ease-out;
-    @apply shadow-neumorphic-inset;
+    @apply relative w-10 h-5 bg-cream-300 rounded-full;
+    @apply transition-all duration-200 ease-out;
+    @apply shadow-neumorphic-inset border border-cream-200;
   }
   
   .toggle-switch.active {
@@ -88,36 +88,36 @@ a {
   
   .toggle-switch::after {
     content: '';
-    @apply absolute top-1 left-1 w-4 h-4 bg-white rounded-full;
-    @apply shadow-tactile transition-all duration-300 ease-out;
+    @apply absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full;
+    @apply shadow-minimal transition-all duration-200 ease-out;
   }
   
   .toggle-switch.active::after {
-    @apply transform translate-x-6;
+    @apply transform translate-x-5;
   }
   
-  /* Slider Components */
+  /* Minimal Slider Components */
   .slider-track {
-    @apply w-full h-2 bg-neutral-200 rounded-full shadow-neumorphic-inset;
+    @apply w-full h-1 bg-cream-300 rounded-full shadow-neumorphic-inset;
   }
   
   .slider-thumb {
-    @apply w-6 h-6 bg-white rounded-full shadow-tactile;
-    @apply cursor-pointer transition-all duration-200 ease-out;
-    @apply hover:shadow-soft active:shadow-neumorphic-inset;
+    @apply w-4 h-4 bg-white rounded-full shadow-minimal border border-cream-200;
+    @apply cursor-pointer transition-all duration-150 ease-out;
+    @apply hover:shadow-tactile active:shadow-neumorphic-inset;
   }
   
-  /* Card Components */
+  /* Minimal Card Components */
   .card-neumorphic {
-    @apply bg-surface-100 rounded-medium shadow-neumorphic;
-    @apply transition-all duration-200 ease-out;
-    @apply hover:shadow-soft;
+    @apply bg-cream-50 rounded-medium shadow-minimal border border-cream-200;
+    @apply transition-all duration-150 ease-out;
+    @apply hover:shadow-tactile;
   }
   
   .card-tactile {
-    @apply bg-surface-100 rounded-medium shadow-tactile;
-    @apply transition-all duration-200 ease-out;
-    @apply active:shadow-neumorphic-inset active:scale-98;
+    @apply bg-cream-50 rounded-medium shadow-minimal border border-cream-200;
+    @apply transition-all duration-150 ease-out;
+    @apply active:shadow-neumorphic-inset active:scale-99;
   }
   
   /* Typography */
