@@ -81,6 +81,7 @@ export default function FeedPage() {
       likes: 0,
       comments: 0,
       saves: 0,
+      shares: 0,
       isLiked: false,
       isSaved: false,
       timestamp: new Date().toISOString(),
@@ -102,6 +103,7 @@ export default function FeedPage() {
         followers: 0,
         following: 0,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         email: 'me@example.com',
         preferences: {
           genres: ['K-Pop'],
@@ -233,18 +235,29 @@ export default function FeedPage() {
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        waveId={selectedWaveId}
+        wave={dummyWaves.find(w => w.id === selectedWaveId) || dummyWaves[0]}
       />
 
       <SaveToPlaylistModal
         isOpen={isSaveToPlaylistModalOpen}
         onClose={() => setIsSaveToPlaylistModalOpen(false)}
-        onCreateNewPlaylist={handleCreateNewPlaylist}
+        track={dummyTracks[0]}
+        playlists={dummyPlaylists}
+        onSaveToPlaylist={() => {}}
+        onCreatePlaylist={handleCreateNewPlaylist}
       />
 
       <FilterModal
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
+        onApplyFilters={() => {}}
+        currentFilters={{
+          timeRange: 'all',
+          mood: [],
+          genre: [],
+          userType: 'all',
+          sortBy: 'latest'
+        }}
       />
     </div>
   );
