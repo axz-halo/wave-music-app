@@ -3,15 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Heart, MessageCircle, Bookmark, Share, Play } from 'lucide-react';
-import { Wave, TrackInfo } from '@/types';
+import { Wave } from '@/types';
+import LPRecord from '@/components/music/LPRecord';
 
 interface WaveCardProps {
   wave: Wave;
-  onLike: (waveId: string) => void;
-  onComment: (waveId: string) => void;
-  onSave: (waveId: string) => void;
-  onShare: (waveId: string) => void;
-  onPlay: (track: TrackInfo) => void;
+  onLike?: (waveId: string) => void;
+  onComment?: (waveId: string) => void;
+  onSave?: (waveId: string) => void;
+  onShare?: (waveId: string) => void;
+  onPlay?: (trackId: string) => void;
 }
 
 export default function WaveCard({ 
@@ -27,12 +28,12 @@ export default function WaveCard({
 
   const handleLike = () => {
     setIsLiked(!isLiked);
-    onLike(wave.id);
+    onLike?.(wave.id);
   };
 
   const handleSave = () => {
     setIsSaved(!isSaved);
-    onSave(wave.id);
+    onSave?.(wave.id);
   };
 
   const formatTimeAgo = (timestamp: string) => {
@@ -47,96 +48,79 @@ export default function WaveCard({
   };
 
   return (
-    <div className="bg-cream-50 rounded-medium p-4 shadow-minimal border border-cream-200 fade-in hover:shadow-tactile transition-all duration-150">
-      <div className="space-y-4">
+    <div className="sk4-feed-card sk4-spacing-md sk4-border-thin">
+      <div className="space-y-sk4-md">
         {/* User Info */}
-        <Link href={`/wave/${wave.id}`} className="flex items-center space-x-3">
+        <Link href={`/wave/${wave.id}`} className="flex items-center space-x-sk4-md">
           <img 
             src={wave.user.profileImage || '/default-avatar.png'} 
             alt={wave.user.nickname}
-            className="w-8 h-8 rounded-full"
+            className="sk4-user-avatar"
           />
           <div className="flex-1">
-            <p className="text-sm font-medium text-beige-800">{wave.user.nickname}</p>
-            <p className="text-xs text-beige-600">{formatTimeAgo(wave.timestamp)}</p>
+            <p className="sk4-text-username">{wave.user.nickname}</p>
+            <p className="sk4-text-timestamp">{formatTimeAgo(wave.timestamp)}</p>
           </div>
         </Link>
 
-        {/* Music Info with LP Record */}
-        <div className="flex items-center space-x-3">
-          <div className="relative group">
-            <Link href={`/wave/${wave.id}`}>
-              <img 
-                src={wave.track.thumbnailUrl} 
-                alt={wave.track.title}
-                className="w-12 h-12 rounded-full object-cover shadow-tactile"
-              />
-            </Link>
-            <button 
-              onClick={() => onPlay(wave.track)}
-              className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200"
-            >
-              <div className="w-6 h-6 bg-white/90 rounded-full flex items-center justify-center">
-                <Play className="w-3 h-3 text-beige-800 ml-0.5" />
-              </div>
-            </button>
+        {/* Music Info */}
+        <div className="flex items-center space-x-sk4-md">
+          <LPRecord
+            src={wave.track.thumbnailUrl}
+            alt={wave.track.title}
+            size="md"
+            onPlay={() => onPlay?.(wave.track.id)}
+          />
+          <div className="flex-1">
+            <h3 className="sk4-text-track-title">{wave.track.title}</h3>
+            <p className="sk4-text-artist">{wave.track.artist}</p>
+            <p className="sk4-text-timestamp">{Math.floor((wave.track.duration||0)/60)}:{String((wave.track.duration||0)%60).padStart(2,'0')}</p>
           </div>
-          <Link href={`/wave/${wave.id}`} className="flex-1">
-            <h3 className="text-sm font-semibold text-beige-800 truncate">{wave.track.title}</h3>
-            <p className="text-xs text-beige-600 truncate">{wave.track.artist}</p>
-          </Link>
         </div>
 
         {/* Comment */}
-        <Link href={`/wave/${wave.id}`} className="block">
-          <p className="text-sm text-beige-700 leading-relaxed">{wave.comment}</p>
-        </Link>
+        {wave.comment && (
+          <p className="sk4-text-base text-sk4-charcoal">{wave.comment}</p>
+        )}
 
         {/* Mood */}
-        <div className="flex items-center space-x-2">
-          <span className="text-lg">{wave.moodEmoji}</span>
-          <span className="text-xs text-beige-600 bg-cream-200 px-2 py-1 rounded-medium">
-            {wave.moodText}
-          </span>
-        </div>
+        {wave.moodEmoji && (
+          <div className="flex items-center space-x-sk4-sm">
+            <span className="text-2xl">{wave.moodEmoji}</span>
+            <span className="sk4-text-sm text-sk4-dark-gray">{wave.moodText}</span>
+          </div>
+        )}
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-2 border-t border-cream-200">
-          <div className="flex items-center space-x-4">
+        <div className="flex items-center justify-between pt-sk4-sm">
+          <div className="flex items-center space-x-sk4-lg">
             <button 
               onClick={handleLike}
-              className={`flex items-center space-x-1 transition-all duration-200 ${
-                isLiked ? 'text-red-500' : 'text-beige-600 hover:text-red-500'
-              }`}
+              className={`sk4-action-button ${isLiked ? 'active' : ''}`}
             >
-              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-              <span className="text-xs font-medium">{wave.likes}</span>
+              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current text-sk4-orange' : 'text-sk4-dark-gray'}`} />
             </button>
             
             <button 
-              onClick={() => onComment(wave.id)}
-              className="flex items-center space-x-1 text-beige-600 hover:text-primary-500 transition-all duration-200"
+              onClick={() => onComment?.(wave.id)}
+              className="sk4-action-button"
             >
-              <MessageCircle className="w-4 h-4" />
-              <span className="text-xs font-medium">{wave.comments}</span>
+              <MessageCircle className="w-4 h-4 text-sk4-dark-gray" />
             </button>
             
             <button 
               onClick={handleSave}
-              className={`flex items-center space-x-1 transition-all duration-200 ${
-                isSaved ? 'text-primary-500' : 'text-beige-600 hover:text-primary-500'
-              }`}
+              className={`sk4-action-button ${isSaved ? 'active' : ''}`}
             >
-              <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-              <span className="text-xs font-medium">{wave.saves}</span>
+              <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current text-sk4-orange' : 'text-sk4-dark-gray'}`} />
             </button>
           </div>
           
           <button 
-            onClick={() => onShare(wave.id)}
-            className="w-8 h-8 bg-cream-200 rounded-full flex items-center justify-center hover:bg-cream-300 transition-all duration-200"
+            onClick={() => onShare?.(wave.id)}
+            className="sk4-action-button"
           >
-            <Share className="w-4 h-4 text-beige-600" />
+            <Share className="w-4 h-4 text-sk4-dark-gray" />
           </button>
         </div>
       </div>

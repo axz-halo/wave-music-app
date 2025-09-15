@@ -2,20 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #fefdfb;
-  --foreground: #655024;
-  --surface: #fdf9f3;
-  --muted: #b5a894;
-}
+/* SK4 Design System - Dieter Rams "Less but Better" */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1a1610;
-    --foreground: #e8d0a8;
-    --surface: #2a2419;
-    --muted: #d4b894;
-  }
+:root {
+  /* SK4 Color Variables */
+  --sk4-white: #ffffff;
+  --sk4-off-white: #fafafa;
+  --sk4-light-gray: #f8f8f8;
+  --sk4-gray: #e0e0e0;
+  --sk4-medium-gray: #cccccc;
+  --sk4-dark-gray: #666666;
+  --sk4-charcoal: #333333;
+  --sk4-orange: #ff6600;
+  --sk4-radio-bg: #1a1a1a;
+  --sk4-radio-text: #f0c14b;
+  
+  /* SK4 Spacing Variables */
+  --sk4-spacing-sm: 8px;
+  --sk4-spacing-md: 16px;
+  --sk4-spacing-lg: 24px;
+  --sk4-spacing-xl: 32px;
+  
+  /* SK4 Border Variables */
+  --sk4-border-thin: 1px solid #e0e0e0;
+  --sk4-border-medium: 2px solid #cccccc;
 }
 
 * {
@@ -29,11 +39,11 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--sk4-off-white);
+  color: var(--sk4-charcoal);
+  line-height: 1.3;
   font-weight: 400;
-  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -43,209 +53,153 @@ a {
   text-decoration: none;
 }
 
+/* Accessibility - Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer components {
-  /* Minimal Neumorphic Components */
-  .neumorphic {
-    @apply bg-cream-100 shadow-minimal border border-cream-200;
-  }
-  
-  .neumorphic-inset {
-    @apply bg-cream-200 shadow-neumorphic-inset;
-  }
-  
-  .neumorphic-pressed {
-    @apply bg-cream-200 shadow-neumorphic-inset;
-  }
-  
-  /* Minimal Tactile Buttons */
-  .btn-tactile {
-    @apply relative overflow-hidden transition-all duration-150 ease-out;
-    @apply bg-cream-100 shadow-minimal rounded-medium border border-cream-200;
-    @apply active:scale-98 active:shadow-neumorphic-inset;
-  }
-  
-  .btn-tactile:active {
-    transform: scale(0.99);
-  }
-  
-  /* Minimal Physical Controls */
-  .knob {
-    @apply w-10 h-10 rounded-full bg-cream-100 shadow-minimal border border-cream-200;
-    @apply flex items-center justify-center cursor-pointer;
-    @apply transition-all duration-150 ease-out;
-    @apply hover:shadow-tactile active:shadow-neumorphic-inset;
-  }
-  
-  .toggle-switch {
-    @apply relative w-10 h-5 bg-cream-300 rounded-full;
+  /* SK4 Feed Card - Completely Flat */
+  .sk4-feed-card {
+    @apply bg-sk4-white border-sk4-gray;
     @apply transition-all duration-200 ease-out;
-    @apply shadow-neumorphic-inset border border-cream-200;
+    @apply hover:animate-sk4-hover;
   }
   
-  .toggle-switch.active {
-    @apply bg-primary-500;
-  }
-  
-  .toggle-switch::after {
-    content: '';
-    @apply absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full;
-    @apply shadow-minimal transition-all duration-200 ease-out;
-  }
-  
-  .toggle-switch.active::after {
-    @apply transform translate-x-5;
-  }
-  
-  /* Minimal Slider Components */
-  .slider-track {
-    @apply w-full h-1 bg-cream-300 rounded-full shadow-neumorphic-inset;
-  }
-  
-  .slider-thumb {
-    @apply w-4 h-4 bg-white rounded-full shadow-minimal border border-cream-200;
-    @apply cursor-pointer transition-all duration-150 ease-out;
-    @apply hover:shadow-tactile active:shadow-neumorphic-inset;
-  }
-  
-  /* Minimal Card Components */
-  .card-neumorphic {
-    @apply bg-cream-50 rounded-medium shadow-minimal border border-cream-200;
-    @apply transition-all duration-150 ease-out;
-    @apply hover:shadow-tactile;
-  }
-  
-  .card-tactile {
-    @apply bg-cream-50 rounded-medium shadow-minimal border border-cream-200;
-    @apply transition-all duration-150 ease-out;
-    @apply active:shadow-neumorphic-inset active:scale-99;
-  }
-  
-  /* Typography */
-  .text-hierarchy {
-    @apply text-base font-medium text-neutral-800 leading-relaxed;
-  }
-  
-  .text-hierarchy-lg {
-    @apply text-lg font-semibold text-neutral-900 leading-snug;
-  }
-  
-  .text-hierarchy-xl {
-    @apply text-xl font-semibold text-neutral-900 leading-snug;
-  }
-  
-  .text-hierarchy-2xl {
-    @apply text-2xl font-semibold text-neutral-900 leading-tight;
-  }
-  
-  .text-muted {
-    @apply text-neutral-500 text-sm;
-  }
-  
-  .text-label {
-    @apply text-neutral-600 text-xs font-medium uppercase tracking-wide;
-  }
-  
-  /* Now Playing Card */
-  .now-playing-card {
-    @apply bg-gradient-to-br from-surface-50 to-surface-100;
-    @apply rounded-large shadow-neumorphic p-6;
-    @apply border border-neutral-200/50;
-  }
-  
-  /* Wave Cards */
-  .wave-card {
-    @apply bg-surface-100 rounded-medium shadow-tactile;
+  /* SK4 LP Record - Perfect Circle */
+  .sk4-lp-record {
+    @apply bg-sk4-charcoal border-sk4-medium-gray;
+    @apply border-sk4-circle;
     @apply transition-all duration-200 ease-out;
-    @apply hover:shadow-soft active:shadow-neumorphic-inset active:scale-98;
   }
   
-  /* Station Cards */
-  .station-card {
-    @apply bg-gradient-to-br from-surface-50 to-surface-100;
-    @apply rounded-medium shadow-neumorphic;
+  .sk4-lp-record.playing {
+    @apply animate-sk4-lp-rotate;
+  }
+  
+  /* SK4 Action Button - Circular */
+  .sk4-action-button {
+    @apply w-10 h-10 bg-transparent border-sk4-gray;
+    @apply border-sk4-circle flex items-center justify-center;
     @apply transition-all duration-200 ease-out;
-    @apply hover:shadow-soft active:shadow-neumorphic-inset;
+    @apply hover:bg-sk4-light-gray;
   }
   
-  /* Progress Bar */
-  .progress-bar {
-    @apply w-full h-1 bg-neutral-200 rounded-full shadow-neumorphic-inset;
+  .sk4-action-button.active {
+    @apply bg-sk4-orange bg-opacity-10;
   }
   
-  .progress-fill {
-    @apply h-full bg-primary-500 rounded-full transition-all duration-300 ease-out;
+  /* SK4 User Avatar */
+  .sk4-user-avatar {
+    @apply w-8 h-8 border-sk4-gray;
+    @apply border-sk4-circle;
   }
   
-  .progress-scrubber {
-    @apply w-4 h-4 bg-white rounded-full shadow-tactile;
-    @apply cursor-pointer transition-all duration-200 ease-out;
-    @apply hover:shadow-soft active:shadow-neumorphic-inset;
+  /* SK4 Radio Display */
+  .sk4-radio-display {
+    @apply bg-sk4-radio-bg text-sk4-radio-text;
+    @apply w-full h-32 flex items-center justify-center;
+    @apply font-sk4-mono text-sk4-sm;
   }
   
-  /* Reaction Dots */
-  .reaction-dot {
-    @apply w-8 h-8 rounded-full bg-surface-100 shadow-tactile;
-    @apply flex items-center justify-center cursor-pointer;
+  /* SK4 Navigation Tab */
+  .sk4-nav-tab {
+    @apply h-15 bg-sk4-white;
+    @apply flex items-center justify-center;
     @apply transition-all duration-200 ease-out;
-    @apply hover:shadow-soft active:shadow-neumorphic-inset active:scale-95;
   }
   
-  /* Live Indicator */
-  .live-indicator {
-    @apply w-2 h-2 bg-red-500 rounded-full;
-    @apply animate-pulse-soft;
+  .sk4-nav-tab.active {
+    @apply text-sk4-orange;
   }
   
-  /* Tab Bar */
-  .tab-bar {
-    @apply bg-surface-100 rounded-large shadow-neumorphic;
-    @apply border border-neutral-200/50;
+  .sk4-nav-tab:not(.active) {
+    @apply text-sk4-dark-gray;
   }
   
-  .tab-item {
-    @apply flex items-center justify-center p-3 rounded-medium;
-    @apply transition-all duration-200 ease-out;
-    @apply hover:bg-surface-200 active:shadow-neumorphic-inset;
+  /* SK4 Typography Classes */
+  .sk4-text-timestamp {
+    @apply text-sk4-xs text-sk4-dark-gray;
   }
   
-  .tab-item.active {
-    @apply bg-primary-500 text-white shadow-tactile;
+  .sk4-text-artist {
+    @apply text-sk4-sm text-sk4-dark-gray;
   }
   
-  /* Input Fields */
-  .input-field {
-    @apply bg-surface-100 rounded-medium shadow-neumorphic-inset;
-    @apply border border-neutral-200/50 px-4 py-3;
-    @apply transition-all duration-200 ease-out;
-    @apply focus:shadow-soft focus:border-primary-500/50;
+  .sk4-text-username {
+    @apply text-sk4-base text-sk4-charcoal font-medium;
+  }
+  
+  .sk4-text-track-title {
+    @apply text-sk4-lg text-sk4-charcoal font-medium;
+  }
+  
+  .sk4-text-large-title {
+    @apply text-sk4-xl text-sk4-charcoal font-medium;
+  }
+  
+  /* SK4 Spacing Classes */
+  .sk4-spacing-sm {
+    @apply p-sk4-sm;
+  }
+  
+  .sk4-spacing-md {
+    @apply p-sk4-md;
+  }
+  
+  .sk4-spacing-lg {
+    @apply p-sk4-lg;
+  }
+  
+  .sk4-spacing-xl {
+    @apply p-sk4-xl;
+  }
+  
+  /* SK4 Border Classes */
+  .sk4-border-thin {
+    @apply border-sk4-gray;
+  }
+  
+  .sk4-border-medium {
+    @apply border-sk4-medium-gray;
   }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  /* SK4 Focus Styles - Orange outline */
+  .sk4-focus:focus-visible {
+    outline: 2px solid var(--sk4-orange);
+    outline-offset: 2px;
   }
   
-  .spring-animation {
-    animation: spring 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  /* SK4 Selection Styles - Orange background */
+  .sk4-selection::selection {
+    background: var(--sk4-orange);
+    color: var(--sk4-white);
   }
   
-  .fade-in {
-    animation: fadeIn 0.4s ease-out;
+  /* SK4 Touch Target - Minimum 44px */
+  .sk4-touch-target {
+    min-height: 44px;
+    min-width: 44px;
   }
   
-  .slide-up {
-    animation: slideUp 0.3s ease-out;
-  }
-  
-  .scale-98 {
-    transform: scale(0.98);
+  /* SK4 Safe Area Support */
+  .sk4-safe-area {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Minimal */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -253,23 +207,24 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d4;
-  border-radius: 3px;
+  background: var(--sk4-gray);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a3a3a3;
+  background: var(--sk4-medium-gray);
 }
 
-/* Focus styles */
+/* Focus styles for all interactive elements */
 button:focus-visible,
-input:focus-visible {
-  outline: 2px solid #ff5500;
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--sk4-orange);
   outline-offset: 2px;
 }
 
 /* Selection styles */
 ::selection {
-  background: #ff5500;
-  color: white;
+  background: var(--sk4-orange);
+  color: var(--sk4-white);
 }

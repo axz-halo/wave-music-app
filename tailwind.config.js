@@ -8,112 +8,59 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Cream/Beige + Orange color system
-        primary: {
-          50: '#fff7f0',
-          100: '#ffede0',
-          200: '#ffd9c0',
-          300: '#ffc299',
-          400: '#ffa366',
-          500: '#ff5500', // Main orange accent
-          600: '#e64d00',
-          700: '#cc4400',
-          800: '#b33a00',
-          900: '#993000',
-        },
-        cream: {
-          50: '#fefdfb',
-          100: '#fdf9f3',
-          200: '#faf2e7',
-          300: '#f6e8d5',
-          400: '#f0dcc0',
-          500: '#e8d0a8',
-          600: '#d4b894',
-          700: '#b89d7a',
-          800: '#9c8260',
-          900: '#806a4a',
-        },
-        beige: {
-          50: '#faf9f7',
-          100: '#f5f3f0',
-          200: '#ebe7e1',
-          300: '#ddd6cc',
-          400: '#c9bfb0',
-          500: '#b5a894',
-          600: '#a18f78',
-          700: '#8d7a5c',
-          800: '#796540',
-          900: '#655024',
-        },
-        neutral: {
-          50: '#fafafa',
-          100: '#f5f5f5',
-          200: '#e5e5e5',
-          300: '#d4d4d4',
-          400: '#a3a3a3',
-          500: '#737373',
-          600: '#525252',
-          700: '#404040',
-          800: '#262626',
-          900: '#171717',
-        },
-        // Soft muted backgrounds
-        surface: {
-          50: '#fefdfb',
-          100: '#fdf9f3',
-          200: '#faf2e7',
-          300: '#f6e8d5',
-          400: '#f0dcc0',
-        }
+        // SK4 Color System - Dieter Rams inspired
+        'sk4-white': '#ffffff',
+        'sk4-off-white': '#fafafa',
+        'sk4-light-gray': '#f8f8f8',
+        'sk4-gray': '#e0e0e0',
+        'sk4-medium-gray': '#cccccc',
+        'sk4-dark-gray': '#666666',
+        'sk4-charcoal': '#333333',
+        'sk4-orange': '#ff6600',
+        'sk4-radio-bg': '#1a1a1a',
+        'sk4-radio-text': '#f0c14b',
       },
       borderRadius: {
-        'soft': '12px',
-        'medium': '16px',
-        'large': '20px',
+        'sk4': '0px', // Flat design - no rounded corners except circles
+        'sk4-circle': '50%', // Only for circular elements
       },
-      boxShadow: {
-        'neumorphic': '2px 2px 4px rgba(0, 0, 0, 0.06), -2px -2px 4px rgba(255, 255, 255, 0.8)',
-        'neumorphic-inset': 'inset 1px 1px 2px rgba(0, 0, 0, 0.06), inset -1px -1px 2px rgba(255, 255, 255, 0.8)',
-        'soft': '0 1px 3px rgba(0, 0, 0, 0.04)',
-        'tactile': '0 1px 2px rgba(0, 0, 0, 0.04)',
-        'minimal': '0 1px 1px rgba(0, 0, 0, 0.02)',
-        'elevated': '0 2px 4px rgba(0, 0, 0, 0.06)',
-      },
+      // No shadows - completely flat design
+      boxShadow: {},
       fontFamily: {
-        'system': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        'sk4': ['SF Pro Display', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        'sk4-mono': ['SF Mono', 'Monaco', 'Consolas', 'monospace'],
       },
       fontSize: {
-        'hierarchy': ['16px', '1.5'],
-        'hierarchy-lg': ['20px', '1.4'],
-        'hierarchy-xl': ['24px', '1.4'],
-        'hierarchy-2xl': ['32px', '1.3'],
+        'sk4-xs': ['11px', '1.3'], // Timestamps, secondary info
+        'sk4-sm': ['12px', '1.3'], // Artist names, captions
+        'sk4-base': ['13px', '1.3'], // Usernames, comments
+        'sk4-lg': ['16px', '1.3'], // Track titles, body text
+        'sk4-xl': ['18px', '1.2'], // Large titles (desktop only)
       },
       spacing: {
-        '18': '4.5rem',
-        '22': '5.5rem',
+        'sk4-sm': '8px',   // Small spacing
+        'sk4-md': '16px',  // Medium spacing
+        'sk4-lg': '24px',  // Large spacing
+        'sk4-xl': '32px',  // Extra large spacing (special cases only)
       },
       animation: {
-        'spring': 'spring 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-        'fade-in': 'fadeIn 0.4s ease-out',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+        // Only 3 animations allowed - Dieter Rams principle
+        'sk4-lp-rotate': 'sk4LpRotate 8s linear infinite', // LP record rotation
+        'sk4-hover': 'sk4Hover 0.2s ease', // Hover effect
+        'sk4-color-transition': 'sk4ColorTransition 0.2s ease', // Color transitions
       },
       keyframes: {
-        spring: {
-          '0%': { transform: 'scale(0.95)' },
-          '100%': { transform: 'scale(1)' },
+        sk4LpRotate: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
         },
-        fadeIn: {
-          '0%': { opacity: '0' },
+        sk4Hover: {
+          '0%': { transform: 'translateY(0px)' },
+          '100%': { transform: 'translateY(-1px)' },
+        },
+        sk4ColorTransition: {
+          '0%': { opacity: '1' },
           '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
-        pulseSoft: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.7' },
         },
       },
     },
