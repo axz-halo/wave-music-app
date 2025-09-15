@@ -23,9 +23,9 @@ export default function LPRecord({
   const [isHovered, setIsHovered] = useState(false);
 
   const sizeClasses = {
-    sm: 'w-25 h-25', // 100px
-    md: 'w-30 h-30', // 120px  
-    lg: 'w-35 h-35', // 140px
+    sm: 'w-16 h-16', // 64px - 더 작고 심플하게
+    md: 'w-20 h-20', // 80px
+    lg: 'w-24 h-24', // 96px
   };
 
   const centerSizeClasses = {

@@ -199,7 +199,7 @@ export default function FeedPage() {
         </div>
 
         {/* Wave Feed */}
-        <div className="space-y-sk4-md">
+        <div className="space-y-sk4-sm">
           {dummyWaves.map((wave) => (
             <WaveCard
               key={wave.id}
