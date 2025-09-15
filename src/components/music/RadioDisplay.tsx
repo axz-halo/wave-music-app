@@ -1,53 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, Share2, Bookmark, Music, Users, Calendar } from 'lucide-react';
-
-interface DailyStats {
-  sharedWaves: number;
-  savedTracks: number;
-  activeUsers: number;
-  newPlaylists: number;
-}
+import { Radio, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
 
 export default function RadioDisplay() {
-  const [stats, setStats] = useState<DailyStats>({
-    sharedWaves: 0,
-    savedTracks: 0,
-    activeUsers: 0,
-    newPlaylists: 0,
-  });
-
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(70);
+  const [frequency, setFrequency] = useState(91.7);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    // Simulate loading stats
-    const timer = setTimeout(() => {
-      setStats({
-        sharedWaves: Math.floor(Math.random() * 50) + 20,
-        savedTracks: Math.floor(Math.random() * 100) + 30,
-        activeUsers: Math.floor(Math.random() * 200) + 50,
-        newPlaylists: Math.floor(Math.random() * 20) + 5,
-      });
-    }, 1000);
-
-    // Update time every minute
-    const timeInterval = setInterval(() => {
+    const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000);
-
-    return () => {
-      clearTimeout(timer);
-      clearInterval(timeInterval);
-    };
+    }, 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('ko-KR', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false 
-    });
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   };
 
   const formatDate = (date: Date) => {
@@ -60,71 +32,90 @@ export default function RadioDisplay() {
 
   return (
     <div className="sk4-radio-display p-sk4-lg">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-sk4-lg">
-        <div className="flex items-center space-x-sk4-sm">
-          <div className="w-8 h-8 bg-sk4-orange flex items-center justify-center">
-            <TrendingUp className="w-4 h-4 text-sk4-white" />
-          </div>
-          <div>
-            <h3 className="sk4-text-lg font-medium text-sk4-white">오늘의 통계</h3>
-            <p className="sk4-text-sm text-sk4-radio-text">{formatDate(currentTime)}</p>
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="sk4-text-sm text-sk4-radio-text">{formatTime(currentTime)}</div>
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mt-1"></div>
+      {/* Dot Matrix Pattern Background */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="grid grid-cols-20 grid-rows-8 h-full w-full">
+          {Array.from({ length: 160 }).map((_, i) => (
+            <div key={i} className="w-1 h-1 bg-sk4-radio-text rounded-sm"></div>
+          ))}
         </div>
       </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-sk4-md">
-        {/* Shared Waves */}
-        <div className="bg-sk4-charcoal bg-opacity-30 rounded p-sk4-sm border border-sk4-dark-gray">
-          <div className="flex items-center space-x-sk4-sm mb-sk4-sm">
-            <Share2 className="w-4 h-4 text-sk4-orange" />
-            <span className="sk4-text-xs text-sk4-radio-text">공유된 웨이브</span>
+      
+      {/* Main Content */}
+      <div className="relative z-10 flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-sk4-lg">
+          <div className="flex items-center space-x-sk4-md">
+            <Radio className="w-5 h-5 text-sk4-radio-text" />
+            <div>
+              <div className="sk4-text-sm font-sk4-mono text-sk4-white">WAVE RADIO</div>
+              <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">FM {frequency.toFixed(1)}</div>
+            </div>
           </div>
-          <div className="sk4-text-lg font-medium text-sk4-white">{stats.sharedWaves}</div>
-          <div className="sk4-text-xs text-sk4-radio-text">오늘</div>
+          <div className="text-right">
+            <div className="sk4-text-sm font-sk4-mono text-sk4-white">{formatTime(currentTime)}</div>
+            <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">{formatDate(currentTime)}</div>
+          </div>
         </div>
 
-        {/* Saved Tracks */}
-        <div className="bg-sk4-charcoal bg-opacity-30 rounded p-sk4-sm border border-sk4-dark-gray">
-          <div className="flex items-center space-x-sk4-sm mb-sk4-sm">
-            <Bookmark className="w-4 h-4 text-sk4-orange" />
-            <span className="sk4-text-xs text-sk4-radio-text">저장된 트랙</span>
+        {/* Stats Display */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text mb-sk4-sm">TODAY'S STATS</div>
+            <div className="grid grid-cols-2 gap-sk4-md text-center">
+              <div>
+                <div className="sk4-text-lg font-sk4-mono text-sk4-white">32</div>
+                <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">WAVES</div>
+              </div>
+              <div>
+                <div className="sk4-text-lg font-sk4-mono text-sk4-white">48</div>
+                <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">TRACKS</div>
+              </div>
+            </div>
           </div>
-          <div className="sk4-text-lg font-medium text-sk4-white">{stats.savedTracks}</div>
-          <div className="sk4-text-xs text-sk4-radio-text">오늘</div>
         </div>
 
-        {/* Active Users */}
-        <div className="bg-sk4-charcoal bg-opacity-30 rounded p-sk4-sm border border-sk4-dark-gray">
-          <div className="flex items-center space-x-sk4-sm mb-sk4-sm">
-            <Users className="w-4 h-4 text-sk4-orange" />
-            <span className="sk4-text-xs text-sk4-radio-text">활성 사용자</span>
-          </div>
-          <div className="sk4-text-lg font-medium text-sk4-white">{stats.activeUsers}</div>
-          <div className="sk4-text-xs text-sk4-radio-text">현재</div>
+        {/* Controls */}
+        <div className="flex items-center justify-center space-x-sk4-md mb-sk4-md">
+          <button className="sk4-action-button">
+            <SkipBack className="w-4 h-4 text-sk4-radio-text" />
+          </button>
+          <button onClick={() => setIsPlaying(!isPlaying)} className="sk4-action-button w-12 h-12">
+            {isPlaying ? (
+              <Pause className="w-6 h-6 text-sk4-radio-text" />
+            ) : (
+              <Play className="w-6 h-6 text-sk4-radio-text" />
+            )}
+          </button>
+          <button className="sk4-action-button">
+            <SkipForward className="w-4 h-4 text-sk4-radio-text" />
+          </button>
         </div>
 
-        {/* New Playlists */}
-        <div className="bg-sk4-charcoal bg-opacity-30 rounded p-sk4-sm border border-sk4-dark-gray">
-          <div className="flex items-center space-x-sk4-sm mb-sk4-sm">
-            <Music className="w-4 h-4 text-sk4-orange" />
-            <span className="sk4-text-xs text-sk4-radio-text">새 플레이리스트</span>
-          </div>
-          <div className="sk4-text-lg font-medium text-sk4-white">{stats.newPlaylists}</div>
-          <div className="sk4-text-xs text-sk4-radio-text">오늘</div>
-        </div>
-      </div>
-
-      {/* Live Indicator */}
-      <div className="flex items-center justify-center mt-sk4-md">
+        {/* Volume Slider */}
         <div className="flex items-center space-x-sk4-sm">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-          <span className="sk4-text-xs text-sk4-radio-text">실시간 업데이트</span>
+          {volume === 0 ? <VolumeX className="w-4 h-4 text-sk4-radio-text" /> : <Volume2 className="w-4 h-4 text-sk4-radio-text" />}
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={volume}
+            onChange={(e) => setVolume(Number(e.target.value))}
+            className="flex-1 h-1 bg-sk4-dark-gray appearance-none cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, var(--sk4-radio-text) ${volume}%, var(--sk4-dark-gray) ${volume}%)`
+            }}
+          />
+        </div>
+
+        {/* Signal Indicator */}
+        <div className="flex items-center justify-center mt-sk4-sm">
+          <div className="flex space-x-1">
+            <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+            <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+            <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+          </div>
+          <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text ml-sk4-sm">LIVE</div>
         </div>
       </div>
     </div>
