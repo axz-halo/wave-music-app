@@ -42,7 +42,7 @@ export default function ProfilePage() {
                 alt={user.nickname}
                 className="w-24 h-24 rounded-full"
               />
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition-all">
+              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center shadow-tactile hover:bg-primary-600 transition-all duration-200">
                 <Edit className="w-4 h-4" />
               </button>
             </div>
@@ -66,7 +66,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Edit Profile Button */}
-            <button className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-all">
+            <button className="w-full py-2.5 bg-primary-500 text-white rounded-medium font-semibold text-sm hover:bg-primary-600 transition-all duration-200 shadow-tactile">
               프로필 편집
             </button>
           </div>
@@ -80,8 +80,8 @@ export default function ProfilePage() {
               const Icon = stat.icon;
               return (
                 <div key={index} className="text-center space-y-2">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg mx-auto flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-primary-100 rounded-medium mx-auto flex items-center justify-center shadow-tactile">
+                    <Icon className="w-5 h-5 text-primary-600" />
                   </div>
                   <p className="text-lg font-bold text-gray-900">{stat.value}</p>
                   <p className="text-xs text-gray-600">{stat.label}</p>
@@ -194,7 +194,7 @@ export default function ProfilePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-900">내 웨이브</h3>
-            <button className="text-blue-600 text-sm font-medium">전체보기</button>
+            <button className="text-primary-500 text-sm font-medium">전체보기</button>
           </div>
           <div className="space-y-2">
             {myWaves.map((wave) => (
@@ -221,7 +221,7 @@ export default function ProfilePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-900">내 플레이리스트</h3>
-            <button className="text-blue-600 text-sm font-medium">전체보기</button>
+            <button className="text-primary-500 text-sm font-medium">전체보기</button>
           </div>
           <div className="space-y-2">
             <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
@@ -235,8 +235,8 @@ export default function ProfilePage() {
               <span className="text-xs text-gray-500">❤️ 156</span>
             </div>
             <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Music className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-primary-100 rounded-medium flex items-center justify-center shadow-tactile">
+                <Music className="w-5 h-5 text-primary-600" />
               </div>
               <div className="flex-1">
                 <p className="font-medium text-gray-900 text-sm">저장한 트랙</p>

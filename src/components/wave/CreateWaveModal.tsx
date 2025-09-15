@@ -128,8 +128,8 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
           {/* Music Detection */}
           <div className="space-y-4">
             <div className="text-center space-y-2">
-              <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto flex items-center justify-center">
-                <Music className="w-8 h-8 text-blue-600" />
+              <div className="w-16 h-16 bg-primary-100 rounded-full mx-auto flex items-center justify-center shadow-tactile">
+                <Music className="w-8 h-8 text-primary-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900">음악 추가하기</h3>
               <p className="text-sm text-gray-600">YouTube 링크를 입력하거나 건너뛸 수 있습니다</p>
@@ -137,7 +137,7 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
 
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
+                <div className="w-1 h-6 bg-primary-500 rounded-full"></div>
                 <span className="text-sm font-medium text-gray-900">YouTube 링크 (선택사항)</span>
               </div>
               <input
@@ -178,7 +178,7 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 text-sm"
+                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-medium bg-primary-50 text-primary-700 hover:bg-primary-100 text-sm shadow-tactile transition-all duration-200"
                 >
                   <SkipForward className="w-4 h-4" />
                   <span>건너뛰고 발행</span>
@@ -234,7 +234,7 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
                   onClick={() => handleMoodSelect(mood)}
                   className={`flex flex-col items-center space-y-1 p-3 rounded-lg border transition-all ${
                     waveData.moodEmoji === mood.emoji
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-primary-500 bg-primary-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -251,7 +251,7 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
           <div className="space-y-3">
             <button
               onClick={handleSubmit}
-              className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all flex items-center justify-center space-x-2"
+              className="w-full py-3 px-4 bg-primary-500 text-white rounded-medium font-medium hover:bg-primary-600 transition-all duration-200 flex items-center justify-center space-x-2 shadow-tactile"
             >
               <Send className="w-5 h-5" />
               <span>웨이브 발행하기</span>

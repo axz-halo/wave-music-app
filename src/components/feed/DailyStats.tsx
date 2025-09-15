@@ -30,8 +30,8 @@ export default function DailyStats() {
             const Icon = stat.icon;
             return (
               <div key={index} className="text-center space-y-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl mx-auto flex items-center justify-center">
-                  <Icon className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 bg-primary-100 rounded-medium mx-auto flex items-center justify-center shadow-tactile">
+                  <Icon className="w-6 h-6 text-primary-600" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>

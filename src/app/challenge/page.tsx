@@ -63,7 +63,7 @@ export default function ChallengePage() {
       <header className="bg-white border-b border-gray-200 px-4 py-4 sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900">챌린지</h1>
-          <Link href="/challenge/create" className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-all">
+          <Link href="/challenge/create" className="w-9 h-9 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-all duration-200 shadow-tactile">
             <Plus className="w-5 h-5" />
           </Link>
         </div>
@@ -78,7 +78,7 @@ export default function ChallengePage() {
               onClick={() => setSelectedStatus(status)}
               className={`px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                 selectedStatus === status
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary-500 text-white'
                   : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
               }`}
             >

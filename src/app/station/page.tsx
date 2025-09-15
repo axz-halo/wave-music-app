@@ -50,7 +50,7 @@ function StationPageContent() {
       <header className="hidden lg:block bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900">스테이션</h1>
-          <a href="/station/create" className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm">스테이션 만들기</a>
+          <a href="/station/create" className="px-3 py-2 rounded-medium bg-primary-500 text-white text-sm shadow-tactile hover:bg-primary-600 transition-all duration-200">스테이션 만들기</a>
         </div>
       </header>
 
@@ -61,7 +61,7 @@ function StationPageContent() {
             <h2 className="text-lg font-semibold text-gray-900">Hot List</h2>
             <div className="flex items-center gap-2 text-xs">
               {(['오늘','이번 주','이번 달'] as const).map((p) => (
-                <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 rounded-full border transition ${period===p? 'bg-blue-600 text-white border-blue-600':'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}>{p}</button>
+                <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 rounded-medium border transition-all duration-200 ${period===p? 'bg-primary-500 text-white border-primary-500 shadow-tactile':'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}>{p}</button>
               ))}
             </div>
           </div>
@@ -84,7 +84,7 @@ function StationPageContent() {
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-gray-900">채널</h2>
-            <a href="#" className="text-sm text-blue-600">모두 보기</a>
+            <a href="#" className="text-sm text-primary-500">모두 보기</a>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {dummyUsers.slice(0, 6).map((u) => (
@@ -98,8 +98,8 @@ function StationPageContent() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-gray-900">전체 스테이션</h2>
             <div className="flex items-center gap-2">
-              <button onClick={() => setSortBy('인기순')} className={`text-xs px-3 py-1.5 rounded-full border ${sortBy==='인기순' ? 'bg-blue-600 text-white border-blue-600':'bg-white text-gray-700 border-gray-200'}`}>인기순</button>
-              <button onClick={() => setSortBy('최신순')} className={`text-xs px-3 py-1.5 rounded-full border ${sortBy==='최신순' ? 'bg-blue-600 text-white border-blue-600':'bg-white text-gray-700 border-gray-200'}`}>최신순</button>
+              <button onClick={() => setSortBy('인기순')} className={`text-xs px-3 py-1.5 rounded-medium border transition-all duration-200 ${sortBy==='인기순' ? 'bg-primary-500 text-white border-primary-500 shadow-tactile':'bg-white text-gray-700 border-gray-200'}`}>인기순</button>
+              <button onClick={() => setSortBy('최신순')} className={`text-xs px-3 py-1.5 rounded-medium border transition-all duration-200 ${sortBy==='최신순' ? 'bg-primary-500 text-white border-primary-500 shadow-tactile':'bg-white text-gray-700 border-gray-200'}`}>최신순</button>
             </div>
           </div>
           <CategoryFilter value={category} onChange={setCategory} />

@@ -59,7 +59,7 @@ export default function MusicPlayer({ track, isPlaying, onPlay, onPause }: Music
         <div className="space-y-2">
           <div className="w-full bg-gray-200 rounded-full h-1">
             <div 
-              className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+              className="bg-primary-500 h-1 rounded-full transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>
@@ -77,7 +77,7 @@ export default function MusicPlayer({ track, isPlaying, onPlay, onPause }: Music
           
           <button 
             onClick={() => isPlaying ? onPause() : onPlay(track)}
-            className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg hover:scale-105 transition-all"
+            className="w-12 h-12 bg-primary-500 text-white rounded-full flex items-center justify-center shadow-tactile hover:shadow-soft hover:scale-105 transition-all duration-200"
           >
             {isPlaying ? (
               <Pause className="w-6 h-6" />
