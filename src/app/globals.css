@@ -3,26 +3,23 @@
 @tailwind utilities;
 
 :root {
-  --wave-blue: #007AFF;
-  --wave-blue-light: #5AC8FA;
-  --wave-blue-dark: #0051D5;
-  --wave-gray: #8E8E93;
-  --wave-gray-light: #C7C7CC;
-  --wave-gray-dark: #3A3A3C;
-  --wave-orange: #FF9500;
-  --wave-orange-light: #FFB340;
-  --wave-green: #34C759;
-  --wave-red: #FF3B30;
-  --wave-bg: #FFFFFF;
-  --wave-bg-secondary: #F2F2F7;
-  --wave-bg-tertiary: #E5E5EA;
-  --wave-text-primary: #000000;
-  --wave-text-secondary: #8E8E93;
-  --wave-text-tertiary: #C7C7CC;
-  --wave-separator: #C6C6C8;
+  --background: #fefefe;
+  --foreground: #171717;
+  --surface: #fdfdfd;
+  --muted: #737373;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --surface: #1a1a1a;
+    --muted: #a3a3a3;
+  }
 }
 
 * {
+  -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
   padding: 0;
   margin: 0;
@@ -32,30 +29,13 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', 'Arial', sans-serif;
-  background: var(--wave-bg-secondary);
-  color: var(--wave-text-primary);
-  font-size: 16px;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 400;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* Responsive breakpoints */
-@media (min-width: 1024px) {
-  html {
-    font-size: 18px;
-  }
-}
-
-@media (min-width: 1280px) {
-  html {
-    font-size: 20px;
-  }
-}
-
-body {
-  background: var(--wave-bg-secondary);
 }
 
 a {
@@ -63,78 +43,207 @@ a {
   text-decoration: none;
 }
 
-/* iPod/iTunes inspired components */
-.ipod-container {
-  background: var(--wave-bg);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--wave-separator);
+@layer components {
+  /* Neumorphic Components */
+  .neumorphic {
+    @apply bg-surface-100 shadow-neumorphic;
+  }
+  
+  .neumorphic-inset {
+    @apply bg-surface-200 shadow-neumorphic-inset;
+  }
+  
+  .neumorphic-pressed {
+    @apply bg-surface-200 shadow-neumorphic-inset;
+  }
+  
+  /* Tactile Buttons */
+  .btn-tactile {
+    @apply relative overflow-hidden transition-all duration-200 ease-out;
+    @apply bg-surface-100 shadow-tactile rounded-medium;
+    @apply active:scale-95 active:shadow-neumorphic-inset;
+  }
+  
+  .btn-tactile:active {
+    transform: scale(0.98);
+  }
+  
+  /* Physical Controls */
+  .knob {
+    @apply w-12 h-12 rounded-full bg-surface-100 shadow-neumorphic;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:shadow-soft active:shadow-neumorphic-inset;
+  }
+  
+  .toggle-switch {
+    @apply relative w-12 h-6 bg-neutral-300 rounded-full;
+    @apply transition-all duration-300 ease-out;
+    @apply shadow-neumorphic-inset;
+  }
+  
+  .toggle-switch.active {
+    @apply bg-primary-500;
+  }
+  
+  .toggle-switch::after {
+    content: '';
+    @apply absolute top-1 left-1 w-4 h-4 bg-white rounded-full;
+    @apply shadow-tactile transition-all duration-300 ease-out;
+  }
+  
+  .toggle-switch.active::after {
+    @apply transform translate-x-6;
+  }
+  
+  /* Slider Components */
+  .slider-track {
+    @apply w-full h-2 bg-neutral-200 rounded-full shadow-neumorphic-inset;
+  }
+  
+  .slider-thumb {
+    @apply w-6 h-6 bg-white rounded-full shadow-tactile;
+    @apply cursor-pointer transition-all duration-200 ease-out;
+    @apply hover:shadow-soft active:shadow-neumorphic-inset;
+  }
+  
+  /* Card Components */
+  .card-neumorphic {
+    @apply bg-surface-100 rounded-medium shadow-neumorphic;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:shadow-soft;
+  }
+  
+  .card-tactile {
+    @apply bg-surface-100 rounded-medium shadow-tactile;
+    @apply transition-all duration-200 ease-out;
+    @apply active:shadow-neumorphic-inset active:scale-98;
+  }
+  
+  /* Typography */
+  .text-hierarchy {
+    @apply text-hierarchy font-medium text-neutral-800;
+  }
+  
+  .text-hierarchy-lg {
+    @apply text-hierarchy-lg font-semibold text-neutral-900;
+  }
+  
+  .text-hierarchy-xl {
+    @apply text-hierarchy-xl font-semibold text-neutral-900;
+  }
+  
+  .text-hierarchy-2xl {
+    @apply text-hierarchy-2xl font-semibold text-neutral-900;
+  }
+  
+  .text-muted {
+    @apply text-neutral-500 text-sm;
+  }
+  
+  .text-label {
+    @apply text-neutral-600 text-xs font-medium uppercase tracking-wide;
+  }
+  
+  /* Now Playing Card */
+  .now-playing-card {
+    @apply bg-gradient-to-br from-surface-50 to-surface-100;
+    @apply rounded-large shadow-neumorphic p-6;
+    @apply border border-neutral-200/50;
+  }
+  
+  /* Wave Cards */
+  .wave-card {
+    @apply bg-surface-100 rounded-medium shadow-tactile;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:shadow-soft active:shadow-neumorphic-inset active:scale-98;
+  }
+  
+  /* Station Cards */
+  .station-card {
+    @apply bg-gradient-to-br from-surface-50 to-surface-100;
+    @apply rounded-medium shadow-neumorphic;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:shadow-soft active:shadow-neumorphic-inset;
+  }
+  
+  /* Progress Bar */
+  .progress-bar {
+    @apply w-full h-1 bg-neutral-200 rounded-full shadow-neumorphic-inset;
+  }
+  
+  .progress-fill {
+    @apply h-full bg-primary-500 rounded-full transition-all duration-300 ease-out;
+  }
+  
+  .progress-scrubber {
+    @apply w-4 h-4 bg-white rounded-full shadow-tactile;
+    @apply cursor-pointer transition-all duration-200 ease-out;
+    @apply hover:shadow-soft active:shadow-neumorphic-inset;
+  }
+  
+  /* Reaction Dots */
+  .reaction-dot {
+    @apply w-8 h-8 rounded-full bg-surface-100 shadow-tactile;
+    @apply flex items-center justify-center cursor-pointer;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:shadow-soft active:shadow-neumorphic-inset active:scale-95;
+  }
+  
+  /* Live Indicator */
+  .live-indicator {
+    @apply w-2 h-2 bg-red-500 rounded-full;
+    @apply animate-pulse-soft;
+  }
+  
+  /* Tab Bar */
+  .tab-bar {
+    @apply bg-surface-100 rounded-large shadow-neumorphic;
+    @apply border border-neutral-200/50;
+  }
+  
+  .tab-item {
+    @apply flex items-center justify-center p-3 rounded-medium;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:bg-surface-200 active:shadow-neumorphic-inset;
+  }
+  
+  .tab-item.active {
+    @apply bg-primary-500 text-white shadow-tactile;
+  }
+  
+  /* Input Fields */
+  .input-field {
+    @apply bg-surface-100 rounded-medium shadow-neumorphic-inset;
+    @apply border border-neutral-200/50 px-4 py-3;
+    @apply transition-all duration-200 ease-out;
+    @apply focus:shadow-soft focus:border-primary-500/50;
+  }
 }
 
-.ipod-button {
-  background: var(--wave-blue);
-  border-radius: 8px;
-  border: none;
-  color: white;
-  font-weight: 600;
-  font-size: 16px;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 122, 255, 0.3);
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .spring-animation {
+    animation: spring 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+  
+  .slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  .scale-98 {
+    transform: scale(0.98);
+  }
 }
 
-.ipod-button:hover {
-  background: var(--wave-blue-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
-}
-
-.ipod-button-secondary {
-  background: var(--wave-bg);
-  border: 1px solid var(--wave-separator);
-  border-radius: 8px;
-  color: var(--wave-blue);
-  font-weight: 600;
-  font-size: 16px;
-  transition: all 0.2s ease;
-}
-
-.ipod-button-secondary:hover {
-  background: var(--wave-bg-secondary);
-  border-color: var(--wave-blue);
-}
-
-.ipod-card {
-  background: var(--wave-bg);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--wave-separator);
-  overflow: hidden;
-}
-
-.ipod-card-elevated {
-  background: var(--wave-bg);
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--wave-separator);
-  overflow: hidden;
-}
-
-.ipod-text-primary {
-  color: var(--wave-text-primary);
-  font-weight: 600;
-}
-
-.ipod-text-secondary {
-  color: var(--wave-text-secondary);
-  font-weight: 400;
-}
-
-.ipod-text-tertiary {
-  color: var(--wave-text-tertiary);
-  font-weight: 400;
-}
-
-/* Custom scrollbar - iPod style */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -144,28 +253,23 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--wave-gray-light);
+  background: #d4d4d4;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--wave-gray);
-}
-
-/* Smooth transitions */
-* {
-  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  background: #a3a3a3;
 }
 
 /* Focus styles */
 button:focus-visible,
 input:focus-visible {
-  outline: 2px solid var(--wave-blue);
+  outline: 2px solid #ff5500;
   outline-offset: 2px;
 }
 
 /* Selection styles */
 ::selection {
-  background: var(--wave-blue-light);
+  background: #ff5500;
   color: white;
 }

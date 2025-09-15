@@ -169,51 +169,47 @@ export default function FeedPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 lg:pb-0 lg:ml-56">
+    <div className="min-h-screen bg-surface-50 pb-20 lg:pb-0 lg:ml-56">
       {/* Desktop Header */}
-      <header className="hidden lg:block bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-30">
+      <header className="hidden lg:block bg-surface-100 border-b border-neutral-200/50 px-6 py-4 sticky top-0 z-30 shadow-soft">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">파도</h1>
+          <h1 className="text-hierarchy-2xl font-semibold text-neutral-900">파도</h1>
           <div className="flex items-center space-x-3">
             <button 
               onClick={() => setIsFilterModalOpen(true)}
-              className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all"
+              className="w-12 h-12 bg-surface-100 rounded-full flex items-center justify-center hover:bg-surface-200 transition-all duration-200 shadow-tactile"
             >
               <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
               </svg>
             </button>
-            <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all">
-              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 00-15 0v5h5l-5 5-5-5h5v-5a7.5 7.5 0 0115 0v5z" />
-              </svg>
+            <button className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-all duration-200 shadow-tactile">
+              <Plus className="w-6 h-6" />
             </button>
           </div>
         </div>
       </header>
 
       {/* Mobile Header */}
-      <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-4 sticky top-0 z-40">
+      <header className="lg:hidden bg-surface-100 border-b border-neutral-200/50 px-4 py-4 sticky top-0 z-40 shadow-soft">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">W</span>
+            <div className="w-10 h-10 bg-primary-500 rounded-medium flex items-center justify-center shadow-tactile">
+              <span className="text-white font-bold text-lg">W</span>
             </div>
-            <h1 className="text-xl font-bold text-gray-900">WAVE</h1>
+            <h1 className="text-hierarchy-xl font-semibold text-neutral-900">WAVE</h1>
           </div>
           <div className="flex items-center space-x-3">
             <button 
               onClick={() => setIsFilterModalOpen(true)}
-              className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all"
+              className="w-10 h-10 bg-surface-100 rounded-full flex items-center justify-center hover:bg-surface-200 transition-all duration-200 shadow-tactile"
             >
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
               </svg>
             </button>
-            <button className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 00-15 0v5h5l-5 5-5-5h5v-5a7.5 7.5 0 0115 0v5z" />
-              </svg>
+            <button className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-all duration-200 shadow-tactile">
+              <Plus className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -232,36 +228,39 @@ export default function FeedPage() {
         )}
 
         {/* Daily Stats */}
-        <DailyStats />
+        <div className="fade-in">
+          <DailyStats />
+        </div>
 
         {/* Filter Buttons */}
-        <div className="flex space-x-2 overflow-x-auto pb-2">
-          <button className="px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap bg-blue-600 text-white">
+        <div className="flex space-x-3 overflow-x-auto pb-2">
+          <button className="px-5 py-3 rounded-medium text-sm font-medium transition-all duration-200 whitespace-nowrap bg-primary-500 text-white shadow-tactile">
             전체
           </button>
-          <button className="px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
+          <button className="px-5 py-3 rounded-medium text-sm font-medium transition-all duration-200 whitespace-nowrap bg-surface-100 text-neutral-700 shadow-tactile hover:bg-surface-200">
             친구만
           </button>
-          <button className="px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
+          <button className="px-5 py-3 rounded-medium text-sm font-medium transition-all duration-200 whitespace-nowrap bg-surface-100 text-neutral-700 shadow-tactile hover:bg-surface-200">
             팔로잉
           </button>
-          <button className="px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
+          <button className="px-5 py-3 rounded-medium text-sm font-medium transition-all duration-200 whitespace-nowrap bg-surface-100 text-neutral-700 shadow-tactile hover:bg-surface-200">
             인기 웨이브
           </button>
         </div>
 
         {/* Wave Feed */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
-          {dummyWaves.map((wave) => (
-            <WaveCard
-              key={wave.id}
-              wave={wave}
-              onLike={handleLike}
-              onComment={handleComment}
-              onSave={handleSave}
-              onShare={handleShare}
-              onPlay={handlePlay}
-            />
+        <div className="space-y-5">
+          {dummyWaves.map((wave, index) => (
+            <div key={wave.id} className="slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+              <WaveCard
+                wave={wave}
+                onLike={handleLike}
+                onComment={handleComment}
+                onSave={handleSave}
+                onShare={handleShare}
+                onPlay={handlePlay}
+              />
+            </div>
           ))}
         </div>
       </div>
