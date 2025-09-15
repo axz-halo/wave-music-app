@@ -58,39 +58,51 @@ export default function ChallengePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-4 sticky top-0 z-40">
+    <div className="min-h-screen bg-cream-50 pb-20 lg:pb-0 lg:ml-56">
+      {/* Desktop Header */}
+      <header className="hidden lg:block bg-cream-100 border-b border-cream-200 px-6 py-4 sticky top-0 z-30 shadow-minimal">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="text-hierarchy-2xl font-semibold text-beige-800">챌린지</h1>
+          <Link href="/challenge/create" className="px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-medium hover:bg-primary-600 transition-all duration-150 shadow-minimal">
+            챌린지 만들기
+          </Link>
+        </div>
+      </header>
+
+      {/* Mobile Header */}
+      <header className="lg:hidden bg-cream-100 border-b border-cream-200 px-4 py-4 sticky top-0 z-40 shadow-minimal">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">챌린지</h1>
-          <Link href="/challenge/create" className="w-9 h-9 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-all duration-200 shadow-tactile">
+          <h1 className="text-hierarchy-xl font-semibold text-beige-800">챌린지</h1>
+          <Link href="/challenge/create" className="w-9 h-9 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-all duration-150 shadow-minimal">
             <Plus className="w-5 h-5" />
           </Link>
         </div>
       </header>
 
-      <div className="max-w-md mx-auto px-4 py-4 space-y-4">
+      <div className="max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-4 py-6 space-y-6">
         {/* Status Tabs */}
-        <div className="flex space-x-2 overflow-x-auto pb-2">
-          {statuses.map((status) => (
-            <button
-              key={status}
-              onClick={() => setSelectedStatus(status)}
-              className={`px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-                selectedStatus === status
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              {status}
-            </button>
-          ))}
+        <div className="bg-cream-100 rounded-medium p-1 shadow-minimal border border-cream-200">
+          <div className="flex justify-around">
+            {statuses.map((status) => (
+              <button
+                key={status}
+                onClick={() => setSelectedStatus(status)}
+                className={`px-4 py-2 rounded-medium text-sm font-medium transition-all duration-150 whitespace-nowrap ${
+                  selectedStatus === status
+                    ? 'bg-primary-500 text-white shadow-minimal'
+                    : 'bg-cream-50 text-beige-700 hover:bg-cream-200'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Popular Challenges */}
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">인기 챌린지</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          <h2 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">인기 챌린지</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {dummyChallenges.slice(0, 3).map((challenge) => (
               <ChallengeCard
                 key={challenge.id}
@@ -105,8 +117,8 @@ export default function ChallengePage() {
 
         {/* All Challenges */}
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">전체 챌린지</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          <h2 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">전체 챌린지</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredChallenges.map((challenge) => (
               <ChallengeCard
                 key={challenge.id}

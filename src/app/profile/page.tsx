@@ -21,20 +21,30 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-4 sticky top-0 z-40">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">마이페이지</h1>
-          <button className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all">
-            <Settings className="w-5 h-5 text-gray-600" />
+    <div className="min-h-screen bg-cream-50 pb-20 lg:pb-0 lg:ml-56">
+      {/* Desktop Header */}
+      <header className="hidden lg:block bg-cream-100 border-b border-cream-200 px-6 py-4 sticky top-0 z-30 shadow-minimal">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="text-hierarchy-2xl font-semibold text-beige-800">마이페이지</h1>
+          <button className="w-10 h-10 bg-cream-200 rounded-full flex items-center justify-center hover:bg-cream-300 transition-all duration-150 shadow-minimal">
+            <Settings className="w-5 h-5 text-beige-600" />
           </button>
         </div>
       </header>
 
-      <div className="max-w-md mx-auto px-4 py-4 space-y-4">
+      {/* Mobile Header */}
+      <header className="lg:hidden bg-cream-100 border-b border-cream-200 px-4 py-4 sticky top-0 z-40 shadow-minimal">
+        <div className="flex items-center justify-between">
+          <h1 className="text-hierarchy-xl font-semibold text-beige-800">마이페이지</h1>
+          <button className="w-9 h-9 bg-cream-200 rounded-full flex items-center justify-center hover:bg-cream-300 transition-all duration-150 shadow-minimal">
+            <Settings className="w-5 h-5 text-beige-600" />
+          </button>
+        </div>
+      </header>
+
+      <div className="max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-4 py-6 space-y-6">
         {/* Profile Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-cream-100 rounded-medium shadow-minimal border border-cream-200 p-6">
           <div className="text-center space-y-4">
             <div className="relative inline-block">
               <img 
@@ -42,31 +52,31 @@ export default function ProfilePage() {
                 alt={user.nickname}
                 className="w-24 h-24 rounded-full"
               />
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center shadow-tactile hover:bg-primary-600 transition-all duration-200">
+              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center shadow-minimal hover:bg-primary-600 transition-all duration-150">
                 <Edit className="w-4 h-4" />
               </button>
             </div>
             
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-gray-900">{user.nickname}</h2>
-              <p className="text-sm text-gray-600">{user.email}</p>
-              <p className="text-xs text-gray-500">{formatJoinDate(user.createdAt)}</p>
+              <h2 className="text-hierarchy-xl font-bold text-beige-800">{user.nickname}</h2>
+              <p className="text-sm text-beige-600">{user.email}</p>
+              <p className="text-xs text-beige-500">{formatJoinDate(user.createdAt)}</p>
             </div>
 
             {/* Follow Stats */}
             <div className="flex justify-center space-x-6">
               <div className="text-center">
-                <p className="text-lg font-bold text-gray-900">{user.followers}</p>
-                <p className="text-xs text-gray-600">팔로워</p>
+                <p className="text-hierarchy-lg font-bold text-beige-800">{user.followers}</p>
+                <p className="text-xs text-beige-600">팔로워</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-bold text-gray-900">{user.following}</p>
-                <p className="text-xs text-gray-600">팔로잉</p>
+                <p className="text-hierarchy-lg font-bold text-beige-800">{user.following}</p>
+                <p className="text-xs text-beige-600">팔로잉</p>
               </div>
             </div>
 
             {/* Edit Profile Button */}
-            <button className="w-full py-2.5 bg-primary-500 text-white rounded-medium font-semibold text-sm hover:bg-primary-600 transition-all duration-200 shadow-tactile">
+            <button className="w-full py-2.5 bg-primary-500 text-white rounded-medium font-semibold text-sm hover:bg-primary-600 transition-all duration-150 shadow-minimal">
               프로필 편집
             </button>
           </div>

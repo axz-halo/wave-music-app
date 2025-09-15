@@ -45,23 +45,23 @@ function StationPageContent() {
 
   return (
     <>
-    <div className="min-h-screen bg-gray-50 pb-20 lg:pb-0 lg:ml-56">
-      {/* Header */}
-      <header className="hidden lg:block bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">스테이션</h1>
-          <a href="/station/create" className="px-3 py-2 rounded-medium bg-primary-500 text-white text-sm shadow-tactile hover:bg-primary-600 transition-all duration-200">스테이션 만들기</a>
-        </div>
-      </header>
+            <div className="min-h-screen bg-cream-50 pb-20 lg:pb-0 lg:ml-56">
+              {/* Header */}
+              <header className="hidden lg:block bg-cream-100 border-b border-cream-200 px-6 py-4 sticky top-0 z-30 shadow-minimal">
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                  <h1 className="text-hierarchy-2xl font-semibold text-beige-800">스테이션</h1>
+                  <a href="/station/create" className="px-4 py-2 rounded-medium bg-primary-500 text-white text-sm font-medium shadow-minimal hover:bg-primary-600 transition-all duration-150">스테이션 만들기</a>
+                </div>
+              </header>
 
       <div className="max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-4 py-4 space-y-8">
         {/* Hot List Carousel (simple grid for now) */}
         <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-gray-900">Hot List</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-hierarchy-lg font-semibold text-beige-800">Hot List</h2>
             <div className="flex items-center gap-2 text-xs">
               {(['오늘','이번 주','이번 달'] as const).map((p) => (
-                <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 rounded-medium border transition-all duration-200 ${period===p? 'bg-primary-500 text-white border-primary-500 shadow-tactile':'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}>{p}</button>
+                <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 rounded-medium border transition-all duration-150 ${period===p? 'bg-primary-500 text-white border-primary-500 shadow-minimal':'bg-cream-100 text-beige-700 border-cream-200 hover:bg-cream-200'}`}>{p}</button>
               ))}
             </div>
           </div>
