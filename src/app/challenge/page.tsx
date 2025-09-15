@@ -6,6 +6,7 @@ import { Plus, Clock, Users, Trophy } from 'lucide-react';
 import ChallengeCard from '@/components/challenge/ChallengeCard';
 import Navigation from '@/components/layout/Navigation';
 import { dummyChallenges } from '@/lib/dummy-data';
+import FeaturedChallengeBanner from '@/components/challenge/FeaturedChallengeBanner';
 
 export default function ChallengePage() {
   const [selectedStatus, setSelectedStatus] = useState('진행 중');
@@ -80,6 +81,12 @@ export default function ChallengePage() {
       </header>
 
       <div className="max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {/* Featured Top 3 */}
+        <section className="space-y-sk4-sm">
+          {dummyChallenges.slice(0,3).map((c)=> (
+            <FeaturedChallengeBanner key={c.id} challenge={c} />
+          ))}
+        </section>
         {/* Status Tabs */}
         <div className="bg-cream-100 rounded-medium p-1 shadow-minimal border border-cream-200">
           <div className="flex justify-around">
@@ -103,7 +110,7 @@ export default function ChallengePage() {
         <div>
           <h2 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">인기 챌린지</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {dummyChallenges.slice(0, 3).map((challenge) => (
+            {dummyChallenges.slice(0, 6).map((challenge) => (
               <ChallengeCard
                 key={challenge.id}
                 challenge={challenge}

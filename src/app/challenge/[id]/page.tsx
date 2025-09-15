@@ -86,7 +86,7 @@ export default function ChallengeDetailPage() {
         {/* Voting */}
         <section className="bg-cream-100 rounded-medium shadow-minimal border border-cream-200 p-6">
           <h3 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">투표하기</h3>
-          <div className="mb-sk4-md sk4-text-sm text-sk4-dark-gray">추천하고 싶은 곡이 있나요? <button onClick={()=>setIsRecommendOpen(true)} className="ml-sk4-sm px-sk4-sm py-sk4-sm rounded bg-sk4-orange bg-opacity-10 text-sk4-orange border border-sk4-orange hover:bg-opacity-20 transition-all duration-200">곡 추천하기</button></div>
+          <div className="mb-sk4-md sk4-text-sm text-sk4-dark-gray">추천하고 싶은 곡이 있나요? <button onClick={()=>setIsRecommendOpen(true)} className="ml-sk4-sm px-sk4-md py-sk4-sm bg-sk4-orange text-sk4-white rounded transition-all duration-200">트랙 제출하기</button></div>
           <ul className="space-y-3">
             {dummyTracks.slice(0,5).map(t=> (
               <li key={t.id} className="py-3 px-4 bg-cream-50 rounded-medium shadow-minimal border border-cream-200 flex items-center gap-3">
