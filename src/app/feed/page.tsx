@@ -67,7 +67,12 @@ export default function FeedPage() {
         followers: 0,
         following: 0,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         email: 'me@example.com',
+        preferences: {
+          genres: ['K-Pop'],
+          notifications: { newWaves: true, comments: true, challenges: true },
+        },
       },
       track: waveData.track || dummyTracks[0],
       comment: waveData.comment || '',
