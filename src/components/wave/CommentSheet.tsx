@@ -55,66 +55,67 @@ export default function CommentSheet({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+      <div
+        className="absolute inset-0 bg-black bg-opacity-30"
         onClick={onClose}
       />
-      
-      {/* Modal */}
-      <div className="relative bg-cream-100 rounded-medium shadow-minimal border border-cream-200 w-full max-w-2xl max-h-[90vh] flex flex-col">
+
+      {/* Bottom Sheet */}
+      <div className="absolute bottom-0 left-0 right-0 bg-sk4-white rounded-t-lg shadow-lg border-t border-sk4-gray max-h-[80vh] flex flex-col animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-cream-200">
-          <div className="flex items-center space-x-3">
-            <h2 className="text-hierarchy-lg font-semibold text-beige-800">댓글</h2>
-            <span className="text-sm text-beige-600">({comments.length})</span>
+        <div className="flex items-center justify-between p-sk4-md border-b border-sk4-gray">
+          <div className="flex items-center space-x-sk4-sm">
+            <h2 className="sk4-text-lg font-medium text-sk4-charcoal">댓글</h2>
+            <span className="sk4-text-sm text-sk4-dark-gray">({comments.length})</span>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-cream-200 rounded-medium transition-all duration-150">
-            <X className="w-5 h-5 text-beige-600" />
+          <button onClick={onClose} className="p-sk4-sm hover:bg-sk4-light-gray rounded transition-all duration-200">
+            <X className="w-5 h-5 text-sk4-dark-gray" />
           </button>
         </div>
 
         {/* Comments List */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto p-sk4-md space-y-sk4-md">
           {comments.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-cream-200 rounded-full mx-auto flex items-center justify-center mb-4 shadow-minimal">
+            <div className="text-center py-sk4-xl">
+              <div className="w-16 h-16 bg-sk4-light-gray rounded-full mx-auto flex items-center justify-center mb-sk4-md">
                 <span className="text-2xl">💬</span>
               </div>
-              <p className="text-beige-600 text-sm">아직 댓글이 없습니다</p>
-              <p className="text-beige-500 text-xs mt-1">첫 번째 댓글을 남겨보세요!</p>
+              <p className="sk4-text-sm text-sk4-dark-gray">아직 댓글이 없습니다</p>
+              <p className="sk4-text-xs text-sk4-dark-gray mt-sk4-sm">첫 번째 댓글을 남겨보세요!</p>
             </div>
           ) : (
             comments.map((comment) => (
-              <div key={comment.id} className="flex space-x-3">
+              <div key={comment.id} className="flex space-x-sk4-sm">
                 <img
                   src={comment.user.profileImage || '/default-avatar.png'}
                   alt={comment.user.nickname}
-                  className="w-8 h-8 rounded-full flex-shrink-0"
+                  className="w-8 h-8 rounded-full flex-shrink-0 border border-sk4-gray"
                 />
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium text-gray-900 text-sm">{comment.user.nickname}</span>
-                    <span className="text-xs text-gray-500">{formatTimeAgo(comment.timestamp)}</span>
+                <div className="flex-1 space-y-sk4-sm">
+                  <div className="flex items-center space-x-sk4-sm">
+                    <span className="sk4-text-sm font-medium text-sk4-charcoal">{comment.user.nickname}</span>
+                    <span className="sk4-text-xs text-sk4-dark-gray">•</span>
+                    <span className="sk4-text-xs text-sk4-dark-gray">{formatTimeAgo(comment.timestamp)}</span>
                   </div>
-                  <p className="text-sm text-gray-700 leading-relaxed">{comment.content}</p>
-                  <div className="flex items-center space-x-4">
+                  <p className="sk4-text-sm text-sk4-charcoal leading-relaxed">{comment.content}</p>
+                  <div className="flex items-center space-x-sk4-md">
                     <button
                       onClick={() => onLikeComment(comment.id)}
-                      className={`flex items-center space-x-1 text-xs transition-all ${
-                        comment.isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
+                      className={`flex items-center space-x-1 sk4-text-xs transition-all ${
+                        comment.isLiked ? 'text-sk4-orange' : 'text-sk4-dark-gray hover:text-sk4-orange'
                       }`}
                     >
                       <Heart className={`w-3 h-3 ${comment.isLiked ? 'fill-current' : ''}`} />
                       <span>{comment.likes}</span>
                     </button>
-                    <button className="text-xs text-gray-500 hover:text-gray-700">
+                    <button className="sk4-text-xs text-sk4-dark-gray hover:text-sk4-charcoal">
                       답글
                     </button>
                   </div>
                 </div>
-                <button className="text-gray-400 hover:text-gray-600">
+                <button className="text-sk4-dark-gray hover:text-sk4-charcoal">
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
               </div>
@@ -123,18 +124,18 @@ export default function CommentSheet({
         </div>
 
         {/* Comment Input */}
-        <div className="p-6 border-t border-cream-200">
-          <div className="flex items-end space-x-3">
+        <div className="p-sk4-md border-t border-sk4-gray bg-sk4-off-white">
+          <div className="flex items-end space-x-sk4-sm">
             <div className="flex-1">
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="댓글을 입력하세요..."
                 maxLength={100}
-                className="w-full p-3 border border-cream-200 rounded-medium bg-cream-50 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none min-h-[40px] max-h-[120px] shadow-minimal"
+                className="w-full p-sk4-sm border border-sk4-gray rounded bg-sk4-white focus:outline-none focus:ring-2 focus:ring-sk4-orange resize-none min-h-[40px] max-h-[120px] sk4-text-sm"
                 rows={1}
               />
-              <div className="flex justify-between text-xs text-beige-500 mt-1">
+              <div className="flex justify-between sk4-text-xs text-sk4-dark-gray mt-sk4-sm">
                 <span>이모지와 해시태그 사용 가능</span>
                 <span>{newComment.length}/100</span>
               </div>
@@ -142,7 +143,7 @@ export default function CommentSheet({
             <button
               onClick={handleSubmit}
               disabled={!newComment.trim()}
-              className="w-10 h-10 bg-primary-500 text-white rounded-medium flex items-center justify-center disabled:bg-beige-300 disabled:cursor-not-allowed hover:bg-primary-600 transition-all duration-150 shadow-minimal"
+              className="w-10 h-10 bg-sk4-orange text-sk4-white rounded flex items-center justify-center disabled:bg-sk4-light-gray disabled:cursor-not-allowed hover:bg-opacity-90 transition-all duration-200"
             >
               <Send className="w-4 h-4" />
             </button>

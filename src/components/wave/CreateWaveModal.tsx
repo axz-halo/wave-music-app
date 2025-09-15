@@ -105,16 +105,16 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+      <div
+        className="absolute inset-0 bg-black bg-opacity-30"
         onClick={onClose}
       />
-      
-      {/* Modal */}
-      <div 
-        className="relative bg-cream-100 rounded-medium shadow-minimal border border-cream-200 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+
+      {/* Bottom Sheet */}
+      <div
+        className="absolute bottom-0 left-0 right-0 bg-sk4-white rounded-t-lg shadow-lg border-t border-sk4-gray max-h-[90vh] overflow-hidden flex flex-col animate-slide-up"
         onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
         onDrop={(e) => {
           e.preventDefault();
@@ -123,10 +123,10 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-cream-200">
-          <h2 className="text-hierarchy-lg font-semibold text-beige-800">지금 듣는 중</h2>
-          <button onClick={onClose} className="p-2 hover:bg-cream-200 rounded-medium transition-all duration-150">
-            <X className="w-5 h-5 text-beige-600" />
+        <div className="flex items-center justify-between p-sk4-md border-b border-sk4-gray">
+          <h2 className="sk4-text-lg font-medium text-sk4-charcoal">지금 듣는 중</h2>
+          <button onClick={onClose} className="p-sk4-sm hover:bg-sk4-light-gray rounded transition-all duration-200">
+            <X className="w-5 h-5 text-sk4-dark-gray" />
           </button>
         </div>
 

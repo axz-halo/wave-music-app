@@ -46,37 +46,39 @@ export default function SaveToPlaylistModal({
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-md shadow-lg overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">플레이리스트에 저장</h3>
-          <button onClick={onClose} className="p-2"><X className="w-5 h-5 text-gray-600" /></button>
+      <div className="absolute inset-0 bg-black bg-opacity-30" onClick={onClose} />
+      <div className="absolute bottom-0 left-0 right-0 bg-sk4-white rounded-t-lg shadow-lg border-t border-sk4-gray max-h-[80vh] flex flex-col animate-slide-up">
+        <div className="flex items-center justify-between p-sk4-md border-b border-sk4-gray">
+          <h3 className="sk4-text-lg font-medium text-sk4-charcoal">플레이리스트에 저장</h3>
+          <button onClick={onClose} className="p-sk4-sm hover:bg-sk4-light-gray rounded transition-all duration-200">
+            <X className="w-5 h-5 text-sk4-dark-gray" />
+          </button>
         </div>
 
-        <div className="p-4">
+        <div className="flex-1 overflow-y-auto p-sk4-md">
           {/* Track Info */}
-          <div className="flex items-center space-x-3 mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center space-x-sk4-sm mb-sk4-md p-sk4-sm bg-sk4-light-gray rounded">
             <img src={track.thumbnailUrl} alt={track.title} className="w-12 h-12 rounded" />
             <div className="flex-1">
-              <p className="font-medium text-gray-900 text-sm">{track.title}</p>
-              <p className="text-xs text-gray-600">{track.artist}</p>
+              <p className="sk4-text-sm font-medium text-sk4-charcoal">{track.title}</p>
+              <p className="sk4-text-xs text-sk4-dark-gray">{track.artist}</p>
             </div>
           </div>
 
           {/* Playlists */}
-          <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="space-y-sk4-sm max-h-60 overflow-y-auto">
             {playlists.map((playlist) => (
               <button
                 key={playlist.id}
                 onClick={() => handleSaveToPlaylist(playlist.id)}
-                className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-all"
+                className="w-full flex items-center space-x-sk4-sm p-sk4-sm hover:bg-sk4-light-gray rounded transition-all duration-200"
               >
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Music className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-sk4-orange bg-opacity-10 rounded flex items-center justify-center">
+                  <Music className="w-5 h-5 text-sk4-orange" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="font-medium text-gray-900 text-sm">{playlist.title}</p>
-                  <p className="text-xs text-gray-600">{playlist.tracks.length}곡</p>
+                  <p className="sk4-text-sm font-medium text-sk4-charcoal">{playlist.title}</p>
+                  <p className="sk4-text-xs text-sk4-dark-gray">{playlist.tracks.length}곡</p>
                 </div>
               </button>
             ))}
@@ -86,36 +88,36 @@ export default function SaveToPlaylistModal({
           {!showCreateForm ? (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="w-full flex items-center space-x-3 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all mt-3"
+              className="w-full flex items-center space-x-sk4-sm p-sk4-sm border-2 border-dashed border-sk4-gray rounded hover:border-sk4-orange hover:bg-sk4-orange hover:bg-opacity-5 transition-all duration-200 mt-sk4-md"
             >
-              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Plus className="w-5 h-5 text-gray-600" />
+              <div className="w-10 h-10 bg-sk4-light-gray rounded flex items-center justify-center">
+                <Plus className="w-5 h-5 text-sk4-dark-gray" />
               </div>
               <div className="flex-1 text-left">
-                <p className="font-medium text-gray-700 text-sm">새 플레이리스트 만들기</p>
-                <p className="text-xs text-gray-500">이 곡으로 새 플레이리스트를 시작하세요</p>
+                <p className="sk4-text-sm font-medium text-sk4-charcoal">새 플레이리스트 만들기</p>
+                <p className="sk4-text-xs text-sk4-dark-gray">이 곡으로 새 플레이리스트를 시작하세요</p>
               </div>
             </button>
           ) : (
-            <div className="mt-3 p-3 border border-gray-200 rounded-lg">
+            <div className="mt-sk4-md p-sk4-sm border border-sk4-gray rounded">
               <input
                 value={newPlaylistTitle}
                 onChange={(e) => setNewPlaylistTitle(e.target.value)}
                 placeholder="플레이리스트 이름"
-                className="w-full p-2 border border-gray-200 rounded-lg text-sm mb-2"
+                className="w-full p-sk4-sm border border-sk4-gray rounded focus:outline-none focus:ring-2 focus:ring-sk4-orange mb-sk4-sm sk4-text-sm"
                 maxLength={30}
               />
-              <div className="flex space-x-2">
+              <div className="flex space-x-sk4-sm">
                 <button
                   onClick={handleCreatePlaylist}
                   disabled={!newPlaylistTitle.trim()}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:bg-gray-300"
+                  className="flex-1 py-sk4-sm bg-sk4-orange text-sk4-white rounded hover:bg-opacity-90 transition-all duration-200 sk4-text-sm disabled:bg-sk4-light-gray"
                 >
                   만들기
                 </button>
                 <button
                   onClick={() => setShowCreateForm(false)}
-                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm"
+                  className="px-sk4-md py-sk4-sm border border-sk4-gray rounded hover:bg-sk4-light-gray transition-all duration-200 sk4-text-sm"
                 >
                   취소
                 </button>
