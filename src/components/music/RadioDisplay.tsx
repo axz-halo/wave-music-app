@@ -62,63 +62,17 @@ export default function RadioDisplay() {
 
   return (
     <div className="bg-sk4-white border border-sk4-gray overflow-hidden">
-      {/* Top Section - Dark Radio Display */}
+      {/* Top Section - WAVE RADIO */}
       <div className="bg-sk4-radio-bg text-sk4-white p-sk4-md">
-        <div className="flex items-center justify-between mb-sk4-md">
-          <div className="sk4-text-sm font-sk4-mono">WAVE RADIO</div>
-          <div className="flex items-center space-x-sk4-sm">
-            <div className="sk4-text-sm font-sk4-mono">{frequency.toFixed(1)} MHZ</div>
-            <div className={`w-2 h-2 bg-sk4-orange rounded-full ${isLive ? 'animate-pulse' : 'opacity-50'}`}></div>
-          </div>
-        </div>
-        
         <div className="text-center">
-          <div className="sk4-text-lg font-sk4-mono mb-sk4-sm">
-            {isPlaying ? `♪ ${currentTrack}` : 'Select a track to play'}
-          </div>
-          <div className="sk4-text-sm font-sk4-mono text-sk4-radio-text">
-            {isPlaying ? 'NOW PLAYING' : 'VARIOUS ARTISTS'}
-          </div>
+          <div className="sk4-text-lg font-sk4-mono">WAVE RADIO</div>
         </div>
       </div>
       
-      {/* Bottom Section - Control Buttons */}
+      {/* Bottom Section - TODAY'S STATS */}
       <div className="bg-sk4-white p-sk4-md">
-        <div className="flex justify-center space-x-sk4-md">
-          {/* Previous Button */}
-          <button className="w-12 h-12 bg-sk4-light-gray border border-sk4-gray flex items-center justify-center hover:bg-sk4-gray transition-colors duration-200">
-            <div className="flex items-center space-x-1">
-              <div className="w-1 h-3 bg-sk4-dark-gray"></div>
-              <div className="w-1 h-3 bg-sk4-dark-gray"></div>
-              <SkipBack className="w-3 h-3 text-sk4-dark-gray" />
-            </div>
-          </button>
-          
-          {/* Play/Pause Button */}
-          <button 
-            onClick={handlePlayPause}
-            className="w-12 h-12 bg-sk4-orange flex items-center justify-center hover:bg-opacity-90 transition-all duration-200"
-          >
-            {isPlaying ? (
-              <Pause className="w-4 h-4 text-sk4-white" />
-            ) : (
-              <Play className="w-4 h-4 text-sk4-white ml-0.5" />
-            )}
-          </button>
-          
-          {/* Next Button */}
-          <button className="w-12 h-12 bg-sk4-light-gray border border-sk4-gray flex items-center justify-center hover:bg-sk4-gray transition-colors duration-200">
-            <div className="flex items-center space-x-1">
-              <SkipForward className="w-3 h-3 text-sk4-dark-gray" />
-              <div className="w-1 h-3 bg-sk4-dark-gray"></div>
-              <div className="w-1 h-3 bg-sk4-dark-gray"></div>
-            </div>
-          </button>
-        </div>
-        
-        {/* Today's Stats as Button Row */}
-        <div className="mt-sk4-md">
-          <div className="sk4-text-xs font-sk4-mono text-sk4-dark-gray text-center mb-sk4-sm">TODAY'S STATS</div>
+        <div className="text-center">
+          <div className="sk4-text-xs font-sk4-mono text-sk4-dark-gray mb-sk4-sm">TODAY'S STATS</div>
           <div className="flex justify-center space-x-sk4-md">
             {/* Waves Button */}
             <button className="w-16 h-12 bg-sk4-light-gray border border-sk4-gray flex flex-col items-center justify-center hover:bg-sk4-gray transition-colors duration-200">
