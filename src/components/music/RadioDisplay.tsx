@@ -61,106 +61,77 @@ export default function RadioDisplay() {
   };
 
   return (
-    <div className="sk4-radio-display p-sk4-md h-32 sm:h-36 md:h-40 relative overflow-hidden">
-      {/* Animated Dot Matrix Pattern Background */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="grid grid-cols-20 grid-rows-8 h-full w-full">
-          {Array.from({ length: 160 }).map((_, i) => (
-            <div 
-              key={i} 
-              className="w-1 h-1 bg-sk4-radio-text rounded-sm animate-pulse"
-              style={{ animationDelay: `${i * 0.1}s` }}
-            ></div>
-          ))}
+    <div className="bg-sk4-white border border-sk4-gray overflow-hidden">
+      {/* Top Section - Dark Radio Display */}
+      <div className="bg-sk4-radio-bg text-sk4-white p-sk4-md">
+        <div className="flex items-center justify-between mb-sk4-md">
+          <div className="sk4-text-sm font-sk4-mono">WAVE RADIO</div>
+          <div className="flex items-center space-x-sk4-sm">
+            <div className="sk4-text-sm font-sk4-mono">{frequency.toFixed(1)} MHZ</div>
+            <div className={`w-2 h-2 bg-sk4-orange rounded-full ${isLive ? 'animate-pulse' : 'opacity-50'}`}></div>
+          </div>
+        </div>
+        
+        <div className="text-center">
+          <div className="sk4-text-lg font-sk4-mono mb-sk4-sm">
+            {isPlaying ? `♪ ${currentTrack}` : 'Select a track to play'}
+          </div>
+          <div className="sk4-text-sm font-sk4-mono text-sk4-radio-text">
+            {isPlaying ? 'NOW PLAYING' : 'VARIOUS ARTISTS'}
+          </div>
         </div>
       </div>
       
-      {/* Main Content */}
-      <div className="relative z-10 flex flex-col justify-center h-full space-y-sk4-sm">
-        {/* Top Row: Interactive Controls */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-sk4-sm">
-            <button 
-              onClick={handlePlayPause}
-              className="hover:scale-110 transition-transform duration-200"
-            >
-              <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-sk4-radio-text" />
-            </button>
-            <div className="flex items-center space-x-sk4-sm">
-              <button 
-                onClick={() => handleFrequencyChange('down')}
-                className="sk4-text-xs font-sk4-mono text-sk4-radio-text hover:text-sk4-white transition-colors"
-              >
-                ▼
-              </button>
-              <div className="sk4-text-xs font-sk4-mono text-sk4-white">FM {frequency.toFixed(1)}</div>
-              <button 
-                onClick={() => handleFrequencyChange('up')}
-                className="sk4-text-xs font-sk4-mono text-sk4-radio-text hover:text-sk4-white transition-colors"
-              >
-                ▲
-              </button>
+      {/* Bottom Section - Control Buttons */}
+      <div className="bg-sk4-white p-sk4-md">
+        <div className="flex justify-center space-x-sk4-md">
+          {/* Previous Button */}
+          <button className="w-12 h-12 bg-sk4-light-gray border border-sk4-gray flex items-center justify-center hover:bg-sk4-gray transition-colors duration-200">
+            <div className="flex items-center space-x-1">
+              <div className="w-1 h-3 bg-sk4-dark-gray"></div>
+              <div className="w-1 h-3 bg-sk4-dark-gray"></div>
+              <SkipBack className="w-3 h-3 text-sk4-dark-gray" />
             </div>
-          </div>
-          <div className="flex items-center space-x-sk4-sm">
-            <Signal className="w-3 h-3 text-sk4-radio-text" />
-            <div className="flex space-x-1">
-              {[1, 2, 3].map((bar) => (
-                <div 
-                  key={bar}
-                  className={`w-1 h-${bar} rounded-full transition-all duration-300 ${
-                    bar <= signalStrength ? 'bg-green-500' : 'bg-sk4-dark-gray'
-                  }`}
-                ></div>
-              ))}
+          </button>
+          
+          {/* Play/Pause Button */}
+          <button 
+            onClick={handlePlayPause}
+            className="w-12 h-12 bg-sk4-orange flex items-center justify-center hover:bg-opacity-90 transition-all duration-200"
+          >
+            {isPlaying ? (
+              <Pause className="w-4 h-4 text-sk4-white" />
+            ) : (
+              <Play className="w-4 h-4 text-sk4-white ml-0.5" />
+            )}
+          </button>
+          
+          {/* Next Button */}
+          <button className="w-12 h-12 bg-sk4-light-gray border border-sk4-gray flex items-center justify-center hover:bg-sk4-gray transition-colors duration-200">
+            <div className="flex items-center space-x-1">
+              <SkipForward className="w-3 h-3 text-sk4-dark-gray" />
+              <div className="w-1 h-3 bg-sk4-dark-gray"></div>
+              <div className="w-1 h-3 bg-sk4-dark-gray"></div>
             </div>
-            <div className={`sk4-text-xs font-sk4-mono transition-opacity duration-500 ${
-              isLive ? 'text-green-500 opacity-100' : 'text-sk4-dark-gray opacity-50'
-            }`}>
-              LIVE
-            </div>
-          </div>
+          </button>
         </div>
         
-        {/* Middle Row: Current Track & Time */}
-        <div className="text-center">
-          <div className="sk4-text-xs font-sk4-mono text-sk4-white truncate px-2">
-            {isPlaying ? `♪ ${currentTrack}` : 'WAVE RADIO'}
-          </div>
-          <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">
-            {formatDate(currentTime)} {formatTime(currentTime)}
-          </div>
-        </div>
-        
-        {/* Bottom Row: Interactive Stats */}
-        <div className="text-center">
-          <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text mb-1">Today's Stats</div>
+        {/* Today's Stats as Button Row */}
+        <div className="mt-sk4-md">
+          <div className="sk4-text-xs font-sk4-mono text-sk4-dark-gray text-center mb-sk4-sm">TODAY'S STATS</div>
           <div className="flex justify-center space-x-sk4-md">
-            <button className="text-center hover:scale-105 transition-transform duration-200">
-              <div className="sk4-text-sm sm:sk4-text-lg font-sk4-mono text-sk4-white animate-pulse">
-                {waveCount}
-              </div>
-              <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">waves</div>
+            {/* Waves Button */}
+            <button className="w-16 h-12 bg-sk4-light-gray border border-sk4-gray flex flex-col items-center justify-center hover:bg-sk4-gray transition-colors duration-200">
+              <div className="sk4-text-sm font-sk4-mono text-sk4-charcoal">{waveCount}</div>
+              <div className="sk4-text-xs font-sk4-mono text-sk4-dark-gray">WAVES</div>
             </button>
-            <div className="w-px h-8 bg-sk4-dark-gray"></div>
-            <button className="text-center hover:scale-105 transition-transform duration-200">
-              <div className="sk4-text-sm sm:sk4-text-lg font-sk4-mono text-sk4-white animate-pulse">
-                {trackCount}
-              </div>
-              <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">Tracks</div>
+            
+            {/* Tracks Button */}
+            <button className="w-16 h-12 bg-sk4-light-gray border border-sk4-gray flex flex-col items-center justify-center hover:bg-sk4-gray transition-colors duration-200">
+              <div className="sk4-text-sm font-sk4-mono text-sk4-charcoal">{trackCount}</div>
+              <div className="sk4-text-xs font-sk4-mono text-sk4-dark-gray">TRACKS</div>
             </button>
           </div>
-        </div>
-      </div>
-      
-      {/* Volume Indicator */}
-      <div className="absolute bottom-1 right-1 flex items-center space-x-1">
-        {volume === 0 ? <VolumeX className="w-2 h-2 text-sk4-dark-gray" /> : <Volume2 className="w-2 h-2 text-sk4-radio-text" />}
-        <div className="w-8 h-1 bg-sk4-dark-gray rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-sk4-radio-text transition-all duration-300"
-            style={{ width: `${volume}%` }}
-          ></div>
         </div>
       </div>
     </div>
