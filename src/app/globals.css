@@ -122,19 +122,19 @@ a {
   
   /* Typography */
   .text-hierarchy {
-    @apply text-hierarchy font-medium text-neutral-800;
+    @apply text-base font-medium text-neutral-800 leading-relaxed;
   }
   
   .text-hierarchy-lg {
-    @apply text-hierarchy-lg font-semibold text-neutral-900;
+    @apply text-lg font-semibold text-neutral-900 leading-snug;
   }
   
   .text-hierarchy-xl {
-    @apply text-hierarchy-xl font-semibold text-neutral-900;
+    @apply text-xl font-semibold text-neutral-900 leading-snug;
   }
   
   .text-hierarchy-2xl {
-    @apply text-hierarchy-2xl font-semibold text-neutral-900;
+    @apply text-2xl font-semibold text-neutral-900 leading-tight;
   }
   
   .text-muted {
