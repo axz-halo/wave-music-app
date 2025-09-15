@@ -8,7 +8,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Dieter Rams inspired muted palette
+        // Cream/Beige + Orange color system
         primary: {
           50: '#fff7f0',
           100: '#ffede0',
@@ -20,6 +20,30 @@ module.exports = {
           700: '#cc4400',
           800: '#b33a00',
           900: '#993000',
+        },
+        cream: {
+          50: '#fefdfb',
+          100: '#fdf9f3',
+          200: '#faf2e7',
+          300: '#f6e8d5',
+          400: '#f0dcc0',
+          500: '#e8d0a8',
+          600: '#d4b894',
+          700: '#b89d7a',
+          800: '#9c8260',
+          900: '#806a4a',
+        },
+        beige: {
+          50: '#faf9f7',
+          100: '#f5f3f0',
+          200: '#ebe7e1',
+          300: '#ddd6cc',
+          400: '#c9bfb0',
+          500: '#b5a894',
+          600: '#a18f78',
+          700: '#8d7a5c',
+          800: '#796540',
+          900: '#655024',
         },
         neutral: {
           50: '#fafafa',
@@ -35,11 +59,11 @@ module.exports = {
         },
         // Soft muted backgrounds
         surface: {
-          50: '#fefefe',
-          100: '#fdfdfd',
-          200: '#f9f9f9',
-          300: '#f0f0f0',
-          400: '#e8e8e8',
+          50: '#fefdfb',
+          100: '#fdf9f3',
+          200: '#faf2e7',
+          300: '#f6e8d5',
+          400: '#f0dcc0',
         }
       },
       borderRadius: {

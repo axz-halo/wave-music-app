@@ -19,9 +19,9 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
 
   return (
     <>
-      {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface-100 border-t border-neutral-200/50 px-4 py-3 z-50 safe-area-pb shadow-soft">
-        <div className="flex items-center justify-around max-w-sm mx-auto bg-surface-100 rounded-large shadow-neumorphic p-2">
+      {/* Mobile Bottom Navigation - Floating Design */}
+      <nav className="lg:hidden fixed bottom-4 left-4 right-4 z-50 safe-area-pb">
+        <div className="flex items-center justify-around max-w-sm mx-auto bg-cream-100/90 backdrop-blur-lg rounded-large shadow-tactile border border-cream-200 p-2">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -33,10 +33,10 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
                 className={`flex flex-col items-center py-3 px-4 rounded-medium transition-all duration-200 min-w-0 flex-1 ${
                   isActive
                     ? 'bg-primary-500 text-white shadow-tactile'
-                    : 'text-neutral-600 hover:text-primary-500 hover:bg-surface-200'
+                    : 'text-beige-600 hover:text-primary-500 hover:bg-cream-200'
                 }`}
               >
-                <Icon className={`w-6 h-6 mb-1 ${isActive ? 'scale-110' : ''}`} />
+                <Icon className={`w-5 h-5 mb-1 ${isActive ? 'scale-110' : ''}`} />
                 <span className="text-xs font-medium truncate">{item.name}</span>
               </a>
             );
@@ -78,21 +78,25 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
         </div>
       </nav>
 
-      {/* Mobile Floating Create Button */}
-      <button 
-        onClick={onCreateWave}
-        className="lg:hidden fixed bottom-20 right-4 w-14 h-14 bg-primary-500 text-white rounded-full shadow-tactile hover:shadow-soft hover:scale-105 transition-all duration-200 z-40 flex items-center justify-center"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
+      {/* Mobile Floating Create Button - Only on Feed */}
+      {pathname === '/feed' && (
+        <button 
+          onClick={onCreateWave}
+          className="lg:hidden fixed bottom-20 right-4 w-14 h-14 bg-primary-500 text-white rounded-full shadow-tactile hover:shadow-soft hover:scale-105 transition-all duration-200 z-40 flex items-center justify-center"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      )}
 
-      {/* Desktop Create Button */}
-      <button 
-        onClick={onCreateWave}
-        className="hidden lg:flex fixed bottom-6 right-6 w-16 h-16 bg-primary-500 text-white rounded-full shadow-tactile hover:shadow-soft hover:scale-105 transition-all duration-200 z-40 flex items-center justify-center"
-      >
-        <Plus className="w-7 h-7" />
-      </button>
+      {/* Desktop Create Button - Only on Feed */}
+      {pathname === '/feed' && (
+        <button 
+          onClick={onCreateWave}
+          className="hidden lg:flex fixed bottom-6 right-6 w-16 h-16 bg-primary-500 text-white rounded-full shadow-tactile hover:shadow-soft hover:scale-105 transition-all duration-200 z-40 flex items-center justify-center"
+        >
+          <Plus className="w-7 h-7" />
+        </button>
+      )}
     </>
   );
 }

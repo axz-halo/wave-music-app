@@ -170,15 +170,15 @@ export default function FeedPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-50 pb-20 lg:pb-0 lg:ml-56">
+    <div className="min-h-screen bg-cream-50 pb-20 lg:pb-0 lg:ml-56">
       {/* Desktop Header */}
-      <header className="hidden lg:block bg-surface-100 border-b border-neutral-200/50 px-6 py-4 sticky top-0 z-30 shadow-soft">
+      <header className="hidden lg:block bg-cream-100 border-b border-cream-200 px-6 py-4 sticky top-0 z-30 shadow-soft">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-hierarchy-2xl font-semibold text-neutral-900">파도</h1>
+          <h1 className="text-hierarchy-2xl font-semibold text-beige-800">파도</h1>
           <div className="flex items-center space-x-3">
             <button 
               onClick={() => setIsFilterModalOpen(true)}
-              className="w-12 h-12 bg-surface-100 rounded-full flex items-center justify-center hover:bg-surface-200 transition-all duration-200 shadow-tactile"
+              className="w-12 h-12 bg-cream-200 rounded-full flex items-center justify-center hover:bg-cream-300 transition-all duration-200 shadow-tactile"
             >
               <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
