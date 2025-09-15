@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { Plus } from 'lucide-react';
 import WaveCard from '@/components/wave/WaveCard';
 import MusicPlayer from '@/components/music/MusicPlayer';
 import DailyStats from '@/components/feed/DailyStats';
