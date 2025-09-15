@@ -42,40 +42,41 @@ export default function RadioDisplay() {
       </div>
       
       {/* Main Content */}
-      <div className="relative z-10 flex items-center justify-between h-full">
-        {/* Left Side - Station Info */}
-        <div className="flex items-center space-x-sk4-sm">
-          <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-sk4-radio-text" />
-          <div>
-            <div className="sk4-text-xs sm:sk4-text-sm font-sk4-mono text-sk4-white">WAVE RADIO</div>
-            <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">FM {frequency.toFixed(1)}</div>
+      <div className="relative z-10 flex flex-col justify-center h-full space-y-sk4-sm">
+        {/* Top Row: Icon - Wave Playlist | Live */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-sk4-sm">
+            <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-sk4-radio-text" />
+            <div className="sk4-text-xs sm:sk4-text-sm font-sk4-mono text-sk4-white">Wave Playlist</div>
+          </div>
+          <div className="flex items-center space-x-sk4-sm">
+            <div className="flex space-x-1">
+              <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+              <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+              <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+            </div>
+            <div className="sk4-text-xs font-sk4-mono text-sk4-white">LIVE</div>
           </div>
         </div>
         
-        {/* Center - Stats Display */}
+        {/* Middle Row: Date and Time */}
         <div className="text-center">
-          <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text mb-1">TODAY'S STATS</div>
-          <div className="flex space-x-sk4-md text-center">
-            <div>
-              <div className="sk4-text-sm sm:sk4-text-lg font-sk4-mono text-sk4-white">32</div>
-              <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">WAVES</div>
-            </div>
-            <div>
-              <div className="sk4-text-sm sm:sk4-text-lg font-sk4-mono text-sk4-white">48</div>
-              <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">TRACKS</div>
-            </div>
-          </div>
+          <div className="sk4-text-xs sm:sk4-text-sm font-sk4-mono text-sk4-white">{formatDate(currentTime)}</div>
+          <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">{formatTime(currentTime)}</div>
         </div>
         
-        {/* Right Side - Time & Signal */}
-        <div className="text-right">
-          <div className="sk4-text-xs sm:sk4-text-sm font-sk4-mono text-sk4-white">{formatTime(currentTime)}</div>
-          <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">{formatDate(currentTime)}</div>
-          <div className="flex items-center justify-end space-x-1 mt-1">
-            <div className="w-1 h-1 bg-green-500 rounded-full"></div>
-            <div className="w-1 h-1 bg-green-500 rounded-full"></div>
-            <div className="w-1 h-1 bg-green-500 rounded-full"></div>
-            <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text ml-1">LIVE</div>
+        {/* Bottom Row: Today's Stats */}
+        <div className="text-center">
+          <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text mb-1">Today's Stats</div>
+          <div className="flex justify-center space-x-sk4-md">
+            <div className="text-center">
+              <div className="sk4-text-sm sm:sk4-text-lg font-sk4-mono text-sk4-white">32</div>
+              <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">waves</div>
+            </div>
+            <div className="text-center">
+              <div className="sk4-text-sm sm:sk4-text-lg font-sk4-mono text-sk4-white">48</div>
+              <div className="sk4-text-xs font-sk4-mono text-sk4-radio-text">Tracks</div>
+            </div>
           </div>
         </div>
       </div>
