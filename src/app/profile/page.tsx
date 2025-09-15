@@ -92,99 +92,99 @@ export default function ProfilePage() {
         </div>
 
         {/* Music DNA */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">나의 음악 DNA</h3>
-          <div className="space-y-4">
+        <div className="card-neumorphic p-6">
+          <h3 className="text-hierarchy-lg font-semibold text-neutral-900 mb-4">나의 음악 DNA</h3>
+          <div className="space-y-6">
             {/* Genre Preferences */}
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">선호 장르</span>
-                <span className="text-xs text-gray-500">탐험 지수 78%</span>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-label">선호 장르</span>
+                <span className="text-xs text-neutral-500">탐험 지수 78%</span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600">K-Pop</span>
-                  <div className="w-20 bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-blue-600 h-1.5 rounded-full w-3/4"></div>
+                  <span className="text-sm text-neutral-600">K-Pop</span>
+                  <div className="w-24 bg-neutral-200 rounded-full h-2 shadow-neumorphic-inset">
+                    <div className="bg-primary-500 h-2 rounded-full w-3/4 shadow-tactile"></div>
                   </div>
-                  <span className="text-xs text-gray-500">35%</span>
+                  <span className="text-xs text-neutral-500 w-8 text-right">35%</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600">Hip-Hop</span>
-                  <div className="w-20 bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-blue-600 h-1.5 rounded-full w-1/2"></div>
+                  <span className="text-sm text-neutral-600">Hip-Hop</span>
+                  <div className="w-24 bg-neutral-200 rounded-full h-2 shadow-neumorphic-inset">
+                    <div className="bg-primary-500 h-2 rounded-full w-1/2 shadow-tactile"></div>
                   </div>
-                  <span className="text-xs text-gray-500">25%</span>
+                  <span className="text-xs text-neutral-500 w-8 text-right">25%</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600">Electronic</span>
-                  <div className="w-20 bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-blue-600 h-1.5 rounded-full w-2/5"></div>
+                  <span className="text-sm text-neutral-600">Electronic</span>
+                  <div className="w-24 bg-neutral-200 rounded-full h-2 shadow-neumorphic-inset">
+                    <div className="bg-primary-500 h-2 rounded-full w-2/5 shadow-tactile"></div>
                   </div>
-                  <span className="text-xs text-gray-500">20%</span>
+                  <span className="text-xs text-neutral-500 w-8 text-right">20%</span>
                 </div>
               </div>
             </div>
             
             {/* Mood Analysis */}
             <div>
-              <span className="text-sm font-medium text-gray-700 mb-2 block">무드 분석</span>
-              <div className="grid grid-cols-4 gap-2">
-                <div className="text-center">
-                  <div className="text-lg">🔥</div>
-                  <p className="text-xs text-gray-600">에너지</p>
-                  <p className="text-xs text-gray-500">40%</p>
+              <span className="text-label mb-3 block">무드 분석</span>
+              <div className="grid grid-cols-4 gap-3">
+                <div className="text-center p-3 bg-surface-100 rounded-medium shadow-tactile">
+                  <div className="text-2xl mb-2">🔥</div>
+                  <p className="text-xs text-neutral-600 font-medium">에너지</p>
+                  <p className="text-xs text-neutral-500">40%</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-lg">😭</div>
-                  <p className="text-xs text-gray-600">감성</p>
-                  <p className="text-xs text-gray-500">30%</p>
+                <div className="text-center p-3 bg-surface-100 rounded-medium shadow-tactile">
+                  <div className="text-2xl mb-2">😭</div>
+                  <p className="text-xs text-neutral-600 font-medium">감성</p>
+                  <p className="text-xs text-neutral-500">30%</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-lg">😌</div>
-                  <p className="text-xs text-gray-600">휴식</p>
-                  <p className="text-xs text-gray-500">20%</p>
+                <div className="text-center p-3 bg-surface-100 rounded-medium shadow-tactile">
+                  <div className="text-2xl mb-2">😌</div>
+                  <p className="text-xs text-neutral-600 font-medium">휴식</p>
+                  <p className="text-xs text-neutral-500">20%</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-lg">🧠</div>
-                  <p className="text-xs text-gray-600">집중</p>
-                  <p className="text-xs text-gray-500">10%</p>
+                <div className="text-center p-3 bg-surface-100 rounded-medium shadow-tactile">
+                  <div className="text-2xl mb-2">🧠</div>
+                  <p className="text-xs text-neutral-600 font-medium">집중</p>
+                  <p className="text-xs text-neutral-500">10%</p>
                 </div>
               </div>
             </div>
 
             {/* Listening Time */}
             <div>
-              <span className="text-sm font-medium text-gray-700 mb-2 block">청취 시간대</span>
-              <div className="grid grid-cols-4 gap-2">
-                <div className="text-center">
-                  <div className="text-sm font-bold text-gray-900">15%</div>
-                  <div className="text-xs text-gray-600">오전</div>
+              <span className="text-label mb-3 block">청취 시간대</span>
+              <div className="grid grid-cols-4 gap-3">
+                <div className="text-center p-3 bg-surface-100 rounded-medium shadow-tactile">
+                  <div className="text-hierarchy font-bold text-neutral-900">15%</div>
+                  <div className="text-xs text-neutral-600">오전</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-gray-900">25%</div>
-                  <div className="text-xs text-gray-600">오후</div>
+                <div className="text-center p-3 bg-surface-100 rounded-medium shadow-tactile">
+                  <div className="text-hierarchy font-bold text-neutral-900">25%</div>
+                  <div className="text-xs text-neutral-600">오후</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-gray-900">35%</div>
-                  <div className="text-xs text-gray-600">저녁</div>
+                <div className="text-center p-3 bg-surface-100 rounded-medium shadow-tactile">
+                  <div className="text-hierarchy font-bold text-neutral-900">35%</div>
+                  <div className="text-xs text-neutral-600">저녁</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-gray-900">25%</div>
-                  <div className="text-xs text-gray-600">밤</div>
+                <div className="text-center p-3 bg-surface-100 rounded-medium shadow-tactile">
+                  <div className="text-hierarchy font-bold text-neutral-900">25%</div>
+                  <div className="text-xs text-neutral-600">밤</div>
                 </div>
               </div>
             </div>
 
             {/* Influence Index */}
-            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-              <div className="text-center">
-                <div className="text-lg font-bold text-blue-600">78</div>
-                <div className="text-xs text-gray-600">탐험 지수</div>
+            <div className="flex justify-between items-center pt-4 border-t border-neutral-200/50">
+              <div className="text-center p-4 bg-surface-100 rounded-medium shadow-tactile flex-1 mr-2">
+                <div className="text-hierarchy-xl font-bold text-primary-500">78</div>
+                <div className="text-xs text-neutral-600">탐험 지수</div>
               </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-green-600">12</div>
-                <div className="text-xs text-gray-600">영향력 지수</div>
+              <div className="text-center p-4 bg-surface-100 rounded-medium shadow-tactile flex-1 ml-2">
+                <div className="text-hierarchy-xl font-bold text-green-500">12</div>
+                <div className="text-xs text-neutral-600">영향력 지수</div>
               </div>
             </div>
           </div>

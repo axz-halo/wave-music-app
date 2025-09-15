@@ -20,8 +20,8 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
   return (
     <>
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50 safe-area-pb">
-        <div className="flex items-center justify-around max-w-sm mx-auto">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface-100 border-t border-neutral-200/50 px-4 py-3 z-50 safe-area-pb shadow-soft">
+        <div className="flex items-center justify-around max-w-sm mx-auto bg-surface-100 rounded-large shadow-neumorphic p-2">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -30,10 +30,10 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
               <a
                 key={item.name}
                 href={item.href}
-                className={`flex flex-col items-center py-2 px-3 rounded-lg transition-all min-w-0 flex-1 ${
+                className={`flex flex-col items-center py-3 px-4 rounded-medium transition-all duration-200 min-w-0 flex-1 ${
                   isActive
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-primary-500 text-white shadow-tactile'
+                    : 'text-neutral-600 hover:text-primary-500 hover:bg-surface-200'
                 }`}
               >
                 <Icon className={`w-6 h-6 mb-1 ${isActive ? 'scale-110' : ''}`} />
@@ -45,16 +45,16 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
       </nav>
 
       {/* Desktop Sidebar Navigation */}
-      <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 w-56 bg-white border-r border-gray-200 flex-col z-40">
-        <div className="p-4">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">W</span>
+      <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 w-56 bg-surface-100 border-r border-neutral-200/50 flex-col z-40 shadow-soft">
+        <div className="p-6">
+          <div className="flex items-center space-x-3 mb-8">
+            <div className="w-12 h-12 bg-primary-500 rounded-medium flex items-center justify-center shadow-tactile">
+              <span className="text-white font-bold text-xl">W</span>
             </div>
-            <h1 className="text-lg font-bold text-gray-900">WAVE</h1>
+            <h1 className="text-hierarchy-xl font-semibold text-neutral-900">WAVE</h1>
           </div>
           
-          <div className="space-y-1">
+          <div className="space-y-3">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -63,27 +63,25 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
                 <a
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all ${
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-medium transition-all duration-200 shadow-tactile hover:shadow-soft ${
                     isActive
-                      ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-primary-500 text-white'
+                      : 'text-neutral-700 hover:bg-surface-200'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span className="font-medium text-sm">{item.name}</span>
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.name}</span>
                 </a>
               );
             })}
           </div>
-
-          {/* Auth controls removed per request */}
         </div>
       </nav>
 
       {/* Mobile Floating Create Button */}
       <button 
         onClick={onCreateWave}
-        className="lg:hidden fixed bottom-20 right-4 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all z-40 flex items-center justify-center"
+        className="lg:hidden fixed bottom-20 right-4 w-14 h-14 bg-primary-500 text-white rounded-full shadow-tactile hover:shadow-soft hover:scale-105 transition-all duration-200 z-40 flex items-center justify-center"
       >
         <Plus className="w-6 h-6" />
       </button>
@@ -91,7 +89,7 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
       {/* Desktop Create Button */}
       <button 
         onClick={onCreateWave}
-        className="hidden lg:flex fixed bottom-6 right-6 w-16 h-16 bg-blue-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all z-40 flex items-center justify-center"
+        className="hidden lg:flex fixed bottom-6 right-6 w-16 h-16 bg-primary-500 text-white rounded-full shadow-tactile hover:shadow-soft hover:scale-105 transition-all duration-200 z-40 flex items-center justify-center"
       >
         <Plus className="w-7 h-7" />
       </button>
