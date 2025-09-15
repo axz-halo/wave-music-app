@@ -108,7 +108,7 @@ a {
   
   /* SK4 Navigation Tab */
   .sk4-nav-tab {
-    @apply h-15 bg-sk4-white;
+    @apply h-16 bg-sk4-white;
     @apply flex items-center justify-center;
     @apply transition-all duration-200 ease-out;
   }
