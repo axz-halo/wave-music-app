@@ -43,22 +43,22 @@ export default function ProfilePage() {
       </header>
 
       <div className="max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* Profile Header */}
-        <div className="bg-cream-100 rounded-medium shadow-minimal border border-cream-200 p-6">
+        {/* Profile Header - compact */}
+        <div className="bg-cream-100 rounded-medium shadow-minimal border border-cream-200 p-4">
           <div className="text-center space-y-4">
             <div className="relative inline-block">
               <img 
                 src={user.profileImage || '/default-avatar.png'} 
                 alt={user.nickname}
-                className="w-24 h-24 rounded-full"
+                className="w-20 h-20 rounded-full"
               />
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center shadow-minimal hover:bg-primary-600 transition-all duration-150">
+              <button className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary-500 text-white rounded-full flex items-center justify-center shadow-minimal hover:bg-primary-600 transition-all duration-150">
                 <Edit className="w-4 h-4" />
               </button>
             </div>
             
             <div className="space-y-2">
-              <h2 className="text-hierarchy-xl font-bold text-beige-800">{user.nickname}</h2>
+              <h2 className="text-hierarchy-lg font-bold text-beige-800">{user.nickname}</h2>
               <p className="text-sm text-beige-600">{user.email}</p>
               <p className="text-xs text-beige-500">{formatJoinDate(user.createdAt)}</p>
             </div>
@@ -76,7 +76,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Edit Profile Button */}
-            <button className="w-full py-2.5 bg-primary-500 text-white rounded-medium font-semibold text-sm hover:bg-primary-600 transition-all duration-150 shadow-minimal">
+            <button className="w-full py-2 bg-primary-500 text-white rounded-medium font-semibold text-sm hover:bg-primary-600 transition-all duration-150 shadow-minimal">
               프로필 편집
             </button>
           </div>

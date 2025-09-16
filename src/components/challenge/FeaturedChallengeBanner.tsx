@@ -9,8 +9,8 @@ interface FeaturedChallengeBannerProps {
 
 export default function FeaturedChallengeBanner({ challenge }: FeaturedChallengeBannerProps) {
   return (
-    <Link href={`/challenge/${challenge.id}`} className="block">
-      <div className="bg-sk4-white border border-sk4-gray hover:border-sk4-medium-gray transition-all duration-200 flex items-center h-40 sm:h-44 px-sk4-md gap-sk4-md">
+    <Link href={`/challenge/${challenge.id}`} className="block h-full">
+      <div className="bg-sk4-white border border-sk4-gray hover:border-sk4-medium-gray transition-all duration-200 flex items-center h-full px-sk4-md gap-sk4-md">
         <img
           src={challenge.thumbnailUrl || '/default-challenge.jpg'}
           alt={challenge.title}

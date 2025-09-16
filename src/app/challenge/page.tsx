@@ -81,11 +81,15 @@ export default function ChallengePage() {
       </header>
 
       <div className="max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* Featured Top 3 */}
-        <section className="space-y-sk4-sm">
-          {dummyChallenges.slice(0,3).map((c)=> (
-            <FeaturedChallengeBanner key={c.id} challenge={c} />
-          ))}
+        {/* Featured Top 3 Carousel */}
+        <section>
+          <div className="flex space-x-sk4-sm overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-sk4-sm" style={{height: '180px'}}>
+            {dummyChallenges.slice(0,3).map((c)=> (
+              <div key={c.id} className="min-w-[300px] h-full snap-start">
+                <FeaturedChallengeBanner challenge={c} />
+              </div>
+            ))}
+          </div>
         </section>
         {/* Status Tabs */}
         <div className="bg-cream-100 rounded-medium p-1 shadow-minimal border border-cream-200">

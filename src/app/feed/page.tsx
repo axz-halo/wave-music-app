@@ -182,11 +182,11 @@ export default function FeedPage() {
         <RadioDisplay />
 
         {/* Popular carousel */}
-        <div className="space-y-sk4-sm">
+        <div className="space-y-sk4-sm" >
           <h2 className="sk4-text-sm text-sk4-dark-gray">인기 웨이브</h2>
-          <div className="flex space-x-sk4-sm overflow-x-auto scrollbar-hide pb-sk4-sm">
+          <div className="flex space-x-sk4-sm overflow-x-auto scrollbar-hide pb-sk4-sm snap-x snap-mandatory" style={{height:'260px'}}>
             {dummyWaves.slice(0,5).map((wave)=> (
-              <div key={wave.id} className="min-w-[260px]">
+              <div key={wave.id} className="min-w-[260px] h-full snap-start">
                 <WaveCard wave={wave} onLike={handleLike} onComment={handleComment} onSave={handleSave} onShare={handleShare} onPlay={handlePlay} />
               </div>
             ))}
