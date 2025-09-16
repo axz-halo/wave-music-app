@@ -204,7 +204,7 @@ export default function ProfilePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-900">내 웨이브</h3>
-            <button className="text-primary-500 text-sm font-medium">전체보기</button>
+            <a href="/profile/playlists" className="text-primary-500 text-sm font-medium">전체보기</a>
           </div>
           <div className="space-y-2">
             {myWaves.map((wave) => (
@@ -231,7 +231,7 @@ export default function ProfilePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-900">내 플레이리스트</h3>
-            <button className="text-primary-500 text-sm font-medium">전체보기</button>
+            <a href="/profile/playlists" className="text-primary-500 text-sm font-medium">전체보기</a>
           </div>
           <div className="space-y-2">
             <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">

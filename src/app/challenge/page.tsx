@@ -81,10 +81,10 @@ export default function ChallengePage() {
       </header>
 
       <div className="max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* Featured Top 3 Carousel */}
+        {/* Featured Top 3 Carousel - upcoming & active only */}
         <section>
           <div className="flex space-x-sk4-sm overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-sk4-sm" style={{height: '180px'}}>
-            {dummyChallenges.slice(0,3).map((c)=> (
+            {dummyChallenges.filter(c=>c.status==='upcoming' || c.status==='active').slice(0,5).map((c)=> (
               <div key={c.id} className="min-w-[300px] h-full snap-start">
                 <FeaturedChallengeBanner challenge={c} />
               </div>
@@ -110,11 +110,11 @@ export default function ChallengePage() {
           </div>
         </div>
 
-        {/* Popular Challenges */}
+        {/* 완료된 챌린지 */}
         <div>
-          <h2 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">인기 챌린지</h2>
+          <h2 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">완료된 챌린지</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {dummyChallenges.slice(0, 6).map((challenge) => (
+            {dummyChallenges.filter(c=>c.status==='completed').map((challenge) => (
               <ChallengeCard
                 key={challenge.id}
                 challenge={challenge}

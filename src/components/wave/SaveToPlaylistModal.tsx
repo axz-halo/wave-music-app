@@ -40,6 +40,13 @@ export default function SaveToPlaylistModal({
   };
 
   const handleSaveToPlaylist = (playlistId: string) => {
+    // 중복 방지: 동일 externalId 포함 시 경고
+    const target = playlists.find(p=>p.id===playlistId);
+    const duplicated = target?.tracks.some(t=> t.externalId === (track as any).externalId);
+    if (duplicated) {
+      alert('이미 해당 플레이리스트에 있는 트랙입니다');
+      return;
+    }
     onSaveToPlaylist(playlistId, track);
     onClose();
   };
