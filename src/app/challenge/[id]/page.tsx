@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { dummyChallenges, dummyUsers, dummyTracks } from '@/lib/dummy-data';
 import Navigation from '@/components/layout/Navigation';
 import RecommendTrackModal from '@/components/challenge/RecommendTrackModal';
+import toast from 'react-hot-toast';
 
 export default function ChallengeDetailPage() {
   const params = useParams();
@@ -23,14 +24,14 @@ export default function ChallengeDetailPage() {
   const leaderTrackId = Object.keys(votes).sort((a,b)=>votes[b]-votes[a])[0];
   const leaderTrack = dummyTracks.find(t=>t.id===leaderTrackId) || dummyTracks[0];
   const [isRecommendOpen, setIsRecommendOpen] = useState(false);
+  const [submissions, setSubmissions] = useState<Array<{ id: string; userId: string; trackId: string; reason: string }>>([]);
 
-  const handleToggleJoin = () => {
-    setIsParticipant((prev)=>{
-      const next = !prev;
-      setParticipants(p => next ? p + 1 : Math.max(0, p - 1));
-      challenge.participants = next ? challenge.participants + 1 : Math.max(0, challenge.participants - 1);
-      return next;
-    });
+  const handleOpenSubmit = () => {
+    if (challenge.status !== 'active') {
+      toast.error('진행 중인 챌린지에서만 제출할 수 있습니다.');
+      return;
+    }
+    setIsRecommendOpen(true);
   };
 
   const previewAvatars = [dummyUsers[0], dummyUsers[1], dummyUsers[2]].map(u=>u.profileImage || '/default-avatar.png');
@@ -41,7 +42,7 @@ export default function ChallengeDetailPage() {
       <header className="hidden lg:block bg-cream-100 border-b border-cream-200 px-6 py-4 sticky top-0 z-30 shadow-minimal">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-hierarchy-2xl font-semibold text-beige-800">{challenge.title}</h1>
-          <button onClick={handleToggleJoin} className={`px-sk4-md py-sk4-sm rounded sk4-text-sm font-medium transition-all duration-200 ${isParticipant ? 'bg-sk4-light-gray text-sk4-charcoal hover:bg-sk4-gray' : 'bg-sk4-orange text-sk4-white hover:bg-opacity-90'}`}>{isParticipant ? '참여 취소' : '참여하기'}</button>
+          <button onClick={handleOpenSubmit} className="px-sk4-md py-sk4-sm rounded sk4-text-sm font-medium transition-all duration-200 bg-sk4-orange text-sk4-white hover:bg-opacity-90">트랙 제출하기</button>
         </div>
       </header>
 
@@ -49,7 +50,7 @@ export default function ChallengeDetailPage() {
       <header className="lg:hidden bg-cream-100 border-b border-cream-200 px-4 py-4 sticky top-0 z-40 shadow-minimal">
         <div className="flex items-center justify-between">
           <h1 className="text-hierarchy-xl font-semibold text-beige-800">{challenge.title}</h1>
-          <button onClick={handleToggleJoin} className={`px-sk4-md py-sk4-sm rounded sk4-text-sm font-medium transition-all duration-200 ${isParticipant ? 'bg-sk4-light-gray text-sk4-charcoal hover:bg-sk4-gray' : 'bg-sk4-orange text-sk4-white hover:bg-opacity-90'}`}>{isParticipant ? '취소' : '참여'}</button>
+          <button onClick={handleOpenSubmit} className="px-sk4-md py-sk4-sm rounded sk4-text-sm font-medium transition-all duration-200 bg-sk4-orange text-sk4-white hover:bg-opacity-90">제출</button>
         </div>
       </header>
 
@@ -67,7 +68,7 @@ export default function ChallengeDetailPage() {
             <span className="text-xs text-beige-600">외 {Math.max(0, participants - previewAvatars.length)}명 참여중</span>
           </div>
 
-          <button onClick={handleToggleJoin} className={`w-full py-sk4-md rounded sk4-text-sm font-medium transition-all duration-200 ${isParticipant ? 'bg-sk4-light-gray text-sk4-charcoal hover:bg-sk4-gray' : 'bg-sk4-orange text-sk4-white hover:bg-opacity-90'}`}>{isParticipant ? '참여 취소' : '참여하기'}</button>
+          <button onClick={handleOpenSubmit} className="w-full py-sk4-md rounded sk4-text-sm font-medium transition-all duration-200 bg-sk4-orange text-sk4-white hover:bg-opacity-90">트랙 제출하기</button>
         </section>
 
         {/* Leader Preview */}
@@ -86,7 +87,7 @@ export default function ChallengeDetailPage() {
         {/* Voting */}
         <section className="bg-cream-100 rounded-medium shadow-minimal border border-cream-200 p-6">
           <h3 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">투표하기</h3>
-          <div className="mb-sk4-md sk4-text-sm text-sk4-dark-gray">추천하고 싶은 곡이 있나요? <button onClick={()=>setIsRecommendOpen(true)} className="ml-sk4-sm px-sk4-md py-sk4-sm bg-sk4-orange text-sk4-white rounded transition-all duration-200">트랙 제출하기</button></div>
+          <div className="mb-sk4-md sk4-text-sm text-sk4-dark-gray">추천하고 싶은 곡이 있나요? <button onClick={handleOpenSubmit} className="ml-sk4-sm px-sk4-md py-sk4-sm bg-sk4-orange text-sk4-white rounded transition-all duration-200">트랙 제출하기</button></div>
           <ul className="space-y-3">
             {dummyTracks.slice(0,5).map(t=> (
               <li key={t.id} className="py-3 px-4 bg-cream-50 rounded-medium shadow-minimal border border-cream-200 flex items-center gap-3">
@@ -110,17 +111,53 @@ export default function ChallengeDetailPage() {
         isOpen={isRecommendOpen}
         onClose={()=>setIsRecommendOpen(false)}
         onSubmit={(youtubeId, reason)=>{
-          // 데모: 투표 리스트에 항목 추가
-          const found = dummyTracks.find(t=>t.externalId===youtubeId || t.id===youtubeId);
-          if (found) {
-            setVotes(v=>({ ...v, [found.id]: (v[found.id]||0) }));
-          } else {
-            // fallback: 첫 트랙의 카피 생성 없이 단순 표 등록
-            setVotes(v=>({ ...v, [youtubeId]: 0 }));
+          if (challenge.status !== 'active') {
+            toast.error('진행 중인 챌린지만 제출할 수 있습니다');
+            return;
           }
+          // 중복 방지(동일 트랙)
+          const found = dummyTracks.find(t=>t.externalId===youtubeId || t.id===youtubeId);
+          const trackId = found ? found.id : youtubeId;
+          if (submissions.some(s=>s.trackId===trackId)) {
+            toast.error('이미 제출된 트랙입니다');
+            return;
+          }
+          // 제출 추가
+          setSubmissions(prev=>[
+            { id: String(Date.now()), userId: dummyUsers[0].id, trackId, reason }
+          , ...prev]);
+          // 투표 리스트에도 노출되도록 초기화(득표 0)
+          if (found) setVotes(v=>({ ...v, [found.id]: (v[found.id]||0) }));
           setIsRecommendOpen(false);
+          toast.success('제출이 접수되었습니다 (승인 대기)');
         }}
       />
+      {/* Submissions List */}
+      <div className="max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-4 pb-8">
+        {submissions.length > 0 && (
+          <section className="bg-cream-100 rounded-medium shadow-minimal border border-cream-200 p-6 mt-4">
+            <h3 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">제출 목록</h3>
+            <ul className="space-y-3">
+              {submissions.map((s)=>{
+                const user = dummyUsers.find(u=>u.id===s.userId) || dummyUsers[0];
+                const track = dummyTracks.find(t=>t.id===s.trackId) || dummyTracks[0];
+                return (
+                  <li key={s.id} className="flex items-start gap-3 p-3 bg-cream-50 rounded-medium border border-cream-200">
+                    <img src={user.profileImage || '/default-avatar.png'} className="w-8 h-8 rounded-full" alt={user.nickname} />
+                    <img src={track.thumbnailUrl} className="w-12 h-12 rounded-medium" alt={track.title} />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-beige-800 truncate">{track.title}</p>
+                      <p className="text-xs text-beige-600 truncate">{track.artist} • {user.nickname}</p>
+                      {s.reason && <p className="text-xs text-beige-500 mt-1 line-clamp-2">“{s.reason}”</p>}
+                      <span className="inline-block mt-1 text-[10px] text-beige-600 bg-cream-200 px-2 py-0.5 rounded">승인 대기</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

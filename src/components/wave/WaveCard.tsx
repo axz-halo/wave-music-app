@@ -48,7 +48,7 @@ export default function WaveCard({
   };
 
   return (
-    <div className="bg-sk4-white border border-sk4-gray p-sk4-md hover:border-sk4-medium-gray transition-all duration-200">
+    <div className="bg-sk4-white border border-sk4-gray p-sk4-md hover:border-sk4-medium-gray transition-all duration-200 h-full flex flex-col">
       {/* User Info - Compact */}
       <div className="flex items-center space-x-sk4-sm mb-sk4-sm">
         <img 
@@ -90,7 +90,7 @@ export default function WaveCard({
       )}
 
       {/* Actions - Simplified */}
-      <div className="flex items-center justify-between pt-sk4-sm border-t border-sk4-light-gray">
+      <div className="flex items-center justify-between pt-sk4-sm border-t border-sk4-light-gray mt-auto">
         <div className="flex items-center space-x-sk4-md">
           <button 
             onClick={handleLike}
