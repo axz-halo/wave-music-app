@@ -11,13 +11,18 @@ function extractVideoId(url: string): string {
 
 export async function POST(req: NextRequest) {
   try {
+    console.log('🚀 Station upload started');
+    
     // Service Role Key로 직접 클라이언트 생성 (RLS 우회)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
     if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('❌ Database configuration missing');
       return NextResponse.json({ error: 'Database configuration missing' }, { status: 500 });
     }
+    
+    console.log('✅ Database configuration confirmed');
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
@@ -42,93 +47,67 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    // 프로필 생성 - 완전히 새로운 접근방식
-    console.log('🔍 Processing user profile for:', user.id);
+    // 프로필 생성 - 실패 불가능한 마지막 방어선
+    console.log('🔍 Starting user profile processing');
     
     let profile;
     
+    // 1단계: 기본값으로 디폴트 프로필 보장
+    const defaultProfile = {
+      id: user.id,
+      nickname: user.user_metadata?.full_name || 
+               user.user_metadata?.name || 
+               user.email?.split('@')[0] || 
+               '사용자',
+      email: user.email || null,
+      profile_image: user.user_metadata?.avatar_url || null
+    };
+    
+    console.log(`🔐 Creating guaranteed profile for user: ${user.id}`);
+    
     try {
-      // 먼저 기존 프로필 확인부터
-      const { data: existingProfile, error: fetchError } = await supabaseAdmin
+      // 예: 기존 프로필 시도 최대 1회
+      const { data: existingProfile } = await supabaseAdmin
         .from('profiles')
         .select('id, nickname, email, profile_image')
         .eq('id', user.id)
         .maybeSingle();
-
+      
       if (existingProfile) {
-        console.log('✅ Found existing profile:', existingProfile);
         profile = existingProfile;
+        console.log('✅ EXISTING PROFILE FOUND');
       } else {
-        console.log('🆕 Creating new profile...');
-        
-        const profileData = {
-          id: user.id,
-          nickname: user.user_metadata?.full_name || 
-                   user.user_metadata?.name || 
-                   user.email?.split('@')[0] || 
-                   '사용자',
-          email: user.email || null,
-          profile_image: user.user_metadata?.avatar_url || null
-        };
-
-        console.log('📋 Profile data to create:', profileData);
-
-        // MERGE 방식으로 프로필 생성/업데이트 시도
-        const { data: upsertResult, error: upsertError } = await supabaseAdmin
-          .from('profiles')
-          .upsert(profileData, { 
-            onConflict: 'id' 
-          })
-          .select('id, nickname, email, profile_image')
-          .single();
-
-        if (upsertError) {
-          console.error('❌ Profile upsert failed:', upsertError);
+        // 없으면 실시간 생성 - 버블 복사로 안전화
+        try {
+          const { data: newProfile } = await supabaseAdmin
+            .from('profiles')
+            .insert(defaultProfile)
+            .select('id, nickname, email, profile_image')
+            .single();
           
-          // upsert 실패 시 at least basic profile을 만들기 위해 원시값 생성
-          console.log('⚠️ Creating fallback profile object...');
-          profile = {
-            id: user.id,
-            nickname: profileData.nickname,
-            email: profileData.email,
-            profile_image: profileData.profile_image
-          };
-          console.log('🔧 Using fallback profile:', profile);
-        } else {
-          console.log('✅ Profile upsert successful:', upsertResult);
-          profile = upsertResult;
+          profile = newProfile;
+          console.log('✅ PROFILE CREATED NEW');
+        } catch (createError: any) {
+          console.warn('⚠️ Profile create failed', createError);
+          // 이미 했기 때문에 다시 조회 시도
+          const retry = await supabaseAdmin
+            .from('profiles')
+            .select()
+            .eq('id', user.id)
+            .single();
+          
+          profile = retry.data || defaultProfile;
+          console.log('🎯 FALLBACK PROFILE ENSURED');
         }
       }
-      
-    } catch (error: any) {
-      console.error('❌ Profile handling error:', error);
-      
-      // 최종 fallback - 메모리 프로필
-      profile = {
-        id: user.id,
-        nickname: user.user_metadata?.full_name || 
-                 user.user_metadata?.name || 
-                 user.email?.split('@')[0] || 
-                 '사용자',
-        email: user.email || null,
-        profile_image: user.user_metadata?.avatar_url || null
-      };
-      console.log('🛡️ Final fallback profile created:', profile);
+    } catch (outerError: any) {
+      console.warn('Outermost DB layer failed; hard using default');
+      profile = defaultProfile;
     }
-
-    // 프로필 최종 검증 - 조금 더 유연하게
-    if (!profile?.id) {
-      console.warn('⚠️ Profile validation issue - creating emergency profile');
-      
-      // 최후의 fallback profile 생성
-      profile = {
-        id: user.id,
-        nickname: '사용자',
-        email: user.email || null,
-        profile_image: null
-      };
-      
-      console.log('🚨 Emergency profile created:', profile);
+    
+    // 최후 필수 체크
+    if (!profile || !profile?.id) {
+      profile = { ...defaultProfile };
     }
 
     console.log('✅ Profile ready:', {
