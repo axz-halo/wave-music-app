@@ -99,8 +99,8 @@ export async function getOrCreateProfile(user: SupaUser) {
   const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
   if (data) return data;
   const nickname = user.user_metadata?.full_name || '사용자';
-  const profile_image = user.user_metadata?.avatar_url || null;
+  const avatar_url = user.user_metadata?.avatar_url || null;
   const email = user.email || null;
-  await supabase.from('profiles').insert({ id: user.id, nickname, profile_image, email });
-  return { id: user.id, nickname, profile_image, email, followers: 0, following: 0, created_at: new Date().toISOString() };
+  await supabase.from('profiles').insert({ id: user.id, nickname, avatar_url, email });
+  return { id: user.id, nickname, profile_image: avatar_url, email, followers: 0, following: 0, created_at: new Date().toISOString() };
 }
