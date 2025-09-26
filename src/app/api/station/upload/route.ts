@@ -42,85 +42,83 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    // 프로필 확인 및 생성 - 강화된 버전
+    // 프로필 생성 - 가장 확실한 방법
     console.log('🔍 Processing user profile for:', user.id);
-    console.log('🔍 User data:', {
-      id: user.id,
-      email: user.email,
-      metadata: user.user_metadata
-    });
     
     let profile;
     
     try {
-      // Step 1: 기존 프로필 확인
-      const { data: existingProfile, error: fetchError } = await supabaseAdmin
-        .from('profiles')
-        .select('id, nickname, email, profile_image')
-        .eq('id', user.id)
-        .maybeSingle();
+      // 1단계: 기본 프로필 데이터 준비
+      const profileData = {
+        id: user.id,
+        nickname: user.user_metadata?.full_name || 
+                 user.user_metadata?.name || 
+                 user.email?.split('@')[0] || 
+                 '사용자',
+        email: user.email || null,
+        profile_image: user.user_metadata?.avatar_url || null
+      };
+      
+      console.log('📋 Profile data prepared:', profileData);
 
-      console.log('🔍 Profile fetch result:', { existingProfile, fetchError });
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('❌ Error checking existing profile:', fetchError);
-        return NextResponse.json({ 
-          error: 'Failed to check user profile',
-          details: fetchError.message
-        }, { status: 500 });
-      }
-
-      if (existingProfile) {
-        console.log('✅ Found existing profile:', existingProfile);
-        profile = existingProfile;
-      } else {
-        // Step 2: 새 프로필 생성 시도
-        console.log('🆕 Creating new profile for user:', user.id);
-        
-        const profileData = {
-          id: user.id,
-          nickname: user.user_metadata?.full_name || 
-                   user.user_metadata?.name || 
-                   user.email?.split('@')[0] || 
-                   '사용자',
-          email: user.email || null,
-          profile_image: user.user_metadata?.avatar_url || null
-        };
-
-        console.log('📋 Inserting profile data:', profileData);
-
-        // 프로필 생성 시도 - upsert 방식으로 변경
-        const { data: newProfile, error: insertError } = await supabaseAdmin
+      // 2단계: 직접 프로필 생성 (강제 insert/update)
+      let insertResult;
+      let updateResult;
+      
+      try {
+        // INSERT 시도
+        const { data: insertedData, error: insertError } = await supabaseAdmin
           .from('profiles')
-          .upsert(profileData, { onConflict: 'id' })
+          .insert(profileData)
           .select('id, nickname, email, profile_image')
           .single();
-
-        if (insertError) {
-          console.error('❌ Profile creation failed:', insertError);
-          return NextResponse.json({ 
-            error: 'Failed to create user profile',
-            details: insertError.message
-          }, { status: 500 });
+          
+        if (insertError && insertError.code !== '23505') {
+          // 다른 에러이면 그대로 에러 반환
+          throw insertError;
+        } else if (insertError && insertError.code === '23505') {
+          // 중복 키 에러면 기존 데이터 조회
+          console.log('🔄 Duplicate key - fetching existing profile');
+          const { data: existingData, error: fetchError } = await supabaseAdmin
+            .from('profiles')
+            .select('id, nickname, email, profile_image')
+            .eq('id', user.id)
+            .single();
+            
+          if (fetchError || !existingData) {
+            throw new Error('Failed to retrieve existing profile');
+          }
+          
+          insertResult = existingData;
+        } else {
+          insertResult = insertedData;
         }
-
-        console.log('✅ Profile created successfully:', newProfile);
-        profile = newProfile;
+        
+        console.log('✅ Profile ready:', insertResult);
+        profile = insertResult;
+        
+      } catch (dbError: any) {
+        console.error('❌ Database error:', dbError);
+        return NextResponse.json({ 
+          error: 'Failed to create user profile',
+          details: dbError.message || 'Database operation failed'
+        }, { status: 500 });
       }
+      
     } catch (error: any) {
-      console.error('❌ Profile handling error:', error);
+      console.error('❌ Profile creation error:', error);
       return NextResponse.json({ 
         error: 'Failed to handle user profile',
         details: error?.message || 'Unknown profile error'
       }, { status: 500 });
     }
 
-    // 프로필 확인 - 더 강력한 검증
-    if (!profile || !profile.id) {
-      console.log('⚠️ Profile validation failed');
+    // 프로필 최종 검증
+    if (!profile?.id) {
+      console.error('❌ Profile validation failed - no profile ID');
       return NextResponse.json({ 
-        error: 'Failed to create user profile - Profile validation failed',
-        details: 'Profile object is invalid'
+        error: 'Failed to create user profile - Invalid profile',
+        details: 'Profile creation resulted in invalid object'
       }, { status: 500 });
     }
 
