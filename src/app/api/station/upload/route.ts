@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
                user.email?.split('@')[0] || 
                '사용자',
       email: user.email || null,
-      profile_image: user.user_metadata?.avatar_url || null
+      avatar_url: user.user_metadata?.avatar_url || null
     };
     
     console.log(`🔐 Creating guaranteed profile for user: ${user.id}`);
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       // 예: 기존 프로필 시도 최대 1회
       const { data: existingProfile } = await supabaseAdmin
         .from('profiles')
-        .select('id, nickname, email, profile_image')
+        .select('id, nickname, email, avatar_url')
         .eq('id', user.id)
         .maybeSingle();
       
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
           const { data: newProfile } = await supabaseAdmin
             .from('profiles')
             .insert(defaultProfile)
-            .select('id, nickname, email, profile_image')
+            .select('id, nickname, email, avatar_url')
             .single();
           
           profile = newProfile;
