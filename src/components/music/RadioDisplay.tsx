@@ -1,31 +1,49 @@
-'use client';
-
-import { useEffect, useMemo, useState } from 'react';
+'use client';import { useEffect, useMemo, useState } from 'react';
 import { Radio } from 'lucide-react';
-import { dummyWaves } from '@/lib/dummy-data';
+import supabase from '@/lib/supabaseClient';
 
 export default function RadioDisplay() {
   const [now, setNow] = useState(new Date());
+  const [todayWaves, setTodayWaves] = useState<number>(0);
+  const [todayTracksSaved, setTodayTracksSaved] = useState<number>(0);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const { todayWaves, todaySaves } = useMemo(() => {
-    let waves = 0;
-    let saves = 0;
-    for (const w of dummyWaves) {
-      const t = new Date(w.timestamp);
-      if (t >= today) {
-        waves += 1;
-        saves += w.saves || 0;
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchStats = async () => {
+      if (!supabase) return;
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const startIso = start.toISOString();
+      const { count: wavesCount } = await supabase
+        .from('waves')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', startIso);
+      const { count: savedCount } = await supabase
+        .from('playlist_tracks')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', startIso);
+      if (!isCancelled) {
+        setTodayWaves(wavesCount || 0);
+        setTodayTracksSaved(savedCount || 0);
       }
-    }
-    return { todayWaves: waves, todaySaves: saves };
+    };
+    fetchStats();
+    // subscribe to realtime inserts for instant updates
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const channel = (supabase as any)
+      .channel('radio-stats')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'waves' }, fetchStats)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'playlist_tracks' }, fetchStats)
+      .subscribe();
+    const poll = setInterval(fetchStats, 15000);
+    return () => { isCancelled = true; clearInterval(poll); try { (supabase as any).removeChannel(channel); } catch {}
+    };
   }, []);
 
   const dateStr = now.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' });
@@ -52,9 +70,9 @@ export default function RadioDisplay() {
           </div>
           <div className="flex items-center space-x-sk4-sm">
             <div className="flex space-x-1">
-              <div className="w-1 h-1 rounded-full bg-green-500" />
-              <div className="w-1 h-1 rounded-full bg-green-500" />
-              <div className="w-1 h-1 rounded-full bg-green-500" />
+              <div className="w-1 h-1 rounded-full bg-sk4-orange animate-pulse" />
+              <div className="w-1 h-1 rounded-full bg-sk4-orange animate-pulse" />
+              <div className="w-1 h-1 rounded-full bg-sk4-orange animate-pulse" />
             </div>
             <div className="sk4-text-xs text-sk4-white">LIVE</div>
           </div>
@@ -70,7 +88,7 @@ export default function RadioDisplay() {
         <div className="text-center">
           <div className="sk4-text-xs text-sk4-radio-text mb-1">Today's Stats</div>
           <div className="sk4-text-sm text-sk4-white">
-            {todayWaves} waves | {todaySaves} Tracks
+            {todayWaves} waves | {todayTracksSaved} Tracks
           </div>
         </div>
       </div>

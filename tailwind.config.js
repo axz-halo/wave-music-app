@@ -38,10 +38,11 @@ module.exports = {
         'sk4-xl': ['18px', '1.2'], // Large titles (desktop only)
       },
       spacing: {
-        'sk4-sm': '8px',   // Small spacing
-        'sk4-md': '16px',  // Medium spacing
-        'sk4-lg': '24px',  // Large spacing
-        'sk4-xl': '32px',  // Extra large spacing (special cases only)
+        'sk4-sm': '8px',      // Small spacing
+        'sk4-sm-plus': '14px', // Small plus spacing (for wave cards)
+        'sk4-md': '16px',     // Medium spacing
+        'sk4-lg': '24px',     // Large spacing
+        'sk4-xl': '32px',     // Extra large spacing (special cases only)
       },
       animation: {
         // Only 3 animations allowed - Dieter Rams principle

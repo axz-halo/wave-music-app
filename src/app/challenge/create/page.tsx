@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/layout/Navigation';
 import { dummyChallenges, dummyUsers } from '@/lib/dummy-data';
+import supabase from '@/lib/supabaseClient';
 
 export default function ChallengeCreatePage() {
   const router = useRouter();
@@ -13,9 +14,19 @@ export default function ChallengeCreatePage() {
   const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
   const [trackCount, setTrackCount] = useState(10);
   const [duration, setDuration] = useState(7);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
 
   const genres = ['K-Pop', 'Hip-Hop', 'Rock', 'Electronic', 'Jazz', 'Classical', 'Indie', 'R&B'];
-  const moods = ['흥분', '휴식', '운동', '집중', '슬픔', '사랑', '에너지', '감성'];
+  const moodOptions: { text: string; emoji: string }[] = [
+    { text: '에너지', emoji: '🔥' },
+    { text: '휴식', emoji: '😌' },
+    { text: '운동', emoji: '💪' },
+    { text: '집중', emoji: '🧠' },
+    { text: '슬픔', emoji: '😭' },
+    { text: '사랑', emoji: '❤️' },
+    { text: '감성', emoji: '🌙' },
+    { text: '행복', emoji: '😊' },
+  ];
 
   const handleGenreToggle = (genre: string) => {
     setSelectedGenres(prev => 
@@ -33,7 +44,7 @@ export default function ChallengeCreatePage() {
     );
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim()) return;
     const newId = String(Date.now());
     const newChallenge = {
@@ -47,17 +58,40 @@ export default function ChallengeCreatePage() {
       votingEndDate: new Date(Date.now() + (duration + 2) * 24 * 60 * 60 * 1000).toISOString(),
       targetTrackCount: trackCount,
       currentTrackCount: 0,
-      participants: 1,
+      participants: 0,
       rules: {
         genres: selectedGenres,
         moods: selectedMoods,
         allowDuplicates: false,
         votingMethod: 'like' as const,
       },
-      thumbnailUrl: dummyChallenges[0]?.thumbnailUrl,
+      thumbnailUrl: thumbnailUrl || dummyChallenges[0]?.thumbnailUrl,
       createdAt: new Date().toISOString(),
     };
-    dummyChallenges.unshift(newChallenge);
+    // Insert to Supabase if available
+    try {
+      if (supabase) {
+        const { data, error } = await supabase.from('challenges').insert({
+          id: newId,
+          title: newChallenge.title,
+          description: newChallenge.description,
+          creator_id: dummyUsers[0].id,
+          status: 'upcoming',
+          start_date: newChallenge.startDate,
+          end_date: newChallenge.endDate,
+          voting_end_date: newChallenge.votingEndDate,
+          target_track_count: newChallenge.targetTrackCount,
+          current_track_count: 0,
+          participants: 0,
+          rules: newChallenge.rules,
+          thumbnail_url: newChallenge.thumbnailUrl,
+        }).select('id').maybeSingle();
+        if (error) throw error;
+      }
+    } catch {
+      // fallback to dummy if insert fails
+      dummyChallenges.unshift(newChallenge as any);
+    }
     router.push(`/challenge/${newId}`);
   };
 
@@ -96,6 +130,18 @@ export default function ChallengeCreatePage() {
               />
               <p className="text-xs text-gray-500 mt-1">{description.length}/200</p>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">썸네일 업로드 (선택)</label>
+              <div className="flex items-center gap-3">
+                <input type="file" accept="image/*" onChange={(e)=>{
+                  const file = e.target.files?.[0];
+                  if (file) setThumbnailUrl(URL.createObjectURL(file));
+                }} className="text-sm" />
+                {thumbnailUrl && (
+                  <img src={thumbnailUrl} alt="thumbnail preview" className="w-16 h-16 rounded object-cover border border-gray-200" />
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -124,17 +170,18 @@ export default function ChallengeCreatePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">무드 (선택사항)</label>
               <div className="grid grid-cols-2 gap-2">
-                {moods.map(mood => (
+                {moodOptions.map(m => (
                   <button
-                    key={mood}
-                    onClick={() => handleMoodToggle(mood)}
-                    className={`p-2 rounded-lg border text-sm font-medium transition-all ${
-                      selectedMoods.includes(mood)
-                        ? 'bg-blue-50 border-blue-200 text-blue-700'
+                    key={m.text}
+                    onClick={() => handleMoodToggle(m.text)}
+                    className={`p-2 rounded-lg border text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                      selectedMoods.includes(m.text)
+                        ? 'bg-sk4-orange/10 border-sk4-orange text-sk4-charcoal'
                         : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                     }`}
                   >
-                    {mood}
+                    <span className="text-lg">{m.emoji}</span>
+                    <span>{m.text}</span>
                   </button>
                 ))}
               </div>
@@ -157,6 +204,7 @@ export default function ChallengeCreatePage() {
                 value={trackCount}
                 onChange={(e) => setTrackCount(Number(e.target.value))}
                 className="w-full"
+                style={{ accentColor: '#ff6600' }}
               />
               <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>10곡 (30분)</span>
@@ -174,6 +222,7 @@ export default function ChallengeCreatePage() {
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
                 className="w-full"
+                style={{ accentColor: '#ff6600' }}
               />
               <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>3일</span>
@@ -187,7 +236,7 @@ export default function ChallengeCreatePage() {
         <button 
           onClick={handleSubmit} 
           disabled={!title.trim()}
-          className="w-full py-3 rounded-lg bg-blue-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700 transition-all"
+          className="w-full py-3 rounded-lg bg-sk4-orange text-sk4-white disabled:bg-sk4-gray disabled:cursor-not-allowed hover:bg-opacity-90 transition-all"
         >
           챌린지 만들기
         </button>

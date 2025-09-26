@@ -48,7 +48,7 @@ export default function WaveCard({
   };
 
   return (
-    <div className="bg-sk4-white border border-sk4-gray p-sk4-md hover:border-sk4-medium-gray transition-all duration-200 h-full flex flex-col">
+    <div className="bg-sk4-white border border-sk4-gray p-sk4-md hover:border-sk4-medium-gray sk4-interactive h-full flex flex-col min-h-[220px] sm:min-h-[240px] sk4-slide-in">
       {/* User Info - Compact */}
       <div className="flex items-center space-x-sk4-sm mb-sk4-sm">
         <img 
@@ -78,7 +78,7 @@ export default function WaveCard({
 
       {/* Comment - Only if exists */}
       {wave.comment && (
-        <p className="sk4-text-sm text-sk4-charcoal mb-sk4-sm leading-relaxed">{wave.comment}</p>
+        <p className="sk4-text-sm text-sk4-charcoal mb-sk4-sm leading-relaxed line-clamp-2">{wave.comment}</p>
       )}
 
       {/* Mood - Inline with comment */}
@@ -94,9 +94,9 @@ export default function WaveCard({
         <div className="flex items-center space-x-sk4-md">
           <button 
             onClick={handleLike}
-            className={`flex items-center space-x-1 px-2 py-1 rounded transition-all duration-200 ${
+            className={`sk4-btn flex items-center space-x-1 px-2 py-1 rounded ${
               isLiked 
-                ? 'bg-sk4-orange bg-opacity-10 text-sk4-orange' 
+                ? 'bg-sk4-orange bg-opacity-10 text-sk4-orange sk4-pulse' 
                 : 'text-sk4-dark-gray hover:bg-sk4-light-gray'
             }`}
           >
@@ -106,7 +106,7 @@ export default function WaveCard({
           
           <button 
             onClick={() => onComment?.(wave.id)}
-            className="flex items-center space-x-1 px-2 py-1 rounded text-sk4-dark-gray hover:bg-sk4-light-gray transition-all duration-200"
+            className="sk4-btn flex items-center space-x-1 px-2 py-1 rounded text-sk4-dark-gray hover:bg-sk4-light-gray"
           >
             <MessageCircle className="w-4 h-4" />
             <span className="sk4-text-xs">{wave.comments}</span>
@@ -114,9 +114,9 @@ export default function WaveCard({
           
           <button 
             onClick={handleSave}
-            className={`flex items-center space-x-1 px-2 py-1 rounded transition-all duration-200 ${
+            className={`sk4-btn flex items-center space-x-1 px-2 py-1 rounded ${
               isSaved 
-                ? 'bg-sk4-orange bg-opacity-10 text-sk4-orange' 
+                ? 'bg-sk4-orange bg-opacity-10 text-sk4-orange sk4-pulse' 
                 : 'text-sk4-dark-gray hover:bg-sk4-light-gray'
             }`}
           >
@@ -127,7 +127,7 @@ export default function WaveCard({
         
         <button 
           onClick={() => onShare?.(wave.id)}
-          className="p-1 text-sk4-dark-gray hover:bg-sk4-light-gray rounded transition-all duration-200"
+          className="sk4-btn p-1 text-sk4-dark-gray hover:bg-sk4-light-gray rounded"
         >
           <Share className="w-4 h-4" />
         </button>

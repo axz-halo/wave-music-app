@@ -1,55 +1,83 @@
+
+
 'use client';
 
-import { useState } from 'react';
-import { X, Send, Heart, MoreHorizontal } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Send, MoreHorizontal } from 'lucide-react';
+import supabase from '@/lib/supabaseClient';
+import { ensureSignedIn } from '@/lib/authSupa';
 
-interface Comment {
+interface CommentDoc {
   id: string;
-  user: {
-    nickname: string;
-    profileImage?: string;
-  };
+  user_id: string;
+  user_nickname: string;
+  user_image?: string;
   content: string;
-  timestamp: string;
-  likes: number;
-  isLiked: boolean;
+  created_at: string;
 }
 
 interface CommentSheetProps {
   isOpen: boolean;
   onClose: () => void;
   waveId: string;
-  comments: Comment[];
-  onAddComment: (content: string) => void;
-  onLikeComment: (commentId: string) => void;
+  onAfterSubmit?: () => void;
 }
 
-export default function CommentSheet({ 
-  isOpen, 
-  onClose, 
-  waveId, 
-  comments, 
-  onAddComment, 
-  onLikeComment 
-}: CommentSheetProps) {
+export default function CommentSheet({ isOpen, onClose, waveId, onAfterSubmit }: CommentSheetProps) {
   const [newComment, setNewComment] = useState('');
-
-  const handleSubmit = () => {
-    if (newComment.trim()) {
-      onAddComment(newComment.trim());
-      setNewComment('');
-    }
-  };
+  const [comments, setComments] = useState<CommentDoc[]>([]);
 
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();
     const time = new Date(timestamp);
     const diffInSeconds = Math.floor((now.getTime() - time.getTime()) / 1000);
-    
     if (diffInSeconds < 60) return '방금 전';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}분 전`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}시간 전`;
     return `${Math.floor(diffInSeconds / 86400)}일 전`;
+  };
+
+  useEffect(() => {
+    if (!isOpen || !waveId || !supabase) return;
+    let isCancelled = false;
+    const load = async () => {
+      const { data } = await supabase!
+        .from('comments')
+        .select('*')
+        .eq('target_type', 'wave')
+        .eq('target_id', waveId)
+        .order('created_at', { ascending: false });
+      if (!isCancelled && data) setComments(data as any);
+    };
+    load();
+    // realtime subscribe
+    const channel = (supabase as any)
+      .channel(`comments-wave-${waveId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: `target_id=eq.${waveId}` }, load)
+      .subscribe();
+    return () => {
+      isCancelled = true;
+      if (supabase) {
+        try { (supabase as any).removeChannel(channel); } catch {}
+      }
+    };
+  }, [isOpen, waveId]);
+
+  const handleSubmit = async () => {
+    const content = newComment.trim();
+    if (!content) return;
+    const u = await ensureSignedIn();
+    if (!u || !supabase) return;
+    await supabase!.from('comments').insert({
+      target_type: 'wave',
+      target_id: waveId,
+      user_id: u.id,
+      user_nickname: u.user_metadata?.full_name || '사용자',
+      user_image: u.user_metadata?.avatar_url || null,
+      content,
+    });
+    setNewComment('');
+    onAfterSubmit?.();
   };
 
   if (!isOpen) return null;
@@ -57,10 +85,7 @@ export default function CommentSheet({
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black bg-opacity-30"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black bg-opacity-30" onClick={onClose} />
 
       {/* Bottom Sheet */}
       <div className="absolute bottom-0 left-0 right-0 bg-sk4-white rounded-t-lg shadow-lg border-t border-sk4-gray max-h-[80vh] flex flex-col animate-slide-up">
@@ -89,31 +114,17 @@ export default function CommentSheet({
             comments.map((comment) => (
               <div key={comment.id} className="flex space-x-sk4-sm">
                 <img
-                  src={comment.user.profileImage || '/default-avatar.png'}
-                  alt={comment.user.nickname}
+                  src={comment.user_image || '/default-avatar.png'}
+                  alt={comment.user_nickname}
                   className="w-8 h-8 rounded-full flex-shrink-0 border border-sk4-gray"
                 />
                 <div className="flex-1 space-y-sk4-sm">
                   <div className="flex items-center space-x-sk4-sm">
-                    <span className="sk4-text-sm font-medium text-sk4-charcoal">{comment.user.nickname}</span>
+                    <span className="sk4-text-sm font-medium text-sk4-charcoal">{comment.user_nickname}</span>
                     <span className="sk4-text-xs text-sk4-dark-gray">•</span>
-                    <span className="sk4-text-xs text-sk4-dark-gray">{formatTimeAgo(comment.timestamp)}</span>
+                    <span className="sk4-text-xs text-sk4-dark-gray">{formatTimeAgo(comment.created_at)}</span>
                   </div>
                   <p className="sk4-text-sm text-sk4-charcoal leading-relaxed">{comment.content}</p>
-                  <div className="flex items-center space-x-sk4-md">
-                    <button
-                      onClick={() => onLikeComment(comment.id)}
-                      className={`flex items-center space-x-1 sk4-text-xs transition-all ${
-                        comment.isLiked ? 'text-sk4-orange' : 'text-sk4-dark-gray hover:text-sk4-orange'
-                      }`}
-                    >
-                      <Heart className={`w-3 h-3 ${comment.isLiked ? 'fill-current' : ''}`} />
-                      <span>{comment.likes}</span>
-                    </button>
-                    <button className="sk4-text-xs text-sk4-dark-gray hover:text-sk4-charcoal">
-                      답글
-                    </button>
-                  </div>
                 </div>
                 <button className="text-sk4-dark-gray hover:text-sk4-charcoal">
                   <MoreHorizontal className="w-4 h-4" />

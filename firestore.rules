@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (request.auth.token.admin == true);
+    }
+
+    // users: each user manages only their own document
+    match /users/{userId} {
+      allow read: if true;  // public profile read
+      allow create: if isOwner(userId);
+      allow update, delete: if isOwner(userId) || isAdmin();
+    }
+
+    // Radio: playlists submitted by community
+    match /radio_playlists/{playlistId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // Radio: channels submitted by community
+    match /radio_channels/{channelId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // Waves feed
+    match /waves/{waveId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      // Only owner can edit/remove own wave; counters should be updated via Functions
+      allow update, delete: if isOwner(request.resource.data.userId) || isAdmin();
+    }
+
+    // Playlists created in-app
+    match /playlists/{pid} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isOwner(request.resource.data.creatorId) || isAdmin();
+    }
+
+    // Challenges are system-managed; submissions are community
+    match /challenges/{cid} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /submissions/{sid} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isOwner(request.resource.data.userId) || isAdmin();
+      }
+    }
+
+    // Comments: can be attached to waves or challenges via targetId/targetType
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isOwner(request.resource.data.userId) || isAdmin();
+    }
+  }
+}
+
+
+

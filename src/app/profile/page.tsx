@@ -1,24 +1,51 @@
 'use client';
 
-import { useState } from 'react';
-import { Settings, Edit, Music, Heart, Trophy, Users, Calendar } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Settings, Edit, Music, Trophy, Bookmark } from 'lucide-react';
 import Navigation from '@/components/layout/Navigation';
-import { dummyUsers, dummyWaves } from '@/lib/dummy-data';
+import { dummyWaves } from '@/lib/dummy-data';
+import { onAuthStateChange, signInWithGoogle, signOutUser, getOrCreateProfile } from '@/lib/authSupa';
+import supabase from '@/lib/supabaseClient';
 
 export default function ProfilePage() {
-  const [user] = useState(dummyUsers[0]); // 현재 사용자
-  const [myWaves] = useState(dummyWaves.slice(0, 3)); // 내 웨이브 일부
-
-  const stats = [
-    { icon: Music, value: 156, label: '총 웨이브' },
-    { icon: Heart, value: 1234, label: '받은 좋아요' },
-    { icon: Trophy, value: 8, label: '참여한 챌린지' },
-  ];
+  const [user, setUser] = useState<any>(null);
+  const [myWaves, setMyWaves] = useState<Array<any>>([]);
+  const [waveCount, setWaveCount] = useState<number>(0);
+  const [savedTracksCount, setSavedTracksCount] = useState<number>(0);
+  const [participatedChallenges, setParticipatedChallenges] = useState<number>(0);
 
   const formatJoinDate = (date: string) => {
     const joinDate = new Date(date);
     return `${joinDate.getFullYear()}년 ${joinDate.getMonth() + 1}월 가입`;
   };
+
+  useEffect(() => {
+    const unsub = onAuthStateChange(async (u) => {
+      if (u) {
+        const profile = await getOrCreateProfile({ id: u.id, email: u.email, user_metadata: u.user_metadata });
+        setUser(profile || { nickname: u.user_metadata?.full_name || '사용자', email: u.email, profileImage: u.user_metadata?.avatar_url, createdAt: new Date().toISOString(), followers: 0, following: 0 });
+        if (supabase) {
+          const { count: wc } = await supabase.from('waves').select('*', { count: 'exact', head: true }).eq('user_id', u.id);
+          setWaveCount(wc || 0);
+          const { count: sc } = await supabase.from('playlist_tracks').select('*', { count: 'exact', head: true }).eq('added_by', u.id);
+          setSavedTracksCount(sc || 0);
+          const { count: pc } = await supabase.from('submissions').select('*', { count: 'exact', head: true }).eq('user_id', u.id);
+          setParticipatedChallenges(pc || 0);
+          const { data: waves } = await supabase.from('waves').select('*').eq('user_id', u.id).order('created_at', { ascending: false }).limit(3);
+          if (waves) {
+            setMyWaves(waves.map((w: any) => ({ id: w.id, track: { title: w.track_title, artist: w.track_artist, thumbnailUrl: w.thumb_url }, moodEmoji: w.mood_emoji, likes: w.likes || 0 })));
+          }
+        }
+      } else {
+        setUser(null);
+        setWaveCount(0);
+        setSavedTracksCount(0);
+        setParticipatedChallenges(0);
+        setMyWaves([]);
+      }
+    });
+    return () => unsub();
+  }, []);
 
   return (
     <div className="min-h-screen bg-cream-50 pb-20 lg:pb-0 lg:ml-56">
@@ -48,37 +75,47 @@ export default function ProfilePage() {
           <div className="text-center space-y-4">
             <div className="relative inline-block">
               <img 
-                src={user.profileImage || '/default-avatar.png'} 
-                alt={user.nickname}
+                src={(user?.profileImage) || '/default-avatar.png'} 
+                alt={(user?.nickname) || 'user'}
                 className="w-20 h-20 rounded-full"
               />
-              <button className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary-500 text-white rounded-full flex items-center justify-center shadow-minimal hover:bg-primary-600 transition-all duration-150">
-                <Edit className="w-4 h-4" />
-              </button>
             </div>
             
             <div className="space-y-2">
-              <h2 className="text-hierarchy-lg font-bold text-beige-800">{user.nickname}</h2>
-              <p className="text-sm text-beige-600">{user.email}</p>
-              <p className="text-xs text-beige-500">{formatJoinDate(user.createdAt)}</p>
+              {!user ? (
+                <>
+                  <h2 className="text-hierarchy-lg font-bold text-beige-800">로그인이 필요합니다</h2>
+                  <p className="text-sm text-beige-600">Google로 로그인하여 데이터를 동기화하세요</p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-hierarchy-lg font-bold text-beige-800">{user.nickname}</h2>
+                  <p className="text-sm text-beige-600">{user.email}</p>
+                  <p className="text-xs text-beige-500">{formatJoinDate(user.createdAt)}</p>
+                </>
+              )}
             </div>
 
             {/* Follow Stats */}
-            <div className="flex justify-center space-x-6">
-              <div className="text-center">
-                <p className="text-hierarchy-lg font-bold text-beige-800">{user.followers}</p>
-                <p className="text-xs text-beige-600">팔로워</p>
+            {user && (
+              <div className="flex justify-center space-x-6">
+                <div className="text-center">
+                  <p className="text-hierarchy-lg font-bold text-beige-800">{user.followers ?? 0}</p>
+                  <p className="text-xs text-beige-600">팔로워</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-hierarchy-lg font-bold text-beige-800">{user.following ?? 0}</p>
+                  <p className="text-xs text-beige-600">팔로잉</p>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-hierarchy-lg font-bold text-beige-800">{user.following}</p>
-                <p className="text-xs text-beige-600">팔로잉</p>
-              </div>
-            </div>
+            )}
 
             {/* Edit Profile Button */}
-            <button className="w-full py-2 bg-primary-500 text-white rounded-medium font-semibold text-sm hover:bg-primary-600 transition-all duration-150 shadow-minimal">
-              프로필 편집
-            </button>
+            {!user ? (
+              <button onClick={signInWithGoogle} className="w-full py-2 bg-sk4-orange text-sk4-white rounded-medium font-semibold text-sm hover:bg-opacity-90 transition-all duration-150">Google로 로그인</button>
+            ) : (
+              <button onClick={signOutUser} className="w-full py-2 bg-sk4-orange text-sk4-white rounded-medium font-semibold text-sm hover:bg-opacity-90 transition-all duration-150">로그아웃</button>
+            )}
           </div>
         </div>
 
@@ -86,18 +123,27 @@ export default function ProfilePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">활동 통계</h3>
           <div className="grid grid-cols-3 gap-3">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <div key={index} className="text-center space-y-2">
-                  <div className="w-10 h-10 bg-primary-100 rounded-medium mx-auto flex items-center justify-center shadow-tactile">
-                    <Icon className="w-5 h-5 text-primary-600" />
-                  </div>
-                  <p className="text-lg font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-xs text-gray-600">{stat.label}</p>
-                </div>
-              );
-            })}
+            <div className="text-center space-y-2">
+              <div className="w-10 h-10 bg-sk4-orange/10 rounded-medium mx-auto flex items-center justify-center">
+                <Music className="w-5 h-5 text-sk4-orange" />
+              </div>
+              <p className="text-lg font-bold text-gray-900">{waveCount}</p>
+              <p className="text-xs text-gray-600">총 웨이브</p>
+            </div>
+            <div className="text-center space-y-2">
+              <div className="w-10 h-10 bg-sk4-orange/10 rounded-medium mx-auto flex items-center justify-center">
+                <Bookmark className="w-5 h-5 text-sk4-orange" />
+              </div>
+              <p className="text-lg font-bold text-gray-900">{savedTracksCount}</p>
+              <p className="text-xs text-gray-600">저장한 트랙</p>
+            </div>
+            <div className="text-center space-y-2">
+              <div className="w-10 h-10 bg-sk4-orange/10 rounded-medium mx-auto flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-sk4-orange" />
+              </div>
+              <p className="text-lg font-bold text-gray-900">{participatedChallenges}</p>
+              <p className="text-xs text-gray-600">참여 챌린지</p>
+            </div>
           </div>
         </div>
 
@@ -204,7 +250,7 @@ export default function ProfilePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-900">내 웨이브</h3>
-            <a href="/profile/playlists" className="text-primary-500 text-sm font-medium">전체보기</a>
+            <a href="/profile/waves" className="text-sk4-orange text-sm font-medium">전체보기</a>
           </div>
           <div className="space-y-2">
             {myWaves.map((wave) => (
@@ -231,28 +277,28 @@ export default function ProfilePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-900">내 플레이리스트</h3>
-            <a href="/profile/playlists" className="text-primary-500 text-sm font-medium">전체보기</a>
+            <a href="/profile/playlists" className="text-sk4-orange text-sm font-medium">전체보기</a>
           </div>
           <div className="space-y-2">
             <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-              <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                <Music className="w-5 h-5 text-pink-600" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 text-sm">좋아요한 트랙</p>
-                <p className="text-xs text-gray-600">24곡</p>
-              </div>
-              <span className="text-xs text-gray-500">❤️ 156</span>
-            </div>
-            <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-              <div className="w-10 h-10 bg-primary-100 rounded-medium flex items-center justify-center shadow-tactile">
-                <Music className="w-5 h-5 text-primary-600" />
+              <div className="w-10 h-10 bg-sk4-orange/10 rounded-lg flex items-center justify-center">
+                <Music className="w-5 h-5 text-sk4-orange" />
               </div>
               <div className="flex-1">
                 <p className="font-medium text-gray-900 text-sm">저장한 트랙</p>
-                <p className="text-xs text-gray-600">18곡</p>
+                <p className="text-xs text-gray-600">{savedTracksCount}곡</p>
               </div>
-              <span className="text-xs text-gray-500">🔖 89</span>
+              <span className="text-xs text-gray-500">🔖 {savedTracksCount}</span>
+            </div>
+            <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
+              <div className="w-10 h-10 bg-sk4-orange/10 rounded-medium flex items-center justify-center">
+                <Music className="w-5 h-5 text-sk4-orange" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-gray-900 text-sm">저장한 플레이리스트</p>
+                <p className="text-xs text-gray-600">0개</p>
+              </div>
+              <span className="text-xs text-gray-500">📁 0</span>
             </div>
           </div>
         </div>

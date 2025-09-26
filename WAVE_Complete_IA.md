@@ -16,8 +16,17 @@ WAVE는 친구들과 실시간으로 듣고 있는 음악을 공유하고, YouTu
 
 ### 1.4 대상 플랫폼과 기술 스택
 - 웹(우선): Next.js 15(App Router) + TypeScript + Tailwind CSS + Vercel
-- 백엔드/데이터: Firebase(Firestore, Auth, Storage, Functions, FCM)
-- 외부 API: YouTube Data API, 이후 Spotify/Apple Music 순차 연동
+- 백엔드/데이터: Supabase(Auth, Postgres, Realtime, Storage), RLS 기반 보안 정책
+- 외부 API: YouTube Data API(프록시 `/api/youtube/popular`, `/api/youtube/resolve`), 이후 Spotify/Apple Music 순차 연동
+
+### 1.5 최근 변경/구현 현황(요약)
+- 디자인 시스템: SK4(Dieter Rams) 전면 적용(그레이스케일+단일 오렌지 키컬러, 플랫 UI)
+- 인증/데이터: Firebase → Supabase 전환(구글 OAuth, 테이블/정책 구성)
+- 피드(Wave): 카드 심플화, 바텀시트(댓글/저장/업로드), GlobalPlayer, 통계(오늘의 웨이브/저장)
+- 스테이션: Hot List 캐러셀, 커뮤니티 추천, 채널 카드(정사각+구독 링크), 스테이션 생성/목록, 상세에서 그룹 저장(supabase.saved_playlists)
+- 챌린지: 생성뷰(SK4, 이모지 무드, 썸네일 업로드, 기간 range 키컬러), 상세(만든 사람/빈 상태/카운트다운 헤더)
+- 프로필: 기본 아바타, SK4 버튼, 실데이터 통계(총 웨이브/저장한 트랙/참여 챌린지), 내 웨이브 전체보기(`/profile/waves`)
+- 배포: Vercel 프로덕션 다수 릴리즈(최신 배포 URL 하단 참조)
 
 ## 2. 정보 구조(IA)와 내비게이션
 
@@ -32,10 +41,15 @@ WAVE는 친구들과 실시간으로 듣고 있는 음악을 공유하고, YouTu
   - `/wave/[id]` 웨이브 상세
 - `/station`
   - `/station/[playlistId]` 플레이리스트 상세
+  - `/station/create` 스테이션 생성
 - `/challenge`
   - `/challenge/[id]` 챌린지 상세/투표
 - `/profile`
   - `/profile/[userId]` 다른 사용자 프로필
+  - `/profile/waves` 내 웨이브 전체보기
+  - `/profile/playlists` 내 플레이리스트 목록
+- `/playlist/[id]` 플레이리스트 상세(저장 항목)
+- `/login` 구글 로그인 페이지
 
 ### 2.3 레이아웃 패턴
 - 모바일: 하단 탭 네비게이션 + 바텀시트 모달
@@ -75,29 +89,43 @@ WAVE는 친구들과 실시간으로 듣고 있는 음악을 공유하고, YouTu
 ### 3.6 마이페이지(Profile)
 - 내가 공유한 웨이브 목록, 저장한 음악, 음악 DNA 인사이트(향후)
 
-## 4. 데이터 모델(초안)
+## 4. 데이터 모델(Supabase)
 
-### 4.1 컬렉션
-- `users`: { uid, nickname, photoURL, createdAt, preferences }
-- `waves`: { id, userId, track, comment(<=100), moodEmoji, moodText, createdAt, counters }
-- `tracks`: { id, title, artist, platform, externalId, thumbnailUrl, duration }
-- `playlists`: { id, title, description, creatorId, isPublic, isCollaborative, tracks[] }
-- `interactions`: { id, userId, targetId, targetType, type(like/save/follow), createdAt }
+### 4.1 테이블(핵심)
+- `profiles`: { id, nickname, avatar_url, email, created_at }
+- `waves`: { id, user_id, track_title, track_artist, track_platform, track_external_id, thumb_url, comment, mood_emoji, mood_text, likes, saves, comments, shares, created_at }
+- `comments`: { id, target_type('wave'), target_id, user_id, user_nickname, user_image, content, created_at }
+- `playlists`: { id, user_id, title, thumb_url, is_public, is_collaborative, created_at }
+- `playlist_tracks`: { id, playlist_id, track_title, track_artist, track_platform, track_external_id, thumb_url, duration, added_by, created_at }
+- `radio_playlists`: { id, title, description, thumb, channel, created_at }
+- `radio_channels`: { id, title, handle, thumb, created_at }
+- `challenges`: { id, title, description, creator_id, status, start_date, end_date, voting_end_date, target_track_count, created_at }
+- `submissions`: { id, challenge_id, user_id, platform, external_id, reason, created_at }
+- `stations`: { id, user_id, title, description, track_external_id, track_platform, track_title, track_artist, thumb_url, created_at }
+- `saved_playlists`: { id, user_id, title, description, thumb_url, source, source_playlist_id, tracks_json JSONB, created_at }
+- (옵션) `wave_likes`, `wave_saves`: 사용자 단위 dedupe/토글 관리
 
-### 4.2 인덱스 예시(Firestore)
-- waves: createdAt desc, userId+createdAt 복합 인덱스
-- interactions: targetId+type, userId+type
+### 4.2 보안/RLS(요약)
+- 기본 원칙: 읽기 대부분 공개, 쓰기는 인증 사용자 자신의 레코드만 허용
+- `profiles`: 본인만 업데이트, 모두 읽기
+- `waves`/`comments`/`playlist_tracks`: 작성자만 쓰기, 모두 읽기
+- `saved_playlists`/`playlists`: 소유자만 읽기/쓰기 또는 공개 설정에 따라 읽기 허용
 
 ## 5. 외부 API 연동(웹 우선)
 
-- YouTube Data API: 비디오 ID 파싱 → 메타 조회 → 트랙 스키마 매핑
+- YouTube Data API: 비디오/플레이리스트/채널 ID 파싱 → 서버 프록시로 메타 조회 → 트랙/채널 스키마 매핑
+- 서버 프록시 라우트: `/api/youtube/popular`, `/api/youtube/resolve?type=playlist|channel&id=...`
+- 환경변수: `YT_API_KEY`(Vercel에 설정), 코드 내 하드코드 키 제거 권장
 - Spotify(후순위): OAuth, 미리듣기 URL, 앨범 아트 보강
 
 ## 6. 디자인 토큰(웹)
 
-색상 변수: `--wave-blue`, `--wave-bg`, `--wave-separator`, `--wave-text-*`
-타이포: 시스템 폰트(SF/Helvetica/Arial), 기본 16px, lg 18px, xl 20px
-간격 단위: 4px 그리드, 라운드 8/12px, 그림자 sm/md
+### SK4 팔레트/타이포(적용 완료)
+- 색상: `sk4-white`, `sk4-off-white`, `sk4-light-gray`, `sk4-gray`, `sk4-medium-gray`, `sk4-dark-gray`, `sk4-charcoal`, 포인트 `sk4-orange(#ff6600)`
+- 라디오 전용: `sk4-radio-bg(#1a1a1a)`, `sk4-radio-text(#f0c14b)`
+- 타이포: 본문 16px 기준 5단계(11/12/13/16/18px), 가중치 400/500, 모노체(SF Mono) 보조
+- 레이아웃: 8px 그리드, 플랫(그림자/그라데이션 없음), radius 0 또는 50%
+- 애니메이션: LP 회전, hover elevate(translateY(-1px)), 색상 전환(0.2s)
 
 ## 7. 접근성/반응형/키보드
 
@@ -116,6 +144,22 @@ WAVE는 친구들과 실시간으로 듣고 있는 음악을 공유하고, YouTu
 
 ## 10. 보안/운영(요약)
 
-- .env 로 API 키 관리, Firestore 규칙: 읽기 public/쓰기 인증+필드 검증
+- .env 로 API 키 관리, Supabase RLS: 읽기 공개/쓰기 인증+필드 검증
 - Vercel 프리뷰 브랜치, Sentry 로깅(추가 예정)
+
+## 11. 배포/운영 현황
+- 최신 프로덕션: (예) https://wave-2ingcz4b6-halos-projects-24428129.vercel.app
+- 환경변수: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `YT_API_KEY`
+- 백엔드: Supabase 테이블/정책 구성(상세는 4장 참조)
+
+## 12. 남은 작업(우선순위 제안)
+1) 스테이션 상세 개별 트랙 저장: SaveToPlaylistModal 재사용하여 트랙 단위 저장
+2) 스테이션 생성 메타 고도화: `/api/youtube/resolve`로 비디오 제목/아티스트 자동 채움
+3) 채널 캐러셀 실제 데이터화: `/api/radio/channels` 연동(정사각 카드/구독 링크)
+4) 챌린지 전체 영속화: 생성/목록/상세/제출을 Supabase로 일원화
+5) 프로필 아바타 편집: Supabase Storage 업로드 + `profiles.avatar_url` 반영
+6) 분석 이벤트: wave_publish/like/save/share, station_play, challenge_vote 등 클라이언트 로깅
+
+---
+본 문서는 2025-09 기준 최신 구현 상태를 반영합니다.
 v

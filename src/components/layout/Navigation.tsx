@@ -19,9 +19,9 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
 
   return (
     <>
-      {/* Mobile Bottom Navigation - SK4 Design */}
+      {/* Mobile Bottom Navigation - iOS 16+ style */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 sk4-safe-area">
-        <div className="sk4-nav-tab">
+        <div className="h-16 backdrop-blur-md bg-white/80 border-t border-sk4-gray flex">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -30,15 +30,28 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
               <a
                 key={item.name}
                 href={item.href}
-                className={`flex flex-col items-center justify-center flex-1 h-full transition-all duration-200 ${
-                  isActive ? 'sk4-nav-tab active' : 'sk4-nav-tab'
+                aria-current={isActive ? 'page' : undefined}
+                className={`relative flex flex-col items-center justify-center flex-1 h-full sk4-interactive ${
+                  isActive ? 'text-sk4-orange' : 'text-sk4-dark-gray'
                 }`}
               >
-                <Icon className={`w-5 h-5 mb-1 ${isActive ? 'scale-110' : ''}`} />
+                <Icon className={`w-6 h-6 mb-0.5 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
                 <span className="sk4-text-xs">{item.name}</span>
+                <span className={`absolute bottom-1 w-8 h-[3px] rounded-full transition-all ${isActive ? 'bg-sk4-orange' : 'bg-transparent'}`} />
               </a>
             );
           })}
+        </div>
+        {/* Floating CTA per tab */}
+        <div className="pointer-events-none">
+          {pathname === '/feed' && null}
+          {pathname === '/station' && null}
+          {pathname === '/challenge' && (
+            <a href="/challenge/create" className="pointer-events-auto fixed bottom-20 right-4 px-4 h-14 rounded-full bg-sk4-orange text-sk4-white flex items-center shadow-lg sk4-btn sk4-float">챌린지 만들기</a>
+          )}
+          {pathname === '/profile' && (
+            <a href="/profile/playlists" className="pointer-events-auto fixed bottom-20 right-4 px-4 h-14 rounded-full bg-sk4-orange text-sk4-white flex items-center shadow-lg sk4-btn sk4-float">플레이리스트 만들기</a>
+          )}
         </div>
       </nav>
 
@@ -63,7 +76,7 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
                 <a
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center space-x-sk4-md py-sk4-sm px-sk4-md transition-all duration-200 ${
+                  className={`flex items-center space-x-sk4-md py-sk4-sm px-sk4-md sk4-interactive ${
                     isActive 
                       ? 'bg-sk4-light-gray text-sk4-orange' 
                       : 'text-sk4-dark-gray hover:bg-sk4-light-gray'
@@ -80,7 +93,7 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
           {onCreateWave && (
             <button
               onClick={onCreateWave}
-              className="w-full mt-sk4-lg py-sk4-md bg-sk4-orange text-sk4-white sk4-text-sm font-medium transition-all duration-200 hover:bg-opacity-90"
+              className="w-full mt-sk4-lg py-sk4-md bg-sk4-orange text-sk4-white sk4-text-sm font-medium sk4-btn hover:bg-opacity-90"
             >
               웨이브 만들기
             </button>

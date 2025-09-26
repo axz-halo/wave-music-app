@@ -105,7 +105,7 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 sk4-modal-backdrop" role="dialog" aria-modal="true">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black bg-opacity-30"
@@ -114,7 +114,7 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
 
       {/* Bottom Sheet */}
       <div
-        className="absolute bottom-0 left-0 right-0 bg-sk4-white rounded-t-lg shadow-lg border-t border-sk4-gray max-h-[90vh] overflow-hidden flex flex-col animate-slide-up"
+        className="absolute bottom-0 left-0 right-0 bg-sk4-white rounded-t-lg shadow-lg border-t border-sk4-gray max-h-[90vh] overflow-hidden flex flex-col sk4-modal-slide-up"
         onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
         onDrop={(e) => {
           e.preventDefault();
@@ -135,8 +135,8 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
           {/* Music Detection */}
           <div className="space-y-4">
             <div className="text-center space-y-2">
-              <div className="w-16 h-16 bg-primary-100 rounded-full mx-auto flex items-center justify-center shadow-tactile">
-                <Music className="w-8 h-8 text-primary-600" />
+              <div className="w-16 h-16 bg-sk4-orange bg-opacity-10 rounded-full mx-auto flex items-center justify-center">
+                <Music className="w-8 h-8 text-sk4-orange" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900">음악 추가하기</h3>
               <p className="text-sm text-gray-600">YouTube 링크를 입력하거나 건너뛸 수 있습니다</p>
@@ -144,7 +144,7 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
 
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <div className="w-1 h-6 bg-primary-500 rounded-full"></div>
+                <div className="w-1 h-6 bg-sk4-orange rounded-full"></div>
                 <span className="text-sm font-medium text-gray-900">YouTube 링크 (선택사항)</span>
               </div>
               <input
@@ -168,7 +168,7 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
                 <button
                   type="button"
                   onClick={handlePasteFromClipboard}
-                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"
+                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg border border-sk4-gray text-sm text-sk4-charcoal hover:bg-sk4-light-gray"
                 >
                   <ClipboardPaste className="w-4 h-4" />
                   <span>클립보드에서 붙여넣기</span>
@@ -177,7 +177,7 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
                   type="button"
                   onClick={handleUseCurrentTrack}
                   disabled={!initialTrack}
-                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg border border-sk4-gray text-sm text-sk4-charcoal disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sk4-light-gray"
                 >
                   <LinkIcon className="w-4 h-4" />
                   <span>현재 트랙 사용</span>
@@ -185,7 +185,7 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-medium bg-primary-50 text-primary-700 hover:bg-primary-100 text-sm shadow-tactile transition-all duration-200"
+                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-medium bg-sk4-orange bg-opacity-10 text-sk4-orange hover:bg-opacity-20 text-sm transition-all duration-200"
                 >
                   <SkipForward className="w-4 h-4" />
                   <span>건너뛰고 발행</span>
@@ -241,12 +241,12 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
                   onClick={() => handleMoodSelect(mood)}
                   className={`flex flex-col items-center space-y-1 p-3 rounded-lg border transition-all ${
                     waveData.moodEmoji === mood.emoji
-                      ? 'border-primary-500 bg-primary-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-sk4-orange bg-sk4-orange/10'
+                      : 'border-sk4-gray hover:border-sk4-medium-gray'
                   }`}
                 >
                   <span className="text-2xl">{mood.emoji}</span>
-                  <span className="text-xs font-medium text-gray-700">{mood.text}</span>
+                  <span className="text-xs font-medium text-sk4-charcoal">{mood.text}</span>
                 </button>
               ))}
             </div>
@@ -254,11 +254,11 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-sk4-gray">
           <div className="space-y-3">
             <button
               onClick={handleSubmit}
-              className="w-full py-3 px-4 bg-primary-500 text-white rounded-medium font-medium hover:bg-primary-600 transition-all duration-200 flex items-center justify-center space-x-2 shadow-tactile"
+              className="w-full py-3 px-4 bg-sk4-orange text-sk4-white rounded-medium font-medium hover:bg-opacity-90 transition-all duration-200 flex items-center justify-center space-x-2"
             >
               <Send className="w-5 h-5" />
               <span>웨이브 발행하기</span>

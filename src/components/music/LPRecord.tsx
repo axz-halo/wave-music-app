@@ -28,12 +28,6 @@ export default function LPRecord({
     lg: 'w-24 h-24', // 96px
   };
 
-  const centerSizeClasses = {
-    sm: 'w-3 h-3', // 12px center hole
-    md: 'w-3 h-3',
-    lg: 'w-3 h-3',
-  };
-
   const iconSizeClasses = {
     sm: 'w-4 h-4',
     md: 'w-5 h-5',
@@ -42,20 +36,18 @@ export default function LPRecord({
 
   return (
     <div 
-      className={`relative ${sizeClasses[size]} ${className}`}
+      className={`relative ${sizeClasses[size]} ${className} ${onPlay ? 'cursor-pointer' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={onPlay}
     >
       {/* Outer Record - Simple Circle */}
-      <div className={`${sizeClasses[size]} rounded-full overflow-hidden border border-sk4-medium-gray`}>
+      <div className={`${sizeClasses[size]} rounded-full overflow-hidden border border-sk4-medium-gray sk4-interactive ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '8s' }}>
         <img src={src} alt={alt} className="w-full h-full object-cover" />
         {onPlay && (
-          <button
-            onClick={onPlay}
-            className={`absolute inset-0 flex items-center justify-center bg-black/50 rounded-full transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
-          >
+          <div className={`absolute inset-0 flex items-center justify-center bg-black/20 rounded-full transition-all duration-200 ${isHovered ? 'bg-black/50' : ''}`}>
             <Play className={`${iconSizeClasses[size]} text-sk4-white`} />
-          </button>
+          </div>
         )}
       </div>
     </div>
