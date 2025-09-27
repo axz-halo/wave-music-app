@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     
     console.log(`✅ GUARANTEED profile ready for user: ${user.id}`);
     
-    // 선택적: 데이터베이스 조회 시도 (실패해도 상관없음)
+    // 실제로 데이터베이스에서 프로필 확인 및 생성
     try {
       const { data: existingProfile, error: findError } = await supabaseAdmin
         .from('profiles')
@@ -94,10 +94,26 @@ export async function POST(req: NextRequest) {
         profile = existingProfile;
         console.log('✅ Found existing profile in DB');
       } else {
-        console.log('ℹ️ No existing profile, using guaranteed default');
+        console.log('ℹ️ No existing profile, creating new one...');
+        
+        // 실제로 데이터베이스에 프로필 생성
+        const { data: newProfile, error: insertError } = await supabaseAdmin
+          .from('profiles')
+          .insert(GUARANTEED_PROFILE)
+          .select()
+          .single();
+        
+        if (!insertError && newProfile) {
+          profile = newProfile;
+          console.log('✅ Created new profile in DB:', profile.id);
+        } else {
+          console.log('⚠️ Failed to create profile, using in-memory:', insertError?.message);
+          profile = GUARANTEED_PROFILE;
+        }
       }
     } catch (dbError: any) {
-      console.log('ℹ️ DB query failed, using guaranteed default:', dbError.message);
+      console.log('ℹ️ DB operation failed, using guaranteed default:', dbError.message);
+      profile = GUARANTEED_PROFILE;
     }
     
     // 프로필 최종 보장
