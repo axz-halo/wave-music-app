@@ -102,5 +102,5 @@ export async function getOrCreateProfile(user: SupaUser) {
   const avatar_url = user.user_metadata?.avatar_url || null;
   const email = user.email || null;
   await supabase.from('profiles').insert({ id: user.id, nickname, avatar_url, email });
-  return { id: user.id, nickname, profile_image: avatar_url, email, followers: 0, following: 0, created_at: new Date().toISOString() };
+  return { id: user.id, nickname, avatar_url, email, followers: 0, following: 0, created_at: new Date().toISOString() };
 }

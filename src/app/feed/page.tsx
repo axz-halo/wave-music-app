@@ -77,14 +77,14 @@ export default function FeedPage() {
         .limit(100);
       if (data) {
         const userIds = Array.from(new Set((data as any[]).map((w:any)=>w.user_id).filter(Boolean)));
-        let userMap: Record<string, { nickname?: string; profile_image?: string }> = {};
+        let userMap: Record<string, { nickname?: string; avatar_url?: string }> = {};
         if (userIds.length) {
           try {
             const { data: profs } = await supabase
               .from('profiles')
-              .select('id,nickname,profile_image')
+              .select('id,nickname,avatar_url')
               .in('id', userIds);
-            (profs || []).forEach((p:any)=>{ userMap[p.id] = { nickname: p.nickname, profile_image: p.profile_image }; });
+            (profs || []).forEach((p:any)=>{ userMap[p.id] = { nickname: p.nickname, avatar_url: p.avatar_url }; });
           } catch {}
         }
         const mapped = data.map((w: any) => ({

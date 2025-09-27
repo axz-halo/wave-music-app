@@ -44,25 +44,25 @@ export default function StationPage() {
             if (!supabase) {
               return {
                 ...playlist,
-                user: { id: playlist.user_id, nickname: '익명', profile_image: null }
+                user: { id: playlist.user_id, nickname: '익명', avatar_url: null }
               };
             }
             
             const { data: userData } = await supabase
               .from('profiles')
-              .select('id, nickname, profile_image')
+              .select('id, nickname, avatar_url')
               .eq('id', playlist.user_id)
               .single();
             
             return {
               ...playlist,
-              user: userData || { id: playlist.user_id, nickname: '익명', profile_image: null }
+              user: userData || { id: playlist.user_id, nickname: '익명', avatar_url: null }
             };
           } catch (userError) {
             console.error('Error fetching user data:', userError);
             return {
               ...playlist,
-              user: { id: playlist.user_id, nickname: '익명', profile_image: null }
+              user: { id: playlist.user_id, nickname: '익명', avatar_url: null }
             };
           }
         })
@@ -266,7 +266,7 @@ export default function StationPage() {
       <div className="min-h-screen bg-sk4-off-white pb-20 lg:pb-0 lg:ml-56">
         {/* Header - SK4 디자인 시스템 */}
         <header className="hidden lg:block bg-sk4-white border-b border-sk4-gray px-sk4-lg py-sk4-md sticky top-0 z-30 shadow-minimal">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-sk4-md">
               <div className="w-8 h-8 bg-sk4-orange rounded-full flex items-center justify-center">
                 <Music className="w-4 h-4 text-sk4-white" />
@@ -280,8 +280,8 @@ export default function StationPage() {
               <Upload className="w-4 h-4" />
               <span className="sk4-text-sm">업로드</span>
             </button>
-          </div>
-        </header>
+                </div>
+              </header>
 
         <div className="max-w-6xl mx-auto px-sk4-md py-sk4-lg">
           {/* Mobile Upload Button */}
@@ -314,16 +314,16 @@ export default function StationPage() {
                 <div>
                   <p className="sk4-text-xs font-medium text-sk4-charcoal">비디오 업로드</p>
                   <p className="sk4-text-xs text-sk4-dark-gray">단일 비디오를 플레이리스트로</p>
-                </div>
+          </div>
               </div>
               <div className="flex items-center space-x-sk4-sm p-sk4-sm bg-sk4-light-gray rounded-lg">
                 <div className="w-8 h-8 bg-sk4-orange rounded-lg flex items-center justify-center">
                   <Users className="w-4 h-4 text-sk4-white" />
-                </div>
+          </div>
                 <div>
                   <p className="sk4-text-xs font-medium text-sk4-charcoal">플레이리스트</p>
                   <p className="sk4-text-xs text-sk4-dark-gray">전체 플레이리스트 가져오기</p>
-                </div>
+          </div>
               </div>
               <div className="flex items-center space-x-sk4-sm p-sk4-sm bg-sk4-light-gray rounded-lg">
                 <div className="w-8 h-8 bg-sk4-orange rounded-lg flex items-center justify-center">
@@ -561,7 +561,7 @@ export default function StationPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-            </div>
+          </div>
 
             <div className="flex-1 overflow-y-auto p-sk4-lg">
               <div className="flex items-start space-x-sk4-lg mb-sk4-lg">
@@ -627,7 +627,7 @@ export default function StationPage() {
                         {track.video_type && (
                           <p className="sk4-text-xs text-sk4-medium-gray">🎵 {track.video_type}</p>
                         )}
-                      </div>
+          </div>
                       <div className="flex items-center space-x-sk4-sm">
                         <span className="sk4-text-xs text-sk4-medium-gray">
                           {track.duration > 0 ? 
@@ -644,14 +644,14 @@ export default function StationPage() {
                           >
                             <ExternalLink className="w-4 h-4 text-sk4-orange" />
                           </a>
-                        )}
-                      </div>
+            )}
+          </div>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
+      </div>
+    </div>
         </div>
       )}
     </>
