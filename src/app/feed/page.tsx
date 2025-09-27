@@ -31,6 +31,8 @@ export default function FeedPage() {
   const [selectedTrackForSave, setSelectedTrackForSave] = useState<TrackInfo | null>(null);
   const [selectedWaveIdForSave, setSelectedWaveIdForSave] = useState<string | null>(null);
   const [waves, setWaves] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
   const hydratedRef = useRef<Set<string>>(new Set());
 
   const handlePlay = (trackId: string) => {
@@ -68,7 +70,16 @@ export default function FeedPage() {
 
   // Load waves from Supabase with profile join (2-step)
   useEffect(() => {
-    const load = async () => {
+    loadWaves();
+  }, []);
+
+  const loadWaves = async (isInitialLoad = true) => {
+    try {
+      if (isInitialLoad) {
+        setIsLoading(true);
+      }
+
+      const load = async () => {
       if (!supabase) return;
       const { data } = await supabase
         .from('waves')
@@ -119,6 +130,7 @@ export default function FeedPage() {
           shares: w.shares || 0,
         }));
         setWaves(mapped);
+        setIsLoading(false);
       }
     };
     load();
@@ -346,6 +358,18 @@ export default function FeedPage() {
           </div>
         </div>
       </header>
+
+      {/* Loading State - Enhanced */}
+      {isLoading && (
+        <div className="flex justify-center items-center py-sk4-xl">
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-sk4-lg shadow-sm">
+            <div className="flex items-center space-x-sk4-md">
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-sk4-orange border-t-transparent"></div>
+              <span className="sk4-text-sm text-sk4-charcoal">음악을 불러오는 중...</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Header - Enhanced */}
       <header className="lg:hidden bg-white/95 backdrop-blur-sm border-b border-sk4-gray shadow-sm px-sk4-md py-sk4-md sticky top-0 z-40">

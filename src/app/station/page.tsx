@@ -12,6 +12,8 @@ export default function StationPage() {
   const [selectedPlaylist, setSelectedPlaylist] = useState<any>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [uploadUrl, setUploadUrl] = useState('');
   const [preview, setPreview] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
@@ -239,6 +241,18 @@ export default function StationPage() {
             </button>
                 </div>
               </header>
+
+        {/* Loading State - Enhanced */}
+        {loading && (
+          <div className="flex justify-center items-center py-sk4-xl">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-sk4-lg shadow-sm">
+              <div className="flex items-center space-x-sk4-md">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-sk4-orange border-t-transparent"></div>
+                <span className="sk4-text-sm text-sk4-charcoal">플레이리스트를 불러오는 중...</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="max-w-6xl mx-auto px-sk4-md py-sk4-lg">
           {/* Mobile Upload Button */}

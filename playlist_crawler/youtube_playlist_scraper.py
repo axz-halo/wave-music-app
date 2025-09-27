@@ -195,34 +195,38 @@ class YouTubePlaylistScraper:
         lines = text.split('\n')
         
         # 타임스탬프와 음원 정보를 찾는 정규표현식
-        timestamp_pattern = r'(\d{1,2}:\d{2})'
-        track_pattern = r'(\d{1,2}:\d{2})\s*(.+?)\s*-\s*(.+)'
-        
+        # YouTube 플레이리스트 설명의 형식: HH:MM:SS 아티스트 - 곡명 또는 MM:SS 아티스트 - 곡명
+        track_pattern = r'(\d{1,2}:\d{2}(?::\d{2})?)\s*(.+?)\s*-\s*(.+)'
+
         track_number = 1
-        
+
         for line in lines:
             line = line.strip()
             if not line:
                 continue
-                
-            # 타임스탬프가 포함된 라인 찾기
-            timestamp_match = re.search(timestamp_pattern, line)
-            if timestamp_match:
-                timestamp = timestamp_match.group(1)
-                
-                # 아티스트와 곡명 분리
-                track_match = re.search(track_pattern, line)
-                if track_match:
-                    artist = track_match.group(2).strip()
-                    title = track_match.group(3).strip()
-                    
-                    tracks.append(MusicTrack(
-                        track_number=track_number,
-                        timestamp=timestamp,
-                        artist=artist,
-                        title=title
-                    ))
-                    track_number += 1
+
+            # 트랙 정보 찾기 (타임스탬프와 아티스트-곡명 패턴)
+            track_match = re.search(track_pattern, line)
+            if track_match:
+                timestamp = track_match.group(1).strip()
+                artist = track_match.group(2).strip()
+                title = track_match.group(3).strip()
+
+                # HTML 태그 제거
+                artist = re.sub(r'<[^>]+>', '', artist)
+                title = re.sub(r'<[^>]+>', '', title)
+
+                # 괄호 안의 추가 정보 제거
+                artist = re.sub(r'\([^)]*\)', '', artist).strip()
+                title = re.sub(r'\([^)]*\)', '', title).strip()
+
+                tracks.append(MusicTrack(
+                    track_number=track_number,
+                    timestamp=timestamp,
+                    artist=artist,
+                    title=title
+                ))
+                track_number += 1
         
         return tracks
     

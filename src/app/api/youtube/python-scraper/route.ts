@@ -305,10 +305,10 @@ async function getChannelInfoFromAPI(videoId: string): Promise<ChannelInfo> {
 // Python 크롤러와 동일한 방식으로 음원 정보 추출
 async function extractMusicTracksPythonStyle(videoId: string): Promise<MusicTrack[]> {
   console.log('🔍 Starting track extraction for video:', videoId);
-  
+
   try {
     const apiKey = process.env.YT_API_KEY;
-    
+
     if (!apiKey) {
       console.log('❌ No API key, using fallback tracks');
       return getFallbackTracks();
@@ -316,8 +316,91 @@ async function extractMusicTracksPythonStyle(videoId: string): Promise<MusicTrac
 
     console.log('✅ API key found, proceeding with real extraction');
 
-    // 1. 비디오 정보 가져오기 (설명 포함)
-    console.log('📹 Fetching video info...');
+    // 1. 비디오 페이지에서 전체 설명 스크랩핑 (YouTube API는 전체 설명을 제공하지 않음)
+    console.log('🌐 Scraping video page for full description...');
+    let fullDescription = '';
+
+    try {
+      const videoPageResponse = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+
+      if (videoPageResponse.ok) {
+        const html = await videoPageResponse.text();
+
+        // 여러 방법으로 설명 추출 시도
+        // 방법 1: JSON-LD 구조화된 데이터에서
+        const jsonLdMatch = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([^<]+)<\/script>/);
+        if (jsonLdMatch) {
+          try {
+            const jsonLd = JSON.parse(jsonLdMatch[1]);
+            if (jsonLd.description) {
+              fullDescription = jsonLd.description;
+              console.log('✅ Found description in JSON-LD');
+            }
+          } catch (e) {
+            console.log('⚠️ Failed to parse JSON-LD');
+          }
+        }
+
+        // 방법 2: ytInitialData에서
+        if (!fullDescription) {
+          const ytInitialDataMatch = html.match(/var ytInitialData = ({.+?});/);
+          if (ytInitialDataMatch) {
+            try {
+              const ytInitialData = JSON.parse(ytInitialDataMatch[1]);
+              const videoDetails = ytInitialData.contents?.twoColumnWatchNextResults?.results?.results?.contents?.find(
+                (c: any) => c.videoPrimaryInfoRenderer || c.videoSecondaryInfoRenderer
+              );
+              if (videoDetails?.videoPrimaryInfoRenderer?.videoActions?.menuRenderer?.topRowMenuRenderer?.menu?.menuRenderer?.items) {
+                // 이건 메뉴 항목들...
+              }
+
+              // 다른 방법 시도
+              const descriptionText = ytInitialData.contents?.twoColumnWatchNextResults?.results?.results?.contents
+                ?.find((c: any) => c.videoSecondaryInfoRenderer)
+                ?.videoSecondaryInfoRenderer?.description?.runs?.map((r: any) => r.text).join('');
+
+              if (descriptionText) {
+                fullDescription = descriptionText;
+                console.log('✅ Found description in ytInitialData');
+              }
+            } catch (e) {
+              console.log('⚠️ Failed to parse ytInitialData');
+            }
+          }
+        }
+
+        // 방법 3: 메타 태그에서
+        if (!fullDescription) {
+          const metaMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]*)"[^>]*>/);
+          if (metaMatch) {
+            fullDescription = metaMatch[1];
+            console.log('✅ Found description in meta tag');
+          }
+        }
+
+        // 방법 4: 간단한 텍스트 추출 (fallback)
+        if (!fullDescription) {
+          // HTML에서 description 관련 부분 찾기
+          const descSection = html.match(/<div[^>]*class="[^"]*description[^"]*"[^>]*>(.+?)<\/div>/s);
+          if (descSection) {
+            // 간단한 HTML 태그 제거
+            fullDescription = descSection[1].replace(/<[^>]+>/g, '').trim();
+            console.log('✅ Found description by HTML parsing');
+          }
+        }
+      }
+    } catch (scrapeError) {
+      console.log('⚠️ Failed to scrape video page:', scrapeError);
+    }
+
+    console.log('📝 Full description length:', fullDescription.length);
+
+    // 2. YouTube API로 기본 비디오 정보 가져오기
+    console.log('📹 Fetching video info from API...');
     const videoResponse = await fetch(
       `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`
     );
@@ -329,19 +412,21 @@ async function extractMusicTracksPythonStyle(videoId: string): Promise<MusicTrac
 
     const videoData = await videoResponse.json();
     const video = videoData.items?.[0];
-    
+
     if (!video) {
       console.log('❌ No video data found');
       return getFallbackTracks();
     }
 
-    const description = video.snippet.description || '';
-    console.log('📝 Video description length:', description.length);
+    // API 설명과 스크랩핑한 전체 설명 중 긴 것 사용
+    const apiDescription = video.snippet.description || '';
+    const description = fullDescription.length > apiDescription.length ? fullDescription : apiDescription;
+    console.log('📝 Final description length:', description.length);
 
-    // 2. 댓글 가져오기 (고정 댓글 우선)
+    // 3. 댓글 가져오기 (고정 댓글 우선)
     console.log('💬 Fetching comments...');
     let commentTexts: string[] = [];
-    
+
     try {
       const commentsResponse = await fetch(
         `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=100&order=relevance&key=${apiKey}`
@@ -351,13 +436,13 @@ async function extractMusicTracksPythonStyle(videoId: string): Promise<MusicTrac
         const commentsData = await commentsResponse.json();
         const comments = commentsData.items || [];
         console.log('💬 Found comments:', comments.length);
-        
+
         // 고정 댓글 찾기 (좋아요가 많은 댓글을 고정 댓글로 간주)
         commentTexts = comments
           .sort((a: any, b: any) => (b.snippet.topLevelComment.snippet.likeCount || 0) - (a.snippet.topLevelComment.snippet.likeCount || 0))
           .slice(0, 5) // 상위 5개 댓글만 확인
           .map((comment: any) => comment.snippet.topLevelComment.snippet.textDisplay);
-        
+
         console.log('💬 Top comments text length:', commentTexts.map(t => t.length));
       } else {
         console.log('⚠️ Comments API failed:', commentsResponse.status);
@@ -366,23 +451,23 @@ async function extractMusicTracksPythonStyle(videoId: string): Promise<MusicTrac
       console.log('⚠️ Comments fetch error:', commentError);
     }
 
-    // 3. Python 크롤러와 동일한 정규표현식으로 파싱
+    // 4. Python 크롤러와 동일한 정규표현식으로 파싱
     console.log('🔍 Parsing tracks from description and comments...');
     const descriptionTracks = parseTracklistPythonStyle(description);
     const commentTracks = commentTexts.flatMap(text => parseTracklistPythonStyle(text));
-    
+
     console.log('📊 Extracted tracks:', {
       description: descriptionTracks.length,
       comments: commentTracks.length,
       total: descriptionTracks.length + commentTracks.length
     });
-    
-    // 4. 중복 제거 및 병합
+
+    // 5. 중복 제거 및 병합
     const allTracks = [...descriptionTracks, ...commentTracks];
     const uniqueTracks = removeDuplicatesPythonStyle(allTracks);
-    
+
     console.log('✅ Final unique tracks:', uniqueTracks.length);
-    
+
     return uniqueTracks.length > 0 ? uniqueTracks : getFallbackTracks();
 
   } catch (error) {
@@ -398,12 +483,12 @@ function parseTracklistPythonStyle(text: string): MusicTrack[] {
   const tracks: MusicTrack[] = [];
   const lines = text.split('\n');
   
-  // 더 유연한 패턴들 (Python 크롤러보다 더 관대함)
+  // 더 유연한 패턴들 (Python 크롤러와 동일한 방식)
   const patterns = [
-    // 기본 패턴: 00:00 - Artist - Title
+    // YouTube 플레이리스트 형식: HH:MM:SS 아티스트 - 곡명 또는 MM:SS 아티스트 - 곡명
+    /(\d{1,2}:\d{2}(?::\d{2})?)\s*(.+?)\s*-\s*(.+)/,
+    // 대체 패턴: 00:00 - Artist - Title
     /(\d{1,2}:\d{2})\s*[-–—]\s*(.+?)\s*[-–—]\s*(.+)/,
-    // 대체 패턴: 00:00 Artist - Title
-    /(\d{1,2}:\d{2})\s+(.+?)\s*[-–—]\s*(.+)/,
     // 간단한 패턴: Artist - Title (타임스탬프 없음)
     /^(.+?)\s*[-–—]\s*(.+)$/,
     // 번호 패턴: 1. Artist - Title
@@ -426,8 +511,8 @@ function parseTracklistPythonStyle(text: string): MusicTrack[] {
         let artist = '';
         let title = '';
         
-        if (match.length === 4) {
-          // 타임스탬프가 있는 경우
+        if (match.length >= 4) {
+          // 타임스탬프가 있는 경우 (HH:MM:SS 또는 MM:SS)
           timestamp = match[1];
           artist = match[2].trim();
           title = match[3].trim();
