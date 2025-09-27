@@ -17,7 +17,6 @@ export default function StationPage() {
   const [uploading, setUploading] = useState(false);
   const [urlType, setUrlType] = useState<'video' | 'playlist' | 'unknown'>('unknown');
   const [uploadProgress, setUploadProgress] = useState<string>('');
-  const [uploadStep, setUploadStep] = useState<number>(0);
 
   useEffect(() => {
     loadPlaylists();
@@ -153,39 +152,19 @@ export default function StationPage() {
   const handleUpload = async () => {
     if (!preview || uploading) return;
 
-    console.log('🚀 Upload started');
     setUploading(true);
-    setUploadStep(1);
-    setUploadProgress('업로드를 시작합니다...');
+    setUploadProgress('업로드 중...');
 
     try {
-      // 1단계: 인증 확인
-      console.log('🔐 Step 1: Checking authentication');
-      setUploadStep(1);
-      setUploadProgress('사용자 인증을 확인하고 있습니다...');
-      
       if (!supabase) {
-        console.error('❌ Supabase client not available');
         throw new Error('Supabase client not available');
       }
 
-      console.log('📡 Getting session...');
       const session = await supabase.auth.getSession();
-      console.log('Session result:', session);
-      
       if (!session.data.session?.access_token) {
-        console.error('❌ No authentication token found');
-        throw new Error('No authentication token found');
+        throw new Error('로그인이 필요합니다');
       }
-      
-      console.log('✅ Authentication successful');
 
-      // 2단계: 데이터 처리
-      console.log('🎵 Step 2: Processing YouTube data');
-      setUploadStep(2);
-      setUploadProgress('YouTube 데이터를 처리하고 있습니다...');
-
-      console.log('📤 Sending request to API...');
       const response = await fetch('/api/station/upload', {
         method: 'POST',
         headers: {
@@ -199,48 +178,26 @@ export default function StationPage() {
         })
       });
 
-      console.log('📥 API response received:', response.status);
-
-      // 3단계: 응답 처리
-      console.log('⚡ Step 3: Processing server response');
-      setUploadStep(3);
-      setUploadProgress('서버에서 응답을 처리하고 있습니다...');
-
       const result = await response.json();
-      console.log('📋 API result:', result);
 
       if (result.success) {
-        // 4단계: 완료
-        console.log('✅ Step 4: Upload completed successfully');
-        setUploadStep(4);
-        setUploadProgress('업로드가 완료되었습니다!');
-        
+        setUploadProgress('✅ 업로드 완료!');
         setTimeout(() => {
-          alert('업로드가 성공적으로 완료되었습니다!');
           loadPlaylists();
           setUploadUrl('');
           setPreview(null);
           setUrlType('unknown');
           setIsUploadModalOpen(false);
-          setUploadStep(0);
           setUploadProgress('');
-        }, 1000);
+        }, 800);
       } else {
-        console.error('❌ Upload failed:', result);
-        setUploadStep(0);
-        setUploadProgress('');
-        
-        // 새로운 에러 형식 처리
-        const errorMessage = result.message || result.error || '알 수 없는 오류가 발생했습니다';
-        alert(`업로드 실패: ${errorMessage}`);
+        const errorMessage = result.message || '알 수 없는 오류가 발생했습니다';
+        throw new Error(errorMessage);
       }
-    } catch (error) {
-      console.error('💥 Upload error:', error);
-      setUploadStep(0);
+    } catch (error: any) {
       setUploadProgress('');
-      alert('업로드 중 오류가 발생했습니다');
+      alert(`업로드 실패: ${error.message || '오류가 발생했습니다'}`);
     } finally {
-      console.log('🏁 Upload process finished');
       setUploading(false);
     }
   };
@@ -400,6 +357,13 @@ export default function StationPage() {
 
       <Navigation />
 
+      {/* Hidden upload trigger for navigation */}
+      <button
+        data-upload-trigger
+        onClick={() => setIsUploadModalOpen(true)}
+        className="hidden"
+      />
+
       {/* Upload Modal */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50">
@@ -475,43 +439,12 @@ export default function StationPage() {
                 </div>
               )}
 
-              {/* 업로드 진행 상태 표시 */}
+              {/* 업로드 진행 상태 표시 - 단순화 */}
               {uploading && (
-                <div className="bg-sk4-light-gray rounded-lg p-sk4-md mb-sk4-md">
-                  <div className="flex items-center justify-between mb-sk4-sm">
-                    <span className="sk4-text-sm font-medium text-sk4-charcoal">업로드 진행 중</span>
-                    <span className="sk4-text-xs text-sk4-dark-gray">{uploadStep}/4</span>
-                  </div>
-                  
-                  {/* 진행 바 */}
-                  <div className="w-full bg-sk4-gray rounded-full h-2 mb-sk4-sm">
-                    <div 
-                      className="bg-sk4-orange h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${(uploadStep / 4) * 100}%` }}
-                    ></div>
-                  </div>
-                  
-                  {/* 단계별 상태 */}
-                  <div className="space-y-1">
-                    {[
-                      { step: 1, text: '사용자 인증 확인', icon: '🔐' },
-                      { step: 2, text: 'YouTube 데이터 처리', icon: '🎵' },
-                      { step: 3, text: '서버 응답 처리', icon: '⚡' },
-                      { step: 4, text: '업로드 완료', icon: '✅' }
-                    ].map((item) => (
-                      <div key={item.step} className={`flex items-center space-x-sk4-sm sk4-text-xs ${
-                        uploadStep >= item.step ? 'text-sk4-orange' : 'text-sk4-medium-gray'
-                      }`}>
-                        <span className={uploadStep >= item.step ? 'opacity-100' : 'opacity-50'}>
-                          {uploadStep > item.step ? '✅' : item.icon}
-                        </span>
-                        <span>{item.text}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="mt-sk4-sm sk4-text-xs text-sk4-dark-gray">
-                    {uploadProgress}
+                <div className="bg-sk4-light-gray rounded-lg p-sk4-md mb-sk4-md flex items-center justify-center">
+                  <div className="flex items-center space-x-sk4-sm">
+                    <div className="w-4 h-4 border-2 border-sk4-orange border-t-transparent rounded-full animate-spin"></div>
+                    <span className="sk4-text-sm text-sk4-charcoal">{uploadProgress || '업로드 중...'}</span>
                   </div>
                 </div>
               )}

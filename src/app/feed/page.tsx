@@ -92,7 +92,7 @@ export default function FeedPage() {
           user: {
             id: w.user_id || '00000000-0000-0000-0000-000000000000',
             nickname: userMap[w.user_id]?.nickname || '사용자',
-            profileImage: userMap[w.user_id]?.profile_image || '/default-avatar.png',
+            profileImage: userMap[w.user_id]?.avatar_url || '/default-avatar.png',
             followers: 0,
             following: 0,
             preferences: { genres: [], notifications: { newWaves: true, comments: true, challenges: true } },
@@ -308,50 +308,70 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-sk4-off-white pb-20 lg:pb-0 lg:ml-56">
-      {/* Desktop Header */}
-      <header className="hidden lg:block bg-sk4-white border-b border-sk4-gray px-sk4-lg py-sk4-md sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="sk4-text-large-title">파도</h1>
-          <div className="flex items-center space-x-sk4-md">
-            <button
-              onClick={() => setIsFilterModalOpen(true)}
-              className="sk4-action-button"
-            >
-              <svg className="w-5 h-5 text-sk4-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
-              </svg>
-            </button>
-            <button 
-              onClick={async () => { const u = await ensureSignedIn(); if (!u) return; setIsCreateWaveModalOpen(true); }}
-              className="sk4-action-button bg-sk4-orange text-sk4-white hover:bg-opacity-90"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
+      {/* Desktop Header - Enhanced */}
+      <header className="hidden lg:block bg-white/95 backdrop-blur-sm border-b border-sk4-gray shadow-sm sticky top-0 z-40">
+        <div className="max-w-4xl xl:max-w-6xl mx-auto px-sk4-lg py-sk4-md">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-sk4-md">
+              <div className="w-12 h-12 bg-gradient-to-br from-sk4-orange to-sk4-orange/80 flex items-center justify-center shadow-sm">
+                <span className="text-white font-bold text-xl">W</span>
+              </div>
+              <div>
+                <h1 className="sk4-text-xl font-bold text-sk4-charcoal">WAVE</h1>
+                <p className="sk4-text-xs text-sk4-medium-gray">친구들과 음악을 공유하고 발견하세요</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-sk4-md">
+              <div className="hidden xl:block text-right">
+                <p className="sk4-text-sm font-medium text-sk4-charcoal">오늘의 발견</p>
+                <p className="sk4-text-xs text-sk4-medium-gray">새로운 음악과 친구들</p>
+              </div>
+              <button
+                onClick={() => setIsFilterModalOpen(true)}
+                className="sk4-btn p-2.5 text-sk4-medium-gray hover:bg-sk4-light-gray hover:text-sk4-orange transition-all duration-200"
+                title="필터"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
+                </svg>
+              </button>
+              <button
+                onClick={async () => { const u = await ensureSignedIn(); if (!u) return; setIsCreateWaveModalOpen(true); }}
+                className="sk4-btn px-4 py-2.5 bg-gradient-to-r from-sk4-orange to-sk4-orange/90 text-white font-medium hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+              >
+                <Plus className="w-4 h-4 mr-1.5" />
+                웨이브 만들기
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Header */}
-      <header className="lg:hidden bg-sk4-white border-b border-sk4-gray px-sk4-md py-sk4-md sticky top-0 z-40">
+      {/* Mobile Header - Enhanced */}
+      <header className="lg:hidden bg-white/95 backdrop-blur-sm border-b border-sk4-gray shadow-sm px-sk4-md py-sk4-md sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-sk4-md">
-            <div className="w-8 h-8 bg-sk4-orange flex items-center justify-center">
-              <span className="text-sk4-white font-medium text-sk4-sm">W</span>
+            <div className="w-10 h-10 bg-gradient-to-br from-sk4-orange to-sk4-orange/80 flex items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-lg">W</span>
             </div>
-            <h1 className="sk4-text-large-title">WAVE</h1>
+            <div>
+              <h1 className="sk4-text-lg font-bold text-sk4-charcoal">WAVE</h1>
+              <p className="sk4-text-xs text-sk4-medium-gray">친구들과 음악 공유</p>
+            </div>
           </div>
-          <div className="flex items-center space-x-sk4-md">
+          <div className="flex items-center space-x-2">
             <button
               onClick={() => setIsFilterModalOpen(true)}
-              className="sk4-action-button"
+              className="sk4-btn p-2 text-sk4-medium-gray hover:bg-sk4-light-gray hover:text-sk4-orange transition-all duration-200"
+              title="필터"
             >
-              <svg className="w-5 h-5 text-sk4-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
               </svg>
             </button>
-            <button 
+            <button
               onClick={async () => { const u = await ensureSignedIn(); if (!u) return; setIsCreateWaveModalOpen(true); }}
-              className="sk4-action-button bg-sk4-orange text-sk4-white hover:bg-opacity-90"
+              className="sk4-btn p-2.5 bg-gradient-to-r from-sk4-orange to-sk4-orange/90 text-white hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
             >
               <Plus className="w-5 h-5" />
             </button>
@@ -359,47 +379,78 @@ export default function FeedPage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-sm sm:max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-sk4-sm sm:px-sk4-md py-sk4-md sm:py-sk4-lg space-y-sk4-md sm:space-y-sk4-lg">
-        {/* Radio Display */}
-        <RadioDisplay />
+      {/* Main Content - Enhanced Layout */}
+      <div className="max-w-sm sm:max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-sk4-sm sm:px-sk4-md py-sk4-md sm:py-sk4-lg">
+        {/* Radio Display - Enhanced */}
+        <div className="mb-sk4-lg">
+          <RadioDisplay />
+        </div>
 
-        {/* Popular carousel - unified card sizing */}
-        <section>
-          <div className="flex items-center justify-between mb-sk4-sm">
-            <h2 className="sk4-text-sm text-sk4-dark-gray">인기 웨이브</h2>
+        {/* Popular Waves Section - Enhanced */}
+        <section className="mb-sk4-xl">
+          <div className="flex items-center justify-between mb-sk4-md">
+            <div>
+              <h2 className="sk4-text-lg font-semibold text-sk4-charcoal mb-1">🔥 인기 웨이브</h2>
+              <p className="sk4-text-xs text-sk4-medium-gray">지금 뜨고 있는 음악</p>
+            </div>
+            <button className="sk4-text-xs text-sk4-orange hover:text-sk4-orange/80 transition-colors duration-200">
+              전체보기
+            </button>
           </div>
-          <div className="flex space-x-sk4-sm overflow-x-auto scrollbar-hide pb-sk4-sm snap-x snap-mandatory h-[280px] sm:h-[300px]">
-            {(waves.length ? waves : dummyWaves).slice(0,5).map((wave)=> (
-              <div key={wave.id} className="min-w-[300px] sm:min-w-[320px] h-full snap-start">
+          <div className="flex space-x-sk4-md overflow-x-auto scrollbar-hide pb-sk4-sm snap-x snap-mandatory">
+            {(waves.length ? waves : dummyWaves).slice(0,5).map((wave, index)=> (
+              <div key={wave.id} className="min-w-[280px] sm:min-w-[300px] flex-shrink-0 snap-start" style={{ animationDelay: `${index * 50}ms` }}>
                 <WaveCard wave={wave} onLike={handleLike} onComment={handleComment} onSave={handleSave} onShare={handleShare} onPlay={handlePlay} />
               </div>
             ))}
           </div>
         </section>
 
-        {/* All Feed */}
-        <div>
-          {dummyWaves.length === 0 && (
-            <div className="bg-sk4-white border border-sk4-gray p-sk4-lg text-center">
-              <p className="sk4-text-sm text-sk4-dark-gray">아직 웨이브가 없습니다</p>
-              <button onClick={() => setIsCreateWaveModalOpen(true)} className="mt-sk4-sm px-sk4-md py-sk4-sm bg-sk4-orange text-sk4-white rounded">웨이브 만들기</button>
+        {/* All Waves Section - Enhanced */}
+        <section>
+          <div className="flex items-center justify-between mb-sk4-md">
+            <div>
+              <h2 className="sk4-text-lg font-semibold text-sk4-charcoal mb-1">최근 웨이브</h2>
+              <p className="sk4-text-xs text-sk4-medium-gray">친구들의 새로운 음악 발견</p>
+            </div>
+          </div>
+
+          {waves.length === 0 && dummyWaves.length === 0 && (
+            <div className="bg-gradient-to-br from-sk4-light-gray to-sk4-off-white border border-sk4-gray p-sk4-xl text-center">
+              <div className="mb-sk4-md">
+                <div className="w-16 h-16 bg-sk4-orange/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-sk4-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                  </svg>
+                </div>
+                <h3 className="sk4-text-base font-medium text-sk4-charcoal mb-2">첫 번째 웨이브를 만들어보세요!</h3>
+                <p className="sk4-text-sm text-sk4-medium-gray mb-sk4-md">좋아하는 음악을 친구들과 공유해보세요</p>
+                <button
+                  onClick={() => setIsCreateWaveModalOpen(true)}
+                  className="sk4-btn px-6 py-3 bg-gradient-to-r from-sk4-orange to-sk4-orange/90 text-white font-medium hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  첫 웨이브 만들기
+                </button>
+              </div>
             </div>
           )}
-          <div className="sk4-stagger">
-            {(waves.length ? waves : dummyWaves).map((wave) => (
-              <WaveCard
-                key={wave.id}
-                wave={wave}
-                onLike={handleLike}
-                onComment={handleComment}
-                onSave={handleSave}
-                onShare={handleShare}
-                onPlay={handlePlay}
-              />
+
+          <div className="grid gap-sk4-md sm:gap-sk4-lg">
+            {(waves.length ? waves : dummyWaves).map((wave, index) => (
+              <div key={wave.id} className="sk4-slide-in" style={{ animationDelay: `${index * 100}ms` }}>
+                <WaveCard
+                  wave={wave}
+                  onLike={handleLike}
+                  onComment={handleComment}
+                  onSave={handleSave}
+                  onShare={handleShare}
+                  onPlay={handlePlay}
+                />
+              </div>
             ))}
           </div>
-        </div>
+        </section>
       </div>
 
       <Navigation onCreateWave={() => {}} />
