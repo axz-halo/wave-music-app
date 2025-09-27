@@ -11,7 +11,7 @@ function extractVideoId(url: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    console.log('🚀 Station upload started - NEW VERSION');
+    console.log('🚀 Station upload started - ULTIMATE VERSION');
     
     // Service Role Key로 직접 클라이언트 생성 (RLS 우회)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -19,7 +19,11 @@ export async function POST(req: NextRequest) {
     
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('❌ Database configuration missing');
-      return NextResponse.json({ error: 'Database configuration error - contact support' }, { status: 500 });
+      return NextResponse.json({ 
+        success: false, 
+        errorCode: 'CONFIG_ERROR',
+        message: 'System configuration issue - please contact support'
+      }, { status: 500 });
     }
     
     console.log('✅ Database configuration confirmed');
@@ -37,14 +41,22 @@ export async function POST(req: NextRequest) {
     // 인증 확인
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ 
+        success: false, 
+        errorCode: 'AUTH_MISSING',
+        message: 'Authentication required'
+      }, { status: 401 });
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
     
     if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+      return NextResponse.json({ 
+        success: false, 
+        errorCode: 'AUTH_INVALID',
+        message: 'Authentication token invalid'
+      }, { status: 401 });
     }
 
     // ✅ GUARANTEED PROFILE SOLUTION (Never fails)
@@ -96,7 +108,11 @@ export async function POST(req: NextRequest) {
     const { url, type, preview } = await req.json();
     
     if (!url || !type || !preview) {
-      return NextResponse.json({ error: 'Missing required data' }, { status: 400 });
+      return NextResponse.json({ 
+        success: false, 
+        errorCode: 'MISSING_DATA',
+        message: 'Required data missing'
+      }, { status: 400 });
     }
 
     let playlistData: any;
@@ -106,7 +122,11 @@ export async function POST(req: NextRequest) {
       // 단일 비디오를 플레이리스트로 처리
       const videoId = parseYouTubeId(url);
       if (!videoId) {
-        return NextResponse.json({ error: 'Invalid YouTube URL' }, { status: 400 });
+        return NextResponse.json({ 
+          success: false, 
+          errorCode: 'INVALID_URL',
+          message: 'Invalid YouTube URL provided'
+        }, { status: 400 });
       }
 
       // 고급 음원 크롤링 시도
@@ -216,7 +236,11 @@ export async function POST(req: NextRequest) {
       // 플레이리스트 처리
       const playlistId = parseYouTubePlaylistId(url);
       if (!playlistId) {
-        return NextResponse.json({ error: 'Invalid YouTube playlist URL' }, { status: 400 });
+        return NextResponse.json({ 
+          success: false, 
+          errorCode: 'INVALID_PLAYLIST_URL',
+          message: 'Invalid YouTube playlist URL provided'
+        }, { status: 400 });
       }
 
       try {
@@ -284,7 +308,11 @@ export async function POST(req: NextRequest) {
         created_at: new Date().toISOString()
       };
     } else {
-      return NextResponse.json({ error: 'Invalid URL type' }, { status: 400 });
+      return NextResponse.json({ 
+        success: false, 
+        errorCode: 'INVALID_TYPE',
+        message: 'Invalid URL type provided'
+      }, { status: 400 });
     }
 
     // 데이터베이스에 저장
@@ -305,7 +333,9 @@ export async function POST(req: NextRequest) {
       
       // 더 자세한 에러 정보 포함
       return NextResponse.json({ 
-        error: `Failed to save playlist: ${saveError.details || saveError.message}`,
+        success: false,
+        errorCode: 'SAVE_ERROR',
+        message: 'Failed to save playlist data',
         details: {
           code: saveError.code,
           message: saveError.message,
@@ -328,8 +358,9 @@ export async function POST(req: NextRequest) {
     console.error('Upload error occurred:', error);
     
     return NextResponse.json({ 
-      error: 'Service temporarily unavailable - please try again',
-      errorCode: 'UPLOAD_SERVICE_ERROR',
+      success: false,
+      errorCode: 'SYSTEM_ERROR',
+      message: 'Service temporarily unavailable - please try again',
       timestamp: new Date().toISOString(),
       details: error?.message || 'Unknown system error'
     }, { status: 500 });

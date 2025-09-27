@@ -226,10 +226,13 @@ export default function StationPage() {
           setUploadProgress('');
         }, 1000);
       } else {
-        console.error('❌ Upload failed:', result.error);
+        console.error('❌ Upload failed:', result);
         setUploadStep(0);
         setUploadProgress('');
-        alert(`업로드 실패: ${result.error}`);
+        
+        // 새로운 에러 형식 처리
+        const errorMessage = result.message || result.error || '알 수 없는 오류가 발생했습니다';
+        alert(`업로드 실패: ${errorMessage}`);
       }
     } catch (error) {
       console.error('💥 Upload error:', error);
