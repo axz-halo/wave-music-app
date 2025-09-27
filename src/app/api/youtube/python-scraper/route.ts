@@ -36,6 +36,7 @@ interface PlaylistScrapingResult {
   message?: string;
 }
 
+
 // 비디오 ID 추출 함수
 function extractVideoId(url: string): string {
   const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
@@ -615,8 +616,3 @@ function getFallbackTracksWithLinks(tracks: MusicTrack[]): MusicTrack[] {
   }));
 }
 
-function extractVideoId(url: string): string {
-  const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
-  const match = url.match(regex);
-  return match ? match[1] : '';
-}
