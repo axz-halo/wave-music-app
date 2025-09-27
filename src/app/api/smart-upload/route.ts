@@ -7,14 +7,24 @@ const API_KEY = process.env.YT_API_KEY || 'AIzaSyCs23HnOg6r7VmpD_hEPqOr4wkx80hYm
 export async function POST(req: NextRequest) {
   try {
     if (!supabaseServer) {
-      return NextResponse.json({ error: 'Database not available' }, { status: 500 });
+      return NextResponse.json({ 
+        success: false, 
+        errorCode: 'DB_NOT_AVAILABLE_003',
+        message: '🚨 DB: Database not available - system error',
+        timestamp: new Date().toISOString()
+      }, { status: 500 });
     }
     
     // 클라이언트에서 Authorization 헤더로 JWT 토큰 전송
     const authHeader = req.headers.get('authorization');
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized - No token provided' }, { status: 401 });
+      return NextResponse.json({ 
+        success: false, 
+        errorCode: 'AUTH_NO_TOKEN_004',
+        message: '🚨 AUTH: No token provided - authentication required',
+        timestamp: new Date().toISOString()
+      }, { status: 401 });
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -24,7 +34,12 @@ export async function POST(req: NextRequest) {
     
     if (authError || !user) {
       console.error('Auth error:', authError);
-      return NextResponse.json({ error: 'Unauthorized - Invalid token' }, { status: 401 });
+      return NextResponse.json({ 
+        success: false, 
+        errorCode: 'AUTH_INVALID_TOKEN_005',
+        message: '🚨 AUTH: Invalid token - authentication failed',
+        timestamp: new Date().toISOString()
+      }, { status: 401 });
     }
 
     const { url, type, preview } = await req.json();
@@ -49,8 +64,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Unsupported type' }, { status: 400 });
     }
   } catch (error: any) {
-    console.error('Smart upload error:', error);
-    return NextResponse.json({ error: error?.message || 'Unknown error' }, { status: 500 });
+    console.error('🚨 SMART UPLOAD CRITICAL ERROR:', error);
+    return NextResponse.json({ 
+      success: false, 
+      errorCode: 'SMART_UPLOAD_CRITICAL_006',
+      message: '🚨 CRITICAL: Smart upload system error',
+      timestamp: new Date().toISOString(),
+      details: error?.message || 'Unknown critical error'
+    }, { status: 500 });
   }
 }
 
@@ -96,7 +117,12 @@ async function handleVideoUpload(url: string, userId: string) {
 
   if (error) {
     console.error('Wave creation error:', error);
-    return NextResponse.json({ error: 'Failed to create wave' }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      errorCode: 'WAVE_CREATE_ERROR_001',
+      message: '🚨 WAVE: Failed to create wave - system error',
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 
   return NextResponse.json({ 

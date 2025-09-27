@@ -36,7 +36,12 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error('Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to create wave' }, { status: 500 });
+      return NextResponse.json({ 
+        success: false, 
+        errorCode: 'WAVE_CREATE_ERROR_002',
+        message: '🚨 WAVE: Failed to create wave - database error',
+        timestamp: new Date().toISOString()
+      }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, wave: data });
