@@ -254,44 +254,66 @@ export async function POST(req: NextRequest) {
       };
 
     } else if (type === 'playlist') {
-      // 플레이리스트 처리
+      // 플레이리스트 처리 - Python 크롤러 사용
       const playlistId = parseYouTubePlaylistId(url);
       if (!playlistId) {
-        return NextResponse.json({ 
-          success: false, 
+        return NextResponse.json({
+          success: false,
           errorCode: 'INVALID_PLAYLIST_URL',
           message: 'Invalid YouTube playlist URL provided'
         }, { status: 400 });
       }
 
       try {
-        // YouTube Data API 직접 호출
-        const apiKey = process.env.YT_API_KEY;
-        if (!apiKey) {
-          throw new Error('YouTube API key not configured');
-        }
+        console.log('Processing playlist with Python scraper:', playlistId);
 
-        console.log('Fetching playlist items for:', playlistId);
-        const playlistItemsResponse = await fetch(
-          `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${apiKey}`
-        );
-        
-        const playlistItemsData = await playlistItemsResponse.json();
-        console.log('Playlist items response:', playlistItemsData);
+        // Python 크롤러로 플레이리스트 처리
+        const scrapeResponse = await fetch(`${process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/api/youtube/python-scraper`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            playlistId: playlistId,
+            type: 'playlist'
+          })
+        });
 
-        if (playlistItemsData.items && playlistItemsData.items.length > 0) {
-          tracks = playlistItemsData.items.map((item: any, index: number) => ({
-            id: item.snippet.resourceId.videoId,
-            title: item.snippet.title,
-            artist: item.snippet.channelTitle || preview.channelTitle,
-            thumbnail_url: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
-            duration: 0, // YouTube API v3에서는 별도 호출 필요
-            youtube_url: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
-            order: index + 1
+        const scrapeData = await scrapeResponse.json();
+        console.log('Playlist scraping result:', scrapeData);
+
+        if (scrapeData.success && scrapeData.playlistInfo) {
+          const playlistInfo = scrapeData.playlistInfo;
+
+          // 추출된 트랙들 변환
+          tracks = playlistInfo.tracks.map((track: any) => ({
+            id: track.youtubeUrl ? extractVideoId(track.youtubeUrl) : `track_${track.trackNumber}`,
+            title: track.title,
+            artist: track.artist,
+            thumbnail_url: null, // YouTube Search API에서 가져올 수 있음
+            duration: 0,
+            youtube_url: track.youtubeUrl || null,
+            order: track.trackNumber,
+            timestamp: track.timestamp,
+            video_type: track.videoType
           }));
-          console.log('Successfully fetched tracks:', tracks.length);
+
+          console.log('Successfully extracted tracks:', tracks.length);
+
+          // 플레이리스트 정보 설정
+          playlistData = {
+            playlist_id: playlistId,
+            title: playlistInfo.title,
+            description: playlistInfo.description,
+            thumbnail_url: preview.thumbnail,
+            channel_title: playlistInfo.channelInfo.name,
+            channel_id: null, // 채널 ID는 플레이리스트에서 직접 가져올 수 없음
+            channel_info: playlistInfo.channelInfo,
+            tracks: tracks,
+            user_id: profile.id,
+            created_at: new Date().toISOString()
+          };
         } else {
-          console.log('No playlist items found, using fallback');
+          console.log('Playlist scraping failed, using fallback');
+          // 폴백: 기본 플레이리스트 정보 사용
           tracks = [{
             id: playlistId,
             title: preview.title,
@@ -301,6 +323,19 @@ export async function POST(req: NextRequest) {
             youtube_url: url,
             order: 1
           }];
+
+          playlistData = {
+            playlist_id: playlistId,
+            title: preview.title,
+            description: preview.description,
+            thumbnail_url: preview.thumbnail,
+            channel_title: preview.channelTitle,
+            channel_id: null,
+            channel_info: null,
+            tracks: tracks,
+            user_id: profile.id,
+            created_at: new Date().toISOString()
+          };
         }
       } catch (error) {
         console.error('Error fetching playlist items:', error);

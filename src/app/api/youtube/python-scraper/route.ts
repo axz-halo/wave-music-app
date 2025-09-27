@@ -21,17 +21,168 @@ interface ScrapingResult {
   channelInfo: ChannelInfo;
   tracks: MusicTrack[];
   totalTracks: number;
-  extractedFrom: 'pinned_comment' | 'description' | 'both' | 'fallback';
+    extractedFrom: 'pinned_comment' | 'description' | 'both' | 'fallback';
+}
+
+interface PlaylistScrapingResult {
+  success: boolean;
+  playlistInfo?: {
+    title: string;
+    description: string;
+    channelInfo: ChannelInfo;
+    tracks: MusicTrack[];
+    totalTracks: number;
+  };
+  message?: string;
+}
+
+// 비디오 ID 추출 함수
+function extractVideoId(url: string): string {
+  const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
+  const match = url.match(regex);
+  return match ? match[1] : '';
+}
+
+// 플레이리스트 처리 함수
+async function processPlaylist(playlistId: string): Promise<NextResponse> {
+  try {
+    const apiKey = process.env.YT_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({
+        success: false,
+        message: 'YouTube API key not configured'
+      }, { status: 500 });
+    }
+
+    console.log('Fetching playlist info for:', playlistId);
+
+    // 플레이리스트 메타데이터 가져오기
+    const playlistResponse = await fetch(
+      `https://www.googleapis.com/youtube/v3/playlists?part=snippet&id=${playlistId}&key=${apiKey}`
+    );
+    const playlistData = await playlistResponse.json();
+
+    if (!playlistData.items || playlistData.items.length === 0) {
+      return NextResponse.json({
+        success: false,
+        message: 'Playlist not found or not accessible'
+      }, { status: 404 });
+    }
+
+    const playlistInfo = playlistData.items[0].snippet;
+    const channelId = playlistInfo.channelId;
+
+    // 채널 정보 가져오기
+    const channelInfo = await getChannelInfoFromAPIByChannelId(channelId);
+
+    // 플레이리스트 아이템들 가져오기
+    const playlistItemsResponse = await fetch(
+      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${apiKey}`
+    );
+    const playlistItemsData = await playlistItemsResponse.json();
+
+    if (!playlistItemsData.items || playlistItemsData.items.length === 0) {
+      return NextResponse.json({
+        success: false,
+        message: 'No videos found in playlist'
+      }, { status: 404 });
+    }
+
+    // 각 비디오에 대해 크롤링 수행
+    const allTracks: MusicTrack[] = [];
+    let trackNumber = 1;
+
+    for (const item of playlistItemsData.items) {
+      const videoId = item.snippet.resourceId.videoId;
+      const videoTitle = item.snippet.title;
+
+      try {
+        console.log(`Processing video ${trackNumber}: ${videoTitle}`);
+
+        // 각 비디오에 대해 크롤링 수행
+        const videoTracks = await extractMusicTracksPythonStyle(videoId);
+
+        // 트랙 번호와 함께 반환
+        const tracksWithNumbers = videoTracks.map(track => ({
+          ...track,
+          trackNumber: trackNumber++,
+          videoTitle: videoTitle,
+          videoId: videoId
+        }));
+
+        allTracks.push(...tracksWithNumbers);
+      } catch (error) {
+        console.error(`Error processing video ${videoId}:`, error);
+        // 오류가 발생해도 계속 진행
+      }
+    }
+
+    const result: PlaylistScrapingResult = {
+      success: true,
+      playlistInfo: {
+        title: playlistInfo.title,
+        description: playlistInfo.description,
+        channelInfo: channelInfo,
+        tracks: allTracks,
+        totalTracks: allTracks.length
+      }
+    };
+
+    return NextResponse.json(result);
+
+  } catch (error: any) {
+    console.error('Error processing playlist:', error);
+    return NextResponse.json({
+      success: false,
+      message: `Failed to process playlist: ${error.message}`
+    }, { status: 500 });
+  }
+}
+
+// 채널 ID로 채널 정보 가져오기
+async function getChannelInfoFromAPIByChannelId(channelId: string): Promise<ChannelInfo> {
+  try {
+    const apiKey = process.env.YT_API_KEY;
+    if (!apiKey) {
+      return getFallbackChannelInfo();
+    }
+
+    const channelResponse = await fetch(
+      `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelId}&key=${apiKey}`
+    );
+    const channelData = await channelResponse.json();
+
+    if (channelData.items && channelData.items.length > 0) {
+      const channel = channelData.items[0];
+      return {
+        name: channel.snippet.title,
+        handle: channel.snippet.customUrl || `@${channel.snippet.title}`,
+        subscriberCount: channel.statistics.subscriberCount || '0',
+        profileImageUrl: channel.snippet.thumbnails?.medium?.url || channel.snippet.thumbnails?.default?.url || ''
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching channel info:', error);
+  }
+
+  return getFallbackChannelInfo();
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { videoId, url } = await req.json();
-    
-    if (!videoId && !url) {
-      return NextResponse.json({ error: 'Video ID or URL required' }, { status: 400 });
+    const { videoId, url, playlistId, type } = await req.json();
+
+    if (!videoId && !url && !playlistId) {
+      return NextResponse.json({ error: 'Video ID, URL, or Playlist ID required' }, { status: 400 });
     }
 
+    // 플레이리스트 처리
+    if (type === 'playlist' && playlistId) {
+      console.log('Processing playlist:', playlistId);
+      return await processPlaylist(playlistId);
+    }
+
+    // 단일 비디오 처리
     const finalVideoId = videoId || extractVideoId(url);
     console.log('Python-style scraping started for:', finalVideoId);
 
