@@ -11,7 +11,9 @@ function extractVideoId(url: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    console.log('🚀 Station upload started - ULTIMATE VERSION');
+    console.log('🚀 Station upload started - DEBUG VERSION');
+    console.log('🔍 Request headers:', Object.fromEntries(req.headers.entries()));
+    console.log('🔍 Request URL:', req.url);
     
     // Service Role Key로 직접 클라이언트 생성 (RLS 우회)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -21,8 +23,9 @@ export async function POST(req: NextRequest) {
       console.error('❌ Database configuration missing');
       return NextResponse.json({ 
         success: false, 
-        errorCode: 'CONFIG_ERROR',
-        message: 'System configuration issue - please contact support'
+        errorCode: 'CONFIG_ERROR_001',
+        message: '🚨 CONFIG: System configuration issue detected',
+        timestamp: new Date().toISOString()
       }, { status: 500 });
     }
     
@@ -43,8 +46,9 @@ export async function POST(req: NextRequest) {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ 
         success: false, 
-        errorCode: 'AUTH_MISSING',
-        message: 'Authentication required'
+        errorCode: 'AUTH_MISSING_002',
+        message: '🚨 AUTH: Authentication required - no token provided',
+        timestamp: new Date().toISOString()
       }, { status: 401 });
     }
 
@@ -54,8 +58,9 @@ export async function POST(req: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ 
         success: false, 
-        errorCode: 'AUTH_INVALID',
-        message: 'Authentication token invalid'
+        errorCode: 'AUTH_INVALID_003',
+        message: '🚨 AUTH: Authentication token invalid or expired',
+        timestamp: new Date().toISOString()
       }, { status: 401 });
     }
 
@@ -355,14 +360,18 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Upload error occurred:', error);
+    console.error('🚨 CRITICAL ERROR in station upload:', error);
+    console.error('🚨 Error stack:', error.stack);
+    console.error('🚨 Error details:', JSON.stringify(error, null, 2));
     
     return NextResponse.json({ 
       success: false,
-      errorCode: 'SYSTEM_ERROR',
-      message: 'Service temporarily unavailable - please try again',
+      errorCode: 'CRITICAL_SYSTEM_ERROR',
+      message: '🚨 CRITICAL: System encountered unexpected error',
       timestamp: new Date().toISOString(),
-      details: error?.message || 'Unknown system error'
+      errorId: Math.random().toString(36).substring(7),
+      details: error?.message || 'Unknown critical system error',
+      fullError: error.toString()
     }, { status: 500 });
   }
 }
