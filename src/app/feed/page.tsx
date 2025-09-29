@@ -70,71 +70,82 @@ export default function FeedPage() {
 
   // Load waves from Supabase with profile join (2-step)
   useEffect(() => {
-    loadWaves();
-  }, []);
-
-  const loadWaves = async (isInitialLoad = true) => {
-    try {
-      if (isInitialLoad) {
+    const initializeWaves = async () => {
+      try {
         setIsLoading(true);
-      }
-
-      const load = async () => {
-      if (!supabase) return;
-      const { data } = await supabase
-        .from('waves')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-      if (data) {
-        const userIds = Array.from(new Set((data as any[]).map((w:any)=>w.user_id).filter(Boolean)));
-        let userMap: Record<string, { nickname?: string; avatar_url?: string }> = {};
-        if (userIds.length) {
-          try {
-            const { data: profs } = await supabase
-              .from('profiles')
-              .select('id,nickname,avatar_url')
-              .in('id', userIds);
-            (profs || []).forEach((p:any)=>{ userMap[p.id] = { nickname: p.nickname, avatar_url: p.avatar_url }; });
-          } catch {}
+        if (!supabase) {
+          console.log('Supabase not available, using dummy data');
+          setWaves(dummyWaves);
+          setIsLoading(false);
+          return;
         }
-        const mapped = data.map((w: any) => ({
-          id: w.id,
-          user: {
-            id: w.user_id || '00000000-0000-0000-0000-000000000000',
-            nickname: userMap[w.user_id]?.nickname || '사용자',
-            profileImage: userMap[w.user_id]?.avatar_url || '/default-avatar.png',
-            followers: 0,
-            following: 0,
-            preferences: { genres: [], notifications: { newWaves: true, comments: true, challenges: true } },
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            email: '',
-          },
-          track: {
-            id: w.track_external_id || 'yt',
-            title: w.track_title || 'Unknown',
-            artist: w.track_artist || '',
-            platform: 'youtube',
-            externalId: w.track_external_id || '',
-            thumbnailUrl: w.thumb_url || `https://img.youtube.com/vi/${w.track_external_id}/mqdefault.jpg`,
-            duration: 0,
-          },
-          comment: w.comment || '',
-          moodEmoji: w.mood_emoji || '',
-          moodText: w.mood_text || '',
-          timestamp: w.created_at,
-          likes: w.likes || 0,
-          comments: w.comments || 0,
-          saves: w.saves || 0,
-          shares: w.shares || 0,
-        }));
-        setWaves(mapped);
+
+        const { data } = await supabase
+          .from('waves')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(100);
+
+        if (data) {
+          const userIds = Array.from(new Set((data as any[]).map((w:any)=>w.user_id).filter(Boolean)));
+          let userMap: Record<string, { nickname?: string; avatar_url?: string }> = {};
+          if (userIds.length) {
+            try {
+              const { data: profs } = await supabase
+                .from('profiles')
+                .select('id,nickname,avatar_url')
+                .in('id', userIds);
+              (profs || []).forEach((p:any)=>{ userMap[p.id] = { nickname: p.nickname, avatar_url: p.avatar_url }; });
+            } catch {}
+          }
+          const mapped = data.map((w: any) => ({
+            id: w.id,
+            user: {
+              id: w.user_id || '00000000-0000-0000-0000-000000000000',
+              nickname: userMap[w.user_id]?.nickname || '사용자',
+              profileImage: userMap[w.user_id]?.avatar_url || '/default-avatar.png',
+              followers: 0,
+              following: 0,
+              preferences: { genres: [], notifications: { newWaves: true, comments: true, challenges: true } },
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              email: '',
+            },
+            track: {
+              id: w.track_external_id || 'yt',
+              title: w.track_title || 'Unknown',
+              artist: w.track_artist || '',
+              platform: 'youtube',
+              externalId: w.track_external_id || '',
+              thumbnailUrl: w.thumb_url || `https://img.youtube.com/vi/${w.track_external_id}/mqdefault.jpg`,
+              duration: 0,
+            },
+            comment: w.comment || '',
+            moodEmoji: w.mood_emoji || '',
+            moodText: w.mood_text || '',
+            timestamp: w.created_at,
+            likes: w.likes || 0,
+            comments: w.comments || 0,
+            saves: w.saves || 0,
+            shares: w.shares || 0,
+          }));
+          setWaves(mapped);
+        }
+      } catch (error) {
+        console.error('Error loading waves:', error);
+        setWaves(dummyWaves);
+      } finally {
         setIsLoading(false);
       }
     };
-    load();
-    // realtime comment count updates
+
+    initializeWaves();
+  }, []);
+
+  // Separate useEffect for realtime subscription
+  useEffect(() => {
+    if (!supabase) return;
+
     const ch = (supabase as any)
       .channel('feed-comments')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments', filter: 'target_type=eq.wave' }, (payload: any) => {
@@ -148,8 +159,15 @@ export default function FeedPage() {
         });
       })
       .subscribe();
-    return () => { try { (supabase as any).removeChannel(ch); } catch {} };
-  }, []);
+
+    return () => {
+      try {
+        (supabase as any).removeChannel(ch);
+      } catch (error) {
+        console.error('Error removing channel:', error);
+      }
+    };
+  }, [supabase]);
 
   const handlePause = () => {
     setIsPlaying(false);

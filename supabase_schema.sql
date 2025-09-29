@@ -41,7 +41,34 @@ CREATE TABLE IF NOT EXISTS public.station_playlists (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 4. playlists 테이블 (일반 플레이리스트)
+-- 4. pending_playlists 테이블 (배치 처리 대기열)
+CREATE TABLE IF NOT EXISTS public.pending_playlists (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    playlist_url TEXT NOT NULL,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    processed_at TIMESTAMP WITH TIME ZONE NULL,
+    error_message TEXT NULL,
+    retry_count INTEGER DEFAULT 0,
+    max_retries INTEGER DEFAULT 3
+);
+
+-- 5. processed_tracks 테이블 (처리된 트랙 정보)
+CREATE TABLE IF NOT EXISTS public.processed_tracks (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    playlist_id UUID REFERENCES public.pending_playlists(id) ON DELETE CASCADE NOT NULL,
+    track_number INTEGER NOT NULL,
+    timestamp TEXT NOT NULL,
+    artist TEXT NOT NULL,
+    title TEXT NOT NULL,
+    youtube_url TEXT,
+    video_type TEXT DEFAULT 'Music Video',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(playlist_id, track_number)
+);
+
+-- 6. playlists 테이블 (일반 플레이리스트)
 CREATE TABLE IF NOT EXISTS public.playlists (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     title TEXT NOT NULL,

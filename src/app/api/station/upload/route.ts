@@ -96,20 +96,20 @@ export async function POST(req: NextRequest) {
       } else {
         console.log('ℹ️ No existing profile, creating new one...');
         
-        // 실제로 데이터베이스에 프로필 생성
-        const { data: newProfile, error: insertError } = await supabaseAdmin
-          .from('profiles')
-          .insert(GUARANTEED_PROFILE)
-          .select()
-          .single();
-        
-        if (!insertError && newProfile) {
-          profile = newProfile;
-          console.log('✅ Created new profile in DB:', profile.id);
-        } else {
-          console.log('⚠️ Failed to create profile, using in-memory:', insertError?.message);
-          profile = GUARANTEED_PROFILE;
-        }
+    // 실제로 데이터베이스에 프로필 생성
+               const { data: newProfile, error: insertError } = await supabaseAdmin
+                 .from('profiles')
+                 .insert(GUARANTEED_PROFILE)
+                 .select()
+                 .single();
+
+               if (!insertError && newProfile) {
+                 profile = newProfile;
+                 console.log('✅ Created new profile in DB:', profile.id);
+               } else {
+                 console.log('⚠️ Failed to create profile, using in-memory:', insertError?.message);
+                 profile = GUARANTEED_PROFILE;
+               }
       }
     } catch (dbError: any) {
       console.log('ℹ️ DB operation failed, using guaranteed default:', dbError.message);
@@ -139,121 +139,38 @@ export async function POST(req: NextRequest) {
     let playlistData: any;
     let tracks: any[] = [];
 
-    if (type === 'video') {
-      // 단일 비디오를 플레이리스트로 처리
-      const videoId = parseYouTubeId(url);
-      if (!videoId) {
-        return NextResponse.json({ 
-          success: false, 
-          errorCode: 'INVALID_URL',
-          message: 'Invalid YouTube URL provided'
-        }, { status: 400 });
-      }
+    // 배치 처리 큐에 추가 (실시간 처리 대신)
+    console.log('📋 Adding to batch processing queue...');
 
-      // 고급 음원 크롤링 시도
-      let extractedTracks = [];
-      let advancedChannelInfo = null;
-      
-      try {
-        console.log('Python-style scraping started...');
-        const scrapeResponse = await fetch(`${process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/api/youtube/python-scraper`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            videoId: videoId,
-            url: url
-          })
-        });
-        
-        const scrapeData = await scrapeResponse.json();
-        if (scrapeData.success && scrapeData.result) {
-          const result = scrapeData.result;
-          extractedTracks = result.tracks.map((track: any) => ({
-            id: track.youtubeUrl ? extractVideoId(track.youtubeUrl) : `track_${track.trackNumber}`,
-            title: track.title,
-            artist: track.artist,
-            thumbnail_url: null, // YouTube Search API에서 가져올 수 있음
-            duration: 0,
-            youtube_url: track.youtubeUrl || null,
-            order: track.trackNumber,
-            timestamp: track.timestamp,
-            video_type: track.videoType
-          }));
-          
-          // 고급 채널 정보 사용
-          advancedChannelInfo = {
-            id: result.channelInfo.name,
-            title: result.channelInfo.name,
-            handle: result.channelInfo.handle,
-            subscriberCount: result.channelInfo.subscriberCount,
-            videoCount: '0',
-            profileImage: result.channelInfo.profileImageUrl
-          };
-          
-          console.log('Python-style scraping completed:', {
-            tracks: extractedTracks.length,
-            channel: result.channelInfo.name,
-            extractedFrom: result.extractedFrom
-          });
-        }
-      } catch (error) {
-        console.error('Error in Python-style scraping:', error);
-      }
-      
-      // 추출된 음원이 있으면 사용, 없으면 기본 비디오 정보 사용
-      if (extractedTracks.length > 0) {
-        tracks = extractedTracks;
-      } else {
-        tracks = [{
-          id: videoId,
-          title: preview.title,
-          artist: preview.channelTitle,
-          thumbnail_url: preview.thumbnail,
-          duration: preview.duration || 0,
-          youtube_url: url,
-          order: 1
-        }];
-      }
+    const { data: pendingPlaylist, error: queueError } = await supabaseAdmin
+      .from('pending_playlists')
+      .insert({
+        playlist_url: url,
+        user_id: profile.id,
+        status: 'pending'
+      })
+      .select()
+      .single();
 
-      // 채널 정보 수집 (고급 크롤링에서 가져온 정보 우선 사용)
-      let channelInfo = advancedChannelInfo;
-      
-      if (!channelInfo) {
-        try {
-          console.log('Fetching channel info...');
-          const channelResponse = await fetch(`${process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/api/youtube/resolve?type=channel&id=${preview.channelId || preview.channelTitle}`);
-          const channelData = await channelResponse.json();
-          
-          if (channelData.ok) {
-            channelInfo = {
-              id: channelData.channelId,
-              title: channelData.title,
-              handle: channelData.handle,
-              subscriberCount: channelData.subscriberCount,
-              videoCount: channelData.videoCount,
-              profileImage: channelData.thumbnails?.medium?.url || channelData.thumbnails?.default?.url
-            };
-            console.log('Channel info collected:', channelInfo);
-          }
-        } catch (error) {
-          console.error('Error fetching channel info:', error);
-        }
-      }
+    if (queueError) {
+      console.error('❌ Failed to add to batch queue:', queueError);
+      return NextResponse.json({
+        success: false,
+        errorCode: 'QUEUE_ERROR',
+        message: '배치 처리 큐에 추가하는 중 오류가 발생했습니다'
+      }, { status: 500 });
+    }
 
-      playlistData = {
-        playlist_id: `single_${videoId}`,
-        title: preview.title,
-        description: `단일 비디오: ${preview.title}`,
-        thumbnail_url: preview.thumbnail,
-        channel_title: preview.channelTitle,
-        channel_id: channelInfo?.id || null,
-        channel_info: channelInfo,
-        tracks: tracks,
-        user_id: profile.id, // 사용자 ID를 profile에서 가져옴
-        created_at: new Date().toISOString()
-      };
+    console.log('✅ Added to batch processing queue:', pendingPlaylist.id);
 
-    } else if (type === 'playlist') {
+    // 즉시 응답 (배치 처리 예정)
+    return NextResponse.json({
+      success: true,
+      message: '플레이리스트가 배치 처리 큐에 추가되었습니다. 1-2시간 내에 처리됩니다.',
+      playlistId: pendingPlaylist.id,
+      estimatedTime: '1-2시간',
+      status: 'pending'
+    });
       // 플레이리스트 처리 - Python 크롤러 사용
       const playlistId = parseYouTubePlaylistId(url);
       if (!playlistId) {
@@ -280,63 +197,32 @@ export async function POST(req: NextRequest) {
         const scrapeData = await scrapeResponse.json();
         console.log('Playlist scraping result:', scrapeData);
 
-        if (scrapeData.success && scrapeData.playlistInfo) {
-          const playlistInfo = scrapeData.playlistInfo;
+        // 배치 처리용 기본 플레이리스트 정보 사용 (실시간 크롤링 대신)
+        tracks = [{
+          id: playlistId,
+          title: preview.title,
+          artist: preview.channelTitle,
+          thumbnail_url: preview.thumbnail,
+          duration: 0,
+          youtube_url: url,
+          order: 1,
+          timestamp: '00:00',
+          video_type: 'Playlist'
+        }];
 
-          // 추출된 트랙들 변환
-          tracks = playlistInfo.tracks.map((track: any) => ({
-            id: track.youtubeUrl ? extractVideoId(track.youtubeUrl) : `track_${track.trackNumber}`,
-            title: track.title,
-            artist: track.artist,
-            thumbnail_url: null, // YouTube Search API에서 가져올 수 있음
-            duration: 0,
-            youtube_url: track.youtubeUrl || null,
-            order: track.trackNumber,
-            timestamp: track.timestamp,
-            video_type: track.videoType
-          }));
-
-          console.log('Successfully extracted tracks:', tracks.length);
-
-          // 플레이리스트 정보 설정
-          playlistData = {
-            playlist_id: playlistId,
-            title: playlistInfo.title,
-            description: playlistInfo.description,
-            thumbnail_url: preview.thumbnail,
-            channel_title: playlistInfo.channelInfo.name,
-            channel_id: null, // 채널 ID는 플레이리스트에서 직접 가져올 수 없음
-            channel_info: playlistInfo.channelInfo,
-            tracks: tracks,
-            user_id: profile.id,
-            created_at: new Date().toISOString()
-          };
-        } else {
-          console.log('Playlist scraping failed, using fallback');
-          // 폴백: 기본 플레이리스트 정보 사용
-          tracks = [{
-            id: playlistId,
-            title: preview.title,
-            artist: preview.channelTitle,
-            thumbnail_url: preview.thumbnail,
-            duration: 0,
-            youtube_url: url,
-            order: 1
-          }];
-
-          playlistData = {
-            playlist_id: playlistId,
-            title: preview.title,
-            description: preview.description,
-            thumbnail_url: preview.thumbnail,
-            channel_title: preview.channelTitle,
-            channel_id: null,
-            channel_info: null,
-            tracks: tracks,
-            user_id: profile.id,
-            created_at: new Date().toISOString()
-          };
-        }
+        // 플레이리스트 정보 설정
+        playlistData = {
+          playlist_id: playlistId,
+          title: preview.title,
+          description: preview.description,
+          thumbnail_url: preview.thumbnail,
+          channel_title: preview.channelTitle,
+          channel_id: null,
+          channel_info: null,
+          tracks: tracks,
+          user_id: profile.id,
+          created_at: new Date().toISOString()
+        };
       } catch (error) {
         console.error('Error fetching playlist items:', error);
         // 플레이리스트 아이템을 가져오지 못해도 기본 정보로 저장
