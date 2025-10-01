@@ -119,7 +119,13 @@ export class StationService {
     url: string;
     type: 'video' | 'playlist';
     preview: any;
-  }): Promise<{ success: boolean; message?: string }> {
+  }): Promise<{ 
+    success: boolean; 
+    message?: string;
+    tracksCount?: number;
+    playlist?: any;
+    type?: string;
+  }> {
     if (!supabase) {
       throw new Error('Supabase client not available');
     }
