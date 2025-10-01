@@ -29,16 +29,32 @@ interface Track {
  */
 export async function POST(req: NextRequest) {
   try {
+    console.log('🚀 Upload-v2 started');
+    
     const { url, type } = await req.json();
+    console.log('📝 Request:', { url, type });
     
     // Database configuration
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
-    if (!supabaseUrl || !supabaseServiceKey) {
+    console.log('🔑 Config check:', {
+      hasUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      hasAnonKey: !!supabaseAnonKey
+    });
+    
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
+      console.error('❌ Missing environment variables');
       return NextResponse.json({ 
         success: false, 
-        message: 'Database configuration missing' 
+        message: 'Database configuration missing',
+        debug: {
+          hasUrl: !!supabaseUrl,
+          hasServiceKey: !!supabaseServiceKey,
+          hasAnonKey: !!supabaseAnonKey
+        }
       }, { status: 500 });
     }
 
@@ -52,7 +68,10 @@ export async function POST(req: NextRequest) {
 
     // Verify user authentication
     const authHeader = req.headers.get('authorization');
+    console.log('🔐 Auth header present:', !!authHeader);
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('❌ No auth header or invalid format');
       return NextResponse.json({ 
         success: false, 
         message: 'Authentication required - no token provided' 
@@ -60,14 +79,15 @@ export async function POST(req: NextRequest) {
     }
 
     const token = authHeader.substring(7);
-    const supabaseAuth = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
 
     if (authError || !user) {
-      console.error('Auth error:', authError);
+      console.error('❌ Auth error:', authError?.message);
       return NextResponse.json({ 
         success: false, 
-        message: 'Invalid authentication token' 
+        message: 'Invalid authentication token',
+        error: authError?.message
       }, { status: 401 });
     }
 
@@ -86,10 +106,14 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('❌ Upload error:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error details:', JSON.stringify(error, null, 2));
     
     return NextResponse.json({
       success: false,
-      message: error.message || 'Failed to process upload'
+      message: error.message || 'Failed to process upload',
+      errorDetails: error.toString(),
+      errorStack: error.stack?.split('\n').slice(0, 3).join('\n')
     }, { status: 500 });
   }
 }
@@ -157,7 +181,14 @@ async function handlePlaylistUpload(url: string, userId: string, supabaseAdmin: 
 
   } catch (error: any) {
     console.error('❌ Playlist processing error:', error);
-    throw error;
+    console.error('❌ Stack:', error.stack);
+    
+    return NextResponse.json({
+      success: false,
+      message: `Playlist processing failed: ${error.message}`,
+      errorType: 'PLAYLIST_ERROR',
+      details: error.toString()
+    }, { status: 500 });
   }
 }
 
@@ -272,7 +303,14 @@ async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any
 
   } catch (error: any) {
     console.error('❌ Video processing error:', error);
-    throw error;
+    console.error('❌ Stack:', error.stack);
+    
+    return NextResponse.json({
+      success: false,
+      message: `Video processing failed: ${error.message}`,
+      errorType: 'VIDEO_ERROR',
+      details: error.toString()
+    }, { status: 500 });
   }
 }
 
