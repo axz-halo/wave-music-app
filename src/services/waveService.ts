@@ -171,7 +171,7 @@ export class WaveService {
     return data as WaveData;
   }
 
-  static async updateWave(waveId: string, updates: { likes?: number; comments?: number; saves?: number; shares?: number }): Promise<void> {
+  static async updateWave(waveId: string, updates: { likes?: number; comments?: number; saves?: number; shares?: number; isLiked?: boolean; isSaved?: boolean }): Promise<void> {
     if (!supabase) {
       throw new Error('Supabase client not available');
     }

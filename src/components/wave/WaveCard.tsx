@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Heart, MessageCircle, Bookmark, Share, Play } from 'lucide-react';
 import { Wave } from '@/types';
@@ -25,15 +25,51 @@ export default function WaveCard({
 }: WaveCardProps) {
   const [isLiked, setIsLiked] = useState(wave.isLiked || false);
   const [isSaved, setIsSaved] = useState(wave.isSaved || false);
+  const [likeCount, setLikeCount] = useState(wave.likes || 0);
+  const [saveCount, setSaveCount] = useState(wave.saves || 0);
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    onLike?.(wave.id);
+  // Sync local state with wave props
+  useEffect(() => {
+    setIsLiked(wave.isLiked || false);
+    setIsSaved(wave.isSaved || false);
+    setLikeCount(wave.likes || 0);
+    setSaveCount(wave.saves || 0);
+  }, [wave.isLiked, wave.isSaved, wave.likes, wave.saves]);
+
+  const handleLike = async () => {
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    
+    // Optimistic update
+    const newCount = newIsLiked ? likeCount + 1 : Math.max(0, likeCount - 1);
+    setLikeCount(newCount);
+    
+    try {
+      await onLike?.(wave.id);
+    } catch (error) {
+      // Revert on error
+      setIsLiked(isLiked);
+      setLikeCount(likeCount);
+      console.error('Failed to like wave:', error);
+    }
   };
 
-  const handleSave = () => {
-    setIsSaved(!isSaved);
-    onSave?.(wave.id);
+  const handleSave = async () => {
+    const newIsSaved = !isSaved;
+    setIsSaved(newIsSaved);
+    
+    // Optimistic update
+    const newCount = newIsSaved ? saveCount + 1 : Math.max(0, saveCount - 1);
+    setSaveCount(newCount);
+    
+    try {
+      await onSave?.(wave.id);
+    } catch (error) {
+      // Revert on error
+      setIsSaved(isSaved);
+      setSaveCount(saveCount);
+      console.error('Failed to save wave:', error);
+    }
   };
 
   const formatTimeAgo = (timestamp: string) => {
@@ -119,7 +155,7 @@ export default function WaveCard({
             }`}
           >
             <Heart className={`w-4 h-4 transition-transform duration-300 ${isLiked ? 'fill-current scale-110' : ''}`} />
-            <span className="sk4-spotify-caption font-medium">{wave.likes}</span>
+            <span className="sk4-spotify-caption font-medium">{likeCount}</span>
           </button>
 
           <button
@@ -139,7 +175,7 @@ export default function WaveCard({
             }`}
           >
             <Bookmark className={`w-4 h-4 transition-transform duration-300 ${isSaved ? 'fill-current scale-110' : ''}`} />
-            <span className="sk4-spotify-caption font-medium">{wave.saves}</span>
+            <span className="sk4-spotify-caption font-medium">{saveCount}</span>
           </button>
         </div>
 

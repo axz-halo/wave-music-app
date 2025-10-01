@@ -79,14 +79,34 @@ export default function FeedPage() {
     if (!user) return;
 
     try {
-      const newLikes = await WaveService.incrementLikes(waveId);
-      updateWave(waveId, { likes: newLikes });
-      toast.success('좋아요!');
+      const wave = waves.find(w => w.id === waveId);
+      if (!wave) return;
+
+      const isCurrentlyLiked = wave.isLiked || false;
+      const currentLikes = wave.likes || 0;
+      
+      // Toggle like status and count
+      const newIsLiked = !isCurrentlyLiked;
+      const newLikes = newIsLiked ? currentLikes + 1 : Math.max(0, currentLikes - 1);
+      
+      // Update wave with new state
+      await WaveService.updateWave(waveId, { 
+        likes: newLikes,
+        isLiked: newIsLiked 
+      });
+      
+      updateWave(waveId, { 
+        likes: newLikes,
+        isLiked: newIsLiked 
+      });
+      
+      toast.success(newIsLiked ? '좋아요!' : '좋아요 취소!');
     } catch (error) {
       console.error('Failed to like wave:', error);
       toast.error(ERROR_MESSAGES.GENERIC_ERROR);
+      throw error; // Re-throw so WaveCard can handle the error
     }
-  }, [ensureAuth, updateWave]);
+  }, [ensureAuth, updateWave, waves]);
 
   const handleComment = useCallback(async (waveId: string) => {
     const user = await ensureAuth();
@@ -100,13 +120,42 @@ export default function FeedPage() {
     const user = await ensureAuth();
     if (!user) return;
     
-    const wave = waves.find(w => w.id === waveId);
-    if (wave) {
-      setSelectedTrackForSave(wave.track);
-      setSelectedWaveIdForSave(waveId);
-      setIsSaveToPlaylistModalOpen(true);
+    try {
+      const wave = waves.find(w => w.id === waveId);
+      if (!wave) return;
+
+      const isCurrentlySaved = wave.isSaved || false;
+      const currentSaves = wave.saves || 0;
+      
+      // Toggle save status and count
+      const newIsSaved = !isCurrentlySaved;
+      const newSaves = newIsSaved ? currentSaves + 1 : Math.max(0, currentSaves - 1);
+      
+      // Update wave with new state
+      await WaveService.updateWave(waveId, { 
+        saves: newSaves,
+        isSaved: newIsSaved 
+      });
+      
+      updateWave(waveId, { 
+        saves: newSaves,
+        isSaved: newIsSaved 
+      });
+      
+      // Open playlist modal for saving to playlist
+      if (newIsSaved) {
+        setSelectedTrackForSave(wave.track);
+        setSelectedWaveIdForSave(waveId);
+        setIsSaveToPlaylistModalOpen(true);
+      }
+      
+      toast.success(newIsSaved ? '저장되었습니다!' : '저장 취소!');
+    } catch (error) {
+      console.error('Failed to save wave:', error);
+      toast.error(ERROR_MESSAGES.GENERIC_ERROR);
+      throw error; // Re-throw so WaveCard can handle the error
     }
-  }, [ensureAuth, waves]);
+  }, [ensureAuth, updateWave, waves]);
 
   const handleShare = useCallback((waveId: string) => {
     setSelectedWaveId(waveId);
@@ -186,10 +235,17 @@ export default function FeedPage() {
     try {
       const wave = await WaveService.getWaveById(selectedWaveId);
       if (wave) {
-        updateWave(selectedWaveId, { comments: (wave.comments || 0) + 1 });
+        const newCommentCount = (wave.comments || 0) + 1;
+        
+        // Update database
+        await WaveService.updateWave(selectedWaveId, { comments: newCommentCount });
+        
+        // Update local state
+        updateWave(selectedWaveId, { comments: newCommentCount });
       }
     } catch (error) {
       console.error('Failed to update comment count:', error);
+      toast.error('댓글 카운트 업데이트 실패');
     }
   }, [selectedWaveId, updateWave]);
 
