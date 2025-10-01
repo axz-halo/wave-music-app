@@ -49,13 +49,13 @@ export function transformSingleWave(
   const user = userMap?.get(wave.user_id) || defaultUser;
 
   const track: TrackInfo = {
-    id: wave.track_external_id || 'unknown',
-    title: wave.track_title || 'Unknown',
-    artist: wave.track_artist || '',
-    platform: 'youtube',
-    externalId: wave.track_external_id || '',
-    thumbnailUrl: wave.thumb_url || `https://img.youtube.com/vi/${wave.track_external_id}/mqdefault.jpg`,
-    duration: 0,
+    id: wave.track_info?.id || wave.track_info?.externalId || 'unknown',
+    title: wave.track_info?.title || 'Unknown',
+    artist: wave.track_info?.artist || '',
+    platform: (wave.track_info?.platform as 'youtube' | 'apple' | 'spotify') || 'youtube',
+    externalId: wave.track_info?.externalId || '',
+    thumbnailUrl: wave.track_info?.thumbnailUrl || `https://img.youtube.com/vi/${wave.track_info?.externalId}/mqdefault.jpg`,
+    duration: wave.track_info?.duration || 0,
   };
 
   return {

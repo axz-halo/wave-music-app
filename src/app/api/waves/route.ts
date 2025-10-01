@@ -21,11 +21,15 @@ export async function POST(req: NextRequest) {
       comment: comment || '',
       mood_emoji: moodEmoji || null,
       mood_text: moodText || null,
-      track_title: track.title || 'Unknown',
-      track_artist: track.artist || '',
-      track_platform: 'youtube',
-      track_external_id: track.externalId,
-      thumb_url: track.thumbnailUrl || `https://img.youtube.com/vi/${track.externalId}/mqdefault.jpg`,
+      track_info: {
+        id: track.externalId,
+        title: track.title || 'Unknown',
+        artist: track.artist || '',
+        platform: 'youtube',
+        externalId: track.externalId,
+        thumbnailUrl: track.thumbnailUrl || `https://img.youtube.com/vi/${track.externalId}/mqdefault.jpg`,
+        duration: track.duration || 0
+      }
     };
 
     const { data, error } = await supabase

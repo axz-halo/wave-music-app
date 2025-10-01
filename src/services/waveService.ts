@@ -4,19 +4,23 @@ import { parseYouTubeId } from '@/lib/youtube';
 export interface WaveData {
   id: string;
   user_id: string;
-  track_title: string;
-  track_artist: string;
-  track_platform: string;
-  track_external_id: string;
-  thumb_url: string;
+  track_info: {
+    id: string;
+    title: string;
+    artist: string;
+    platform: string;
+    externalId: string;
+    thumbnailUrl: string;
+    duration?: number;
+  };
   comment: string;
   mood_emoji: string | null;
   mood_text: string | null;
   created_at: string;
-  likes: number;
-  comments: number;
-  saves: number;
-  shares: number;
+  likes?: number;
+  comments?: number;
+  saves?: number;
+  shares?: number;
 }
 
 export interface CreateWavePayload {
@@ -143,11 +147,15 @@ export class WaveService {
       comment: payload.comment || '',
       mood_emoji: payload.moodEmoji || null,
       mood_text: payload.moodText || null,
-      track_title: finalTrack.title,
-      track_artist: finalTrack.artist,
-      track_platform: 'youtube',
-      track_external_id: finalExternalId,
-      thumb_url: finalTrack.thumbnailUrl,
+      track_info: {
+        id: finalExternalId,
+        title: finalTrack.title,
+        artist: finalTrack.artist,
+        platform: 'youtube',
+        externalId: finalExternalId,
+        thumbnailUrl: finalTrack.thumbnailUrl,
+        duration: ('duration' in finalTrack ? finalTrack.duration : 0) || 0
+      }
     };
 
     const { data, error } = await supabase

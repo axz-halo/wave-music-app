@@ -102,11 +102,15 @@ async function handleVideoUpload(url: string, userId: string) {
     comment: 'Smart Upload로 추가된 비디오',
     mood_emoji: '🎵',
     mood_text: '업로드됨',
-    track_title: snippet.title,
-    track_artist: snippet.channelTitle,
-    track_platform: 'youtube',
-    track_external_id: videoId,
-    thumb_url: snippet.thumbnails?.medium?.url || snippet.thumbnails?.default?.url,
+    track_info: {
+      id: videoId,
+      title: snippet.title,
+      artist: snippet.channelTitle,
+      platform: 'youtube',
+      externalId: videoId,
+      thumbnailUrl: snippet.thumbnails?.medium?.url || snippet.thumbnails?.default?.url || '',
+      duration: 0
+    }
   };
 
   const { data: wave, error } = await supabaseServer
