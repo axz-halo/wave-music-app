@@ -66,10 +66,11 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
           {pathname === '/feed' && onCreateWave && (
             <button
               onClick={onCreateWave}
-              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300 z-60"
+              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300"
               style={{ 
-                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 1rem)',
-                right: '1rem'
+                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 2rem)',
+                right: '1rem',
+                zIndex: 60
               }}
             >
               <Plus className="w-7 h-7" />
@@ -78,10 +79,11 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
           {pathname === '/station' && (
             <button
               onClick={() => (document.querySelector('[data-upload-trigger]') as HTMLElement)?.click()}
-              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300 z-60"
+              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300"
               style={{ 
-                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 1rem)',
-                right: '1rem'
+                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 2rem)',
+                right: '1rem',
+                zIndex: 60
               }}
             >
               <Plus className="w-7 h-7" />
@@ -90,10 +92,11 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
           {pathname === '/challenge' && (
             <a 
               href="/challenge/create" 
-              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300 z-60"
+              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300"
               style={{ 
-                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 1rem)',
-                right: '1rem'
+                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 2rem)',
+                right: '1rem',
+                zIndex: 60
               }}
             >
               <Plus className="w-7 h-7" />
@@ -102,10 +105,11 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
           {pathname === '/profile' && (
             <a 
               href="/profile/playlists" 
-              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300 z-60"
+              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300"
               style={{ 
-                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 1rem)',
-                right: '1rem'
+                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 2rem)',
+                right: '1rem',
+                zIndex: 60
               }}
             >
               <Plus className="w-7 h-7" />
