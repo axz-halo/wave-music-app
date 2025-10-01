@@ -472,3 +472,104 @@ a:focus-visible {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Spotify UX Patterns with SK4 Colors */
+
+/* Spotify-like Card Component */
+.sk4-spotify-card {
+  @apply bg-sk4-white border border-sk4-gray rounded-sk4-card shadow-sk4-soft;
+  @apply hover:shadow-sk4-medium transition-all duration-300;
+  @apply hover:border-sk4-orange/30;
+}
+
+/* Spotify-like Button Component */
+.sk4-spotify-btn {
+  @apply bg-sk4-orange text-white font-semibold;
+  @apply px-6 py-3 rounded-sk4-soft;
+  @apply hover:bg-sk4-orange-light hover:scale-105;
+  @apply active:scale-95 transition-all duration-200;
+  @apply shadow-sk4-soft hover:shadow-sk4-medium;
+}
+
+.sk4-spotify-btn-secondary {
+  @apply bg-sk4-light-gray text-sk4-charcoal font-semibold;
+  @apply px-6 py-3 rounded-sk4-soft;
+  @apply hover:bg-sk4-gray hover:scale-105;
+  @apply active:scale-95 transition-all duration-200;
+  @apply shadow-sk4-soft hover:shadow-sk4-medium;
+}
+
+/* Spotify-like Grid System */
+.sk4-spotify-grid {
+  @apply grid gap-6;
+  @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+}
+
+/* Spotify-like Navigation */
+.sk4-spotify-nav {
+  @apply bg-sk4-white border-t border-sk4-gray;
+  @apply shadow-sk4-hard backdrop-blur-xl;
+}
+
+.sk4-spotify-nav-item {
+  @apply flex flex-col items-center justify-center;
+  @apply text-sk4-dark-gray hover:text-sk4-orange;
+  @apply transition-all duration-300;
+}
+
+.sk4-spotify-nav-item-active {
+  @apply text-sk4-orange;
+}
+
+.sk4-spotify-nav-icon {
+  @apply w-5 h-5 mb-1;
+}
+
+/* Spotify-like Sidebar */
+.sk4-spotify-sidebar {
+  @apply bg-sk4-white border-r border-sk4-gray;
+  @apply shadow-sk4-medium backdrop-blur-xl;
+}
+
+.sk4-spotify-sidebar-item {
+  @apply flex items-center space-x-sk4-md py-3 px-4;
+  @apply text-sk4-dark-gray hover:text-sk4-orange;
+  @apply hover:bg-sk4-light-gray rounded-sk4-soft;
+  @apply transition-all duration-300;
+}
+
+.sk4-spotify-sidebar-item-active {
+  @apply text-sk4-orange bg-sk4-orange/10;
+}
+
+/* Spotify-like Header */
+.sk4-spotify-header {
+  @apply bg-sk4-white border-b border-sk4-gray;
+  @apply shadow-sk4-medium backdrop-blur-xl;
+}
+
+/* Spotify-like Feed Layout */
+.sk4-spotify-feed {
+  @apply space-y-6 p-sk4-lg;
+}
+
+/* Spotify-like Wave Card */
+.sk4-spotify-wave-card {
+  @apply bg-sk4-white rounded-sk4-card border border-sk4-gray;
+  @apply shadow-sk4-soft hover:shadow-sk4-medium;
+  @apply hover:border-sk4-orange/30;
+  @apply transition-all duration-300 hover:-translate-y-1;
+}
+
+/* Spotify-like Typography */
+.sk4-spotify-title {
+  @apply text-sk4-charcoal font-bold text-lg;
+}
+
+.sk4-spotify-subtitle {
+  @apply text-sk4-dark-gray font-medium text-sm;
+}
+
+.sk4-spotify-caption {
+  @apply text-sk4-medium-gray text-xs;
+}

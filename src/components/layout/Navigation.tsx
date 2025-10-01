@@ -19,9 +19,9 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
 
   return (
     <>
-      {/* Mobile Bottom Navigation - Clean and Responsive */}
+      {/* Mobile Bottom Navigation - Spotify UX Pattern */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
-        <div className="mx-4 mb-4 rounded-2xl bg-white/90 backdrop-blur-xl border border-white/30 shadow-lg">
+        <div className="mx-4 mb-4 sk4-spotify-card">
           <div className="h-16 flex items-center justify-around px-2 py-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -32,19 +32,19 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
                   key={item.name}
                   href={item.href}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`relative flex flex-col items-center justify-center flex-1 h-full group transition-all duration-300 ${
-                    isActive ? 'text-sk4-orange' : 'text-sk4-dark-gray hover:text-sk4-orange'
+                  className={`sk4-spotify-nav-item flex-1 ${
+                    isActive ? 'sk4-spotify-nav-item-active' : ''
                   }`}
                 >
-                  <div className={`p-2.5 rounded-xl transition-all duration-300 ${
+                  <div className={`p-2.5 rounded-sk4-soft transition-all duration-300 ${
                     isActive 
-                      ? 'bg-sk4-orange text-white shadow-sm' 
+                      ? 'bg-sk4-orange text-white shadow-sk4-soft' 
                       : 'group-hover:bg-sk4-orange/10'
                   }`}>
-                    <Icon className="w-5 h-5" />
+                    <Icon className="sk4-spotify-nav-icon" />
                   </div>
-                  <span className={`text-xs font-medium mt-1 transition-all duration-300 ${
-                    isActive ? 'text-sk4-orange' : 'text-sk4-dark-gray group-hover:text-sk4-orange'
+                  <span className={`sk4-spotify-caption mt-1 transition-all duration-300 ${
+                    isActive ? 'text-sk4-orange font-semibold' : 'font-medium'
                   }`}>
                     {item.name}
                   </span>
@@ -56,8 +56,8 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
 
       </nav>
 
-      {/* Desktop Sidebar - Enhanced with glass morphism */}
-      <aside className="hidden lg:block fixed left-0 top-0 bottom-0 w-64 bg-white/80 backdrop-blur-xl border-r border-white/30 shadow-sk4-medium z-30">
+      {/* Desktop Sidebar - Spotify UX Pattern */}
+      <aside className="hidden lg:block fixed left-0 top-0 bottom-0 w-64 sk4-spotify-sidebar z-30">
         <div className="p-sk4-lg h-full flex flex-col relative">
           {/* Gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-sk4-orange/5 pointer-events-none" />
@@ -83,31 +83,22 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
                 <a
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center space-x-sk4-md py-3 px-4 rounded-xl transition-all duration-300 group relative overflow-hidden ${
-                    isActive
-                      ? 'bg-gradient-to-r from-sk4-orange/20 to-sk4-orange/10 text-sk4-orange shadow-sk4-soft'
-                      : 'text-sk4-dark-gray hover:bg-gradient-to-r hover:from-sk4-light-gray hover:to-sk4-off-white hover:text-sk4-orange'
+                  className={`sk4-spotify-sidebar-item ${
+                    isActive ? 'sk4-spotify-sidebar-item-active' : ''
                   }`}
                 >
-                  {/* Active indicator bar */}
-                  <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-r-full transition-all duration-300 ${
-                    isActive ? 'h-8 bg-sk4-orange' : 'h-0 bg-transparent'
-                  }`} />
-                  
-                  <div className={`p-2 rounded-xl transition-all duration-300 ${
+                  <div className={`p-2 rounded-sk4-soft transition-all duration-300 ${
                     isActive 
-                      ? 'bg-gradient-to-br from-sk4-orange to-sk4-orange-light shadow-sk4-glow' 
-                      : 'bg-sk4-light-gray group-hover:bg-sk4-orange/20 group-hover:scale-110'
+                      ? 'bg-sk4-orange text-white shadow-sk4-soft' 
+                      : 'bg-sk4-light-gray group-hover:bg-sk4-orange/20'
                   }`}>
-                    <Icon className={`w-5 h-5 transition-all duration-300 ${
-                      isActive ? 'text-white' : 'text-sk4-dark-gray group-hover:text-sk4-orange'
-                    }`} />
+                    <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
-                    <span className={`sk4-text-base font-semibold block transition-all duration-300 ${
-                      isActive ? 'text-sk4-orange' : 'group-hover:text-sk4-orange'
+                    <span className={`sk4-spotify-subtitle block transition-all duration-300 ${
+                      isActive ? 'text-sk4-orange font-semibold' : 'font-medium'
                     }`}>{item.name}</span>
-                    <span className="sk4-text-xs text-sk4-medium-gray block group-hover:text-sk4-dark-gray transition-colors duration-300">{item.description}</span>
+                    <span className="sk4-spotify-caption block transition-colors duration-300">{item.description}</span>
                   </div>
                 </a>
               );
@@ -119,10 +110,9 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
             <div className="mt-auto relative z-10">
               <button
                 onClick={onCreateWave}
-                className="w-full py-4 px-4 bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white sk4-text-base font-bold rounded-xl shadow-sk4-medium hover:shadow-sk4-glow-strong transform hover:scale-105 transition-all duration-300 relative overflow-hidden group"
+                className="w-full sk4-spotify-btn relative overflow-hidden group"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                <div className="relative flex items-center justify-center">
+                <div className="flex items-center justify-center">
                   <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
                   웨이브 만들기
                 </div>
