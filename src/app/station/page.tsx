@@ -325,14 +325,31 @@ export default function StationPage() {
                   
                   <div>
                     <h3 className="font-semibold text-sk4-charcoal mb-1 line-clamp-2 sk4-text-sm">{playlist.title}</h3>
-                    <p className="sk4-text-xs text-sk4-dark-gray mb-2">{playlist.channel_title}</p>
+                    
+                    {playlist.channel_info ? (
+                      <div className="flex items-center space-x-1.5 mb-2">
+                        <img
+                          src={playlist.channel_info.profileImage}
+                          alt={playlist.channel_info.title}
+                          className="w-4 h-4 rounded-full object-cover"
+                        />
+                        <p className="sk4-text-xs text-sk4-dark-gray truncate">{playlist.channel_info.title}</p>
+                      </div>
+                    ) : (
+                      <p className="sk4-text-xs text-sk4-dark-gray mb-2">{playlist.channel_title}</p>
+                    )}
                     
                     <div className="flex items-center justify-between sk4-text-xs text-sk4-medium-gray">
                       <span className="flex items-center">
                         <span className="w-1.5 h-1.5 bg-sk4-orange rounded-full mr-sk4-xs"></span>
                         {playlist.tracks?.length || 0}곡
                       </span>
-                      <span>{playlist.user?.nickname || '익명'}</span>
+                      {playlist.channel_info?.subscriberCount && (
+                        <span className="flex items-center">
+                          <Users className="w-3 h-3 mr-1" />
+                          {formatNumber(playlist.channel_info.subscriberCount)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -494,19 +511,40 @@ export default function StationPage() {
                   <p className="sk4-text-sm text-sk4-dark-gray mb-2">{selectedPlaylist.channel_title}</p>
                   
                   {selectedPlaylist.channel_info && (
-                    <div className="flex items-center space-x-sk4-md mb-sk4-md p-sk4-sm bg-sk4-light-gray rounded-lg">
-                      <img
-                        src={selectedPlaylist.channel_info.profileImage}
-                        alt={selectedPlaylist.channel_info.title}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                      <div className="flex-1">
-                        <p className="sk4-text-xs font-medium text-sk4-charcoal">{selectedPlaylist.channel_info.title}</p>
-                        <div className="flex items-center space-x-sk4-sm sk4-text-xs text-sk4-dark-gray">
-                          <span>구독자 {formatNumber(selectedPlaylist.channel_info.subscriberCount)}명</span>
-                          <span>•</span>
-                          <span>영상 {formatNumber(selectedPlaylist.channel_info.videoCount)}개</span>
+                    <div className="mb-sk4-md">
+                      <div className="flex items-center justify-between p-sk4-md bg-gradient-to-r from-sk4-light-gray to-sk4-off-white rounded-lg border border-sk4-gray hover:border-sk4-orange transition-all duration-300 group">
+                        <div className="flex items-center space-x-sk4-md flex-1">
+                          <img
+                            src={selectedPlaylist.channel_info.profileImage}
+                            alt={selectedPlaylist.channel_info.title}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sk4-soft group-hover:scale-110 transition-transform duration-300"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="sk4-text-base font-semibold text-sk4-charcoal truncate group-hover:text-sk4-orange transition-colors">
+                              {selectedPlaylist.channel_info.title}
+                            </p>
+                            <div className="flex items-center space-x-sk4-sm sk4-text-xs text-sk4-dark-gray mt-1">
+                              <span className="flex items-center">
+                                <Users className="w-3 h-3 mr-1" />
+                                {formatNumber(selectedPlaylist.channel_info.subscriberCount)}명
+                              </span>
+                              <span>•</span>
+                              <span className="flex items-center">
+                                <Music className="w-3 h-3 mr-1" />
+                                {formatNumber(selectedPlaylist.channel_info.videoCount)}개
+                              </span>
+                            </div>
+                          </div>
                         </div>
+                        <a
+                          href={`https://www.youtube.com/channel/${selectedPlaylist.channel_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-sk4-md p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all duration-200 hover:scale-110 shadow-sk4-soft"
+                          title="YouTube 채널 방문"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
                       </div>
                     </div>
                   )}
@@ -529,22 +567,33 @@ export default function StationPage() {
                 <h4 className="sk4-text-base font-semibold text-sk4-charcoal mb-sk4-md">트랙 목록</h4>
                 <div className="space-y-2">
                   {selectedPlaylist.tracks?.map((track, index) => (
-                    <div key={track.id} className="flex items-center space-x-sk4-md p-sk4-sm rounded-lg hover:bg-sk4-light-gray transition-all duration-200">
+                    <div key={track.id} className="flex items-center space-x-sk4-md p-sk4-sm rounded-lg hover:bg-sk4-light-gray transition-all duration-200 group">
                       <span className="sk4-text-xs text-sk4-medium-gray w-8">{index + 1}</span>
-                      <img
-                        src={track.thumbnail_url || 'https://img.youtube.com/vi/default/mqdefault.jpg'}
-                        alt={track.title}
-                        className="w-12 h-12 rounded object-cover shadow-minimal"
-                      />
+                      <div className="relative">
+                        <img
+                          src={track.thumbnail_url || 'https://img.youtube.com/vi/default/mqdefault.jpg'}
+                          alt={track.title}
+                          className="w-12 h-12 rounded object-cover shadow-minimal"
+                        />
+                        {track.youtube_url && !track.youtube_url.includes('/results?') && (
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center">
+                            <Play className="w-6 h-6 text-white" fill="white" />
+                          </div>
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sk4-charcoal truncate sk4-text-sm">{track.title}</p>
                         <p className="sk4-text-xs text-sk4-dark-gray truncate">{track.artist}</p>
-                        {track.timestamp && (
-                          <p className="sk4-text-xs text-sk4-orange">⏱️ {track.timestamp}</p>
-                        )}
-                        {track.video_type && (
-                          <p className="sk4-text-xs text-sk4-medium-gray">🎵 {track.video_type}</p>
-                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          {track.timestamp && (
+                            <span className="sk4-text-xs text-sk4-orange">⏱️ {track.timestamp}</span>
+                          )}
+                          {track.video_type && (
+                            <span className="sk4-text-xs text-sk4-medium-gray px-2 py-0.5 bg-sk4-light-gray rounded">
+                              {track.video_type}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center space-x-sk4-sm">
                         <span className="sk4-text-xs text-sk4-medium-gray">
@@ -554,14 +603,29 @@ export default function StationPage() {
                           }
                         </span>
                         {track.youtube_url && (
-                          <a
-                            href={track.youtube_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1 hover:bg-sk4-light-gray rounded transition-all duration-200"
-                          >
-                            <ExternalLink className="w-4 h-4 text-sk4-orange" />
-                          </a>
+                          <>
+                            {track.youtube_url.includes('/results?') ? (
+                              <a
+                                href={track.youtube_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 hover:bg-sk4-orange hover:text-white rounded-full transition-all duration-200"
+                                title="YouTube에서 검색"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </a>
+                            ) : (
+                              <a
+                                href={track.youtube_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 bg-sk4-orange text-white hover:bg-sk4-orange-dark rounded-full transition-all duration-200"
+                                title="YouTube에서 재생"
+                              >
+                                <Play className="w-4 h-4" fill="white" />
+                              </a>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

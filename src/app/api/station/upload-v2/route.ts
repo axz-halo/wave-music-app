@@ -168,8 +168,14 @@ async function handleVideoUpload(url: string, userId: string) {
     const tracklist = await extractTracklistFromVideo(videoId, video.snippet.description);
 
     if (tracklist.length > 0) {
-      // Found tracklist - save as multi-track playlist
-      console.log(`✅ Found ${tracklist.length} tracks, saving as playlist`);
+      // Found tracklist - search YouTube for each track
+      console.log(`✅ Found ${tracklist.length} tracks, searching YouTube for each...`);
+      
+      const tracksWithLinks = await searchYouTubeForTracks(tracklist);
+      console.log(`✅ Added YouTube links to ${tracksWithLinks.length} tracks`);
+      
+      // Fetch channel info
+      const channelInfo = await fetchChannelInfo(video.snippet.channelId);
       
       const { data: savedData, error } = await supabaseServer!
         .from('station_playlists')
@@ -180,7 +186,8 @@ async function handleVideoUpload(url: string, userId: string) {
           thumbnail_url: video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default?.url,
           channel_title: video.snippet.channelTitle,
           channel_id: video.snippet.channelId,
-          tracks: tracklist,
+          channel_info: channelInfo,
+          tracks: tracksWithLinks,
           user_id: userId,
           status: 'completed',
           created_at: new Date().toISOString()
@@ -435,6 +442,81 @@ async function extractTracklistFromVideo(videoId: string, description: string) {
   }
 
   return [];
+}
+
+/**
+ * Search YouTube for each track and add links
+ */
+async function searchYouTubeForTracks(tracks: any[]) {
+  const tracksWithLinks = await Promise.all(
+    tracks.map(async (track, index) => {
+      try {
+        // Search YouTube for the track
+        const searchQuery = `${track.artist} ${track.title}`;
+        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&videoCategoryId=10&maxResults=1&key=${YT_API_KEY}`;
+        
+        const res = await fetch(searchUrl);
+        const data = await res.json();
+        
+        if (data.items && data.items.length > 0) {
+          const video = data.items[0];
+          const videoId = video.id.videoId;
+          
+          // Get video duration
+          const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoId}&key=${YT_API_KEY}`;
+          const detailsRes = await fetch(videoDetailsUrl);
+          const detailsData = await detailsRes.json();
+          
+          if (detailsData.items && detailsData.items.length > 0) {
+            const videoDetails = detailsData.items[0];
+            
+            return {
+              ...track,
+              youtube_url: `https://www.youtube.com/watch?v=${videoId}`,
+              thumbnail_url: videoDetails.snippet.thumbnails.medium?.url || 
+                            videoDetails.snippet.thumbnails.default?.url ||
+                            `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+              duration: parseDuration(videoDetails.contentDetails.duration),
+              video_type: determineVideoType(videoDetails.snippet.title)
+            };
+          }
+        }
+        
+        // Fallback if search fails
+        return {
+          ...track,
+          youtube_url: `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`,
+          thumbnail_url: track.thumbnail_url,
+          duration: 0
+        };
+        
+      } catch (error) {
+        console.error(`Error searching for track ${track.title}:`, error);
+        return track;
+      }
+    })
+  );
+  
+  return tracksWithLinks;
+}
+
+/**
+ * Determine video type from title
+ */
+function determineVideoType(title: string): string {
+  const lowerTitle = title.toLowerCase();
+  
+  if (lowerTitle.includes('official video') || lowerTitle.includes('m/v') || lowerTitle.includes('mv')) {
+    return 'Official MV';
+  } else if (lowerTitle.includes('audio') || lowerTitle.includes('오디오')) {
+    return 'Audio';
+  } else if (lowerTitle.includes('live') || lowerTitle.includes('라이브')) {
+    return 'Live';
+  } else if (lowerTitle.includes('performance') || lowerTitle.includes('퍼포먼스')) {
+    return 'Performance';
+  }
+  
+  return 'Music Video';
 }
 
 /**
