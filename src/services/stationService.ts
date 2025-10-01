@@ -19,6 +19,7 @@ export interface StationPlaylist {
   description?: string;
   thumbnail_url: string;
   channel_title: string;
+  channel_id?: string;
   channel_info?: {
     title: string;
     profileImage: string;
