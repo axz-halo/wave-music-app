@@ -54,6 +54,11 @@ module.exports = {
         'sk4-lg': '24px',     // Large spacing
         'sk4-xl': '32px',     // Extra large spacing (special cases only)
       },
+      zIndex: {
+        '60': '60',  // Floating button z-index
+        '70': '70',  // Modal z-index
+        '80': '80',  // Toast z-index
+      },
       animation: {
         'sk4-lp-rotate': 'sk4LpRotate 8s linear infinite',
         'sk4-hover': 'sk4Hover 0.3s ease',

@@ -196,7 +196,7 @@ export default function FeedPage() {
   // Render error state
   if (error) {
     return (
-      <div className="min-h-screen bg-sk4-off-white pb-20 lg:pb-0 lg:ml-56">
+      <div className="min-h-screen bg-sk4-off-white pb-32 lg:pb-0 lg:ml-56">
         <ErrorMessage 
           message={error.message} 
           onRetry={refreshWaves}
@@ -207,7 +207,7 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-sk4-off-white pb-20 lg:pb-0 lg:ml-56">
+    <div className="min-h-screen bg-sk4-off-white pb-32 lg:pb-0 lg:ml-56">
       {/* Desktop Header - Enhanced */}
       <header className="hidden lg:block bg-white/80 backdrop-blur-xl border-b border-white/30 shadow-sk4-medium sticky top-0 z-40">
         <div className="max-w-4xl xl:max-w-6xl mx-auto px-sk4-lg py-sk4-md relative">
