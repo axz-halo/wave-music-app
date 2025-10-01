@@ -12,7 +12,11 @@ import time
 import schedule
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
+from dotenv import load_dotenv
 import logging
+
+# 환경 변수 로드
+load_dotenv()
 
 # 프로젝트 루트 디렉토리를 Python 경로에 추가
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -9,7 +9,11 @@ import os
 import json
 from typing import Dict, List, Optional
 from supabase import create_client, Client
+from dotenv import load_dotenv
 import logging
+
+# 환경 변수 로드
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 

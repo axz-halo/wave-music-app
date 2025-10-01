@@ -1,83 +1,48 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Navigation from '@/components/layout/Navigation';
-import supabase from '@/lib/supabaseClient';
-import { parseYouTubeId, parseYouTubePlaylistId } from '@/lib/youtube';
+import { useState, useCallback, useMemo } from 'react';
 import { Music, Upload, Play, Users, Clock, ExternalLink } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+// Components
+import Navigation from '@/components/layout/Navigation';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import ErrorMessage from '@/components/common/ErrorMessage';
+
+// Hooks
+import { useStations } from '@/hooks/useStations';
+
+// Services & Utils
+import { StationService, StationPlaylist } from '@/services/stationService';
+import { parseYouTubeId, parseYouTubePlaylistId } from '@/lib/youtube';
+import { formatNumber } from '@/lib/transformers';
+import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/lib/constants';
+
+type UrlType = 'video' | 'playlist' | 'unknown';
+
+interface PreviewData {
+  type: string;
+  id: string;
+  title: string;
+  channelTitle?: string;
+  thumbnail?: string;
+  duration?: number;
+  itemCount?: number;
+}
 
 export default function StationPage() {
-  const [playlists, setPlaylists] = useState<any[]>([]);
+  const { playlists, isLoading, error, refreshPlaylists } = useStations();
+
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [selectedPlaylist, setSelectedPlaylist] = useState<any>(null);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<StationPlaylist | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [uploadUrl, setUploadUrl] = useState('');
-  const [preview, setPreview] = useState<any>(null);
+  const [preview, setPreview] = useState<PreviewData | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [urlType, setUrlType] = useState<'video' | 'playlist' | 'unknown'>('unknown');
+  const [urlType, setUrlType] = useState<UrlType>('unknown');
   const [uploadProgress, setUploadProgress] = useState<string>('');
 
-  useEffect(() => {
-    loadPlaylists();
-  }, []);
-
-  const loadPlaylists = async () => {
-    try {
-      if (!supabase) return;
-      
-      const { data, error } = await supabase
-        .from('station_playlists')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading playlists:', error);
-        return;
-      }
-
-      // 사용자 정보를 별도로 가져오기
-      const playlistsWithUsers = await Promise.all(
-        (data || []).map(async (playlist) => {
-          try {
-            if (!supabase) {
-              return {
-                ...playlist,
-                user: { id: playlist.user_id, nickname: '익명', avatar_url: null }
-              };
-            }
-            
-            const { data: userData } = await supabase
-              .from('profiles')
-              .select('id, nickname, avatar_url')
-              .eq('id', playlist.user_id)
-              .single();
-            
-            return {
-              ...playlist,
-              user: userData || { id: playlist.user_id, nickname: '익명', avatar_url: null }
-            };
-          } catch (userError) {
-            console.error('Error fetching user data:', userError);
-            return {
-              ...playlist,
-              user: { id: playlist.user_id, nickname: '익명', avatar_url: null }
-            };
-          }
-        })
-      );
-
-      setPlaylists(playlistsWithUsers);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const detectUrlType = (url: string) => {
+  const detectUrlType = useCallback((url: string) => {
     if (!url.trim()) {
       setUrlType('unknown');
       setPreview(null);
@@ -97,7 +62,7 @@ export default function StationPage() {
       setUrlType('unknown');
       setPreview(null);
     }
-  };
+  }, []);
 
   const fetchVideoPreview = async (videoId: string) => {
     try {
@@ -145,11 +110,11 @@ export default function StationPage() {
     }
   };
 
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUrlChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
     setUploadUrl(newUrl);
     detectUrlType(newUrl);
-  };
+  }, [detectUrlType]);
 
   const handleUpload = async () => {
     if (!preview || uploading) return;
@@ -158,74 +123,67 @@ export default function StationPage() {
     setUploadProgress('업로드 중...');
 
     try {
-      if (!supabase) {
-        throw new Error('Supabase client not available');
-      }
-
-      const session = await supabase.auth.getSession();
-      if (!session.data.session?.access_token) {
-        throw new Error('로그인이 필요합니다');
-      }
-
-      const response = await fetch('/api/station/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.data.session.access_token}`
-        },
-        body: JSON.stringify({
-          url: uploadUrl,
-          type: urlType,
-          preview
-        })
+      await StationService.uploadStation({
+        url: uploadUrl,
+        type: urlType as 'video' | 'playlist',
+        preview,
       });
 
-      const result = await response.json();
-
-      if (result.success) {
-        setUploadProgress('✅ 업로드 완료!');
-        setTimeout(() => {
-          loadPlaylists();
-          setUploadUrl('');
-          setPreview(null);
-          setUrlType('unknown');
-          setIsUploadModalOpen(false);
-          setUploadProgress('');
-        }, 800);
-      } else {
-        const errorMessage = result.message || '알 수 없는 오류가 발생했습니다';
-        throw new Error(errorMessage);
-      }
+      setUploadProgress('✅ 업로드 완료!');
+      
+      setTimeout(() => {
+        refreshPlaylists();
+        setUploadUrl('');
+        setPreview(null);
+        setUrlType('unknown');
+        setIsUploadModalOpen(false);
+        setUploadProgress('');
+        toast.success(SUCCESS_MESSAGES.UPLOAD_SUCCESS);
+      }, 800);
     } catch (error: any) {
       setUploadProgress('');
-      alert(`업로드 실패: ${error.message || '오류가 발생했습니다'}`);
+      const errorMessage = error.message || ERROR_MESSAGES.UPLOAD_FAILED;
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }
   };
 
-  const handlePlaylistClick = (playlist: any) => {
+  const handlePlaylistClick = useCallback((playlist: StationPlaylist) => {
     setSelectedPlaylist(playlist);
     setIsDetailModalOpen(true);
-  };
+  }, []);
 
-  // 숫자 포맷팅 함수
-  const formatNumber = (num: string | number): string => {
-    const n = typeof num === 'string' ? parseInt(num) : num;
-    if (n >= 1000000) {
-      return (n / 1000000).toFixed(1) + 'M';
-    } else if (n >= 1000) {
-      return (n / 1000).toFixed(1) + 'K';
-    }
-    return n.toString();
-  };
+  const closeUploadModal = useCallback(() => {
+    setIsUploadModalOpen(false);
+    setUploadUrl('');
+    setPreview(null);
+    setUrlType('unknown');
+  }, []);
+
+  const closeDetailModal = useCallback(() => {
+    setIsDetailModalOpen(false);
+    setSelectedPlaylist(null);
+  }, []);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-sk4-off-white pb-20 lg:pb-0 lg:ml-56">
+        <ErrorMessage 
+          message={error.message} 
+          onRetry={refreshPlaylists}
+        />
+        <Navigation />
+      </div>
+    );
+  }
 
   return (
     <>
       <div className="min-h-screen bg-sk4-off-white pb-20 lg:pb-0 lg:ml-56">
-        {/* Header - SK4 디자인 시스템 */}
+        {/* Header */}
         <header className="hidden lg:block bg-sk4-white border-b border-sk4-gray px-sk4-lg py-sk4-md sticky top-0 z-30 shadow-minimal">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-sk4-md">
               <div className="w-8 h-8 bg-sk4-orange rounded-full flex items-center justify-center">
                 <Music className="w-4 h-4 text-sk4-white" />
@@ -239,20 +197,11 @@ export default function StationPage() {
               <Upload className="w-4 h-4" />
               <span className="sk4-text-sm">업로드</span>
             </button>
-                </div>
-              </header>
-
-        {/* Loading State - Enhanced */}
-        {loading && (
-          <div className="flex justify-center items-center py-sk4-xl">
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-sk4-lg shadow-sm">
-              <div className="flex items-center space-x-sk4-md">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-sk4-orange border-t-transparent"></div>
-                <span className="sk4-text-sm text-sk4-charcoal">플레이리스트를 불러오는 중...</span>
-              </div>
-            </div>
           </div>
-        )}
+        </header>
+
+        {/* Loading State */}
+        {isLoading && <LoadingSpinner text="플레이리스트를 불러오는 중..." />}
 
         <div className="max-w-6xl mx-auto px-sk4-md py-sk4-lg">
           {/* Mobile Upload Button */}
@@ -285,16 +234,16 @@ export default function StationPage() {
                 <div>
                   <p className="sk4-text-xs font-medium text-sk4-charcoal">비디오 업로드</p>
                   <p className="sk4-text-xs text-sk4-dark-gray">단일 비디오를 플레이리스트로</p>
-          </div>
+                </div>
               </div>
               <div className="flex items-center space-x-sk4-sm p-sk4-sm bg-sk4-light-gray rounded-lg">
                 <div className="w-8 h-8 bg-sk4-orange rounded-lg flex items-center justify-center">
                   <Users className="w-4 h-4 text-sk4-white" />
-          </div>
+                </div>
                 <div>
                   <p className="sk4-text-xs font-medium text-sk4-charcoal">플레이리스트</p>
                   <p className="sk4-text-xs text-sk4-dark-gray">전체 플레이리스트 가져오기</p>
-          </div>
+                </div>
               </div>
               <div className="flex items-center space-x-sk4-sm p-sk4-sm bg-sk4-light-gray rounded-lg">
                 <div className="w-8 h-8 bg-sk4-orange rounded-lg flex items-center justify-center">
@@ -310,7 +259,7 @@ export default function StationPage() {
 
           {/* Playlists Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-sk4-lg">
-            {loading ? (
+            {isLoading ? (
               Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="bg-sk4-white rounded-xl shadow-minimal border border-sk4-gray p-sk4-md animate-pulse">
                   <div className="aspect-square bg-sk4-light-gray rounded-lg mb-sk4-md"></div>
@@ -381,7 +330,7 @@ export default function StationPage() {
       {/* Upload Modal */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsUploadModalOpen(false)} />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeUploadModal} />
           <div className="absolute bottom-0 left-0 right-0 bg-sk4-white rounded-t-xl border-t border-sk4-gray p-sk4-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-sk4-md">
               <div className="flex items-center space-x-sk4-sm">
@@ -391,7 +340,7 @@ export default function StationPage() {
                 <h3 className="sk4-text-lg font-semibold text-sk4-charcoal">Smart Upload</h3>
               </div>
               <button 
-                onClick={() => setIsUploadModalOpen(false)}
+                onClick={closeUploadModal}
                 className="w-8 h-8 rounded-full bg-sk4-light-gray hover:bg-sk4-gray flex items-center justify-center transition-all duration-200"
               >
                 <svg className="w-5 h-5 text-sk4-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -453,7 +402,6 @@ export default function StationPage() {
                 </div>
               )}
 
-              {/* 업로드 진행 상태 표시 - 단순화 */}
               {uploading && (
                 <div className="bg-sk4-light-gray rounded-lg p-sk4-md mb-sk4-md flex items-center justify-center">
                   <div className="flex items-center space-x-sk4-sm">
@@ -488,7 +436,7 @@ export default function StationPage() {
       {/* Detail Modal */}
       {isDetailModalOpen && selectedPlaylist && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsDetailModalOpen(false)} />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeDetailModal} />
           <div className="absolute inset-4 bg-sk4-white rounded-xl overflow-hidden flex flex-col shadow-2xl">
             <div className="flex items-center justify-between p-sk4-lg border-b border-sk4-gray bg-sk4-off-white">
               <div className="flex items-center space-x-sk4-md">
@@ -501,14 +449,14 @@ export default function StationPage() {
                 </div>
               </div>
               <button 
-                onClick={() => setIsDetailModalOpen(false)}
+                onClick={closeDetailModal}
                 className="w-8 h-8 rounded-full bg-sk4-light-gray hover:bg-sk4-gray flex items-center justify-center transition-all duration-200"
               >
                 <svg className="w-5 h-5 text-sk4-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-          </div>
+            </div>
 
             <div className="flex-1 overflow-y-auto p-sk4-lg">
               <div className="flex items-start space-x-sk4-lg mb-sk4-lg">
@@ -521,7 +469,6 @@ export default function StationPage() {
                   <h3 className="sk4-text-lg font-semibold text-sk4-charcoal mb-2">{selectedPlaylist.title}</h3>
                   <p className="sk4-text-sm text-sk4-dark-gray mb-2">{selectedPlaylist.channel_title}</p>
                   
-                  {/* 채널 정보 표시 */}
                   {selectedPlaylist.channel_info && (
                     <div className="flex items-center space-x-sk4-md mb-sk4-md p-sk4-sm bg-sk4-light-gray rounded-lg">
                       <img
@@ -557,7 +504,7 @@ export default function StationPage() {
               <div>
                 <h4 className="sk4-text-base font-semibold text-sk4-charcoal mb-sk4-md">트랙 목록</h4>
                 <div className="space-y-2">
-                  {selectedPlaylist.tracks?.map((track: any, index: number) => (
+                  {selectedPlaylist.tracks?.map((track, index) => (
                     <div key={track.id} className="flex items-center space-x-sk4-md p-sk4-sm rounded-lg hover:bg-sk4-light-gray transition-all duration-200">
                       <span className="sk4-text-xs text-sk4-medium-gray w-8">{index + 1}</span>
                       <img
@@ -574,7 +521,7 @@ export default function StationPage() {
                         {track.video_type && (
                           <p className="sk4-text-xs text-sk4-medium-gray">🎵 {track.video_type}</p>
                         )}
-          </div>
+                      </div>
                       <div className="flex items-center space-x-sk4-sm">
                         <span className="sk4-text-xs text-sk4-medium-gray">
                           {track.duration > 0 ? 
@@ -591,16 +538,17 @@ export default function StationPage() {
                           >
                             <ExternalLink className="w-4 h-4 text-sk4-orange" />
                           </a>
-            )}
-          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
-      </div>
-    </div>
+            </div>
+          </div>
         </div>
       )}
     </>
   );
 }
+

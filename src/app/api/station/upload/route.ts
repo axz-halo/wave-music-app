@@ -129,8 +129,8 @@ export async function POST(req: NextRequest) {
     const { url, type, preview } = await req.json();
     
     if (!url || !type || !preview) {
-      return NextResponse.json({ 
-        success: false, 
+      return NextResponse.json({
+        success: false,
         errorCode: 'MISSING_DATA',
         message: 'Required data missing'
       }, { status: 400 });
@@ -170,130 +170,6 @@ export async function POST(req: NextRequest) {
       playlistId: pendingPlaylist.id,
       estimatedTime: '1-2시간',
       status: 'pending'
-    });
-      // 플레이리스트 처리 - Python 크롤러 사용
-      const playlistId = parseYouTubePlaylistId(url);
-      if (!playlistId) {
-        return NextResponse.json({
-          success: false,
-          errorCode: 'INVALID_PLAYLIST_URL',
-          message: 'Invalid YouTube playlist URL provided'
-        }, { status: 400 });
-      }
-
-      try {
-        console.log('Processing playlist with Python scraper:', playlistId);
-
-        // Python 크롤러로 플레이리스트 처리
-        const scrapeResponse = await fetch(`${process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/api/youtube/python-scraper`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            playlistId: playlistId,
-            type: 'playlist'
-          })
-        });
-
-        const scrapeData = await scrapeResponse.json();
-        console.log('Playlist scraping result:', scrapeData);
-
-        // 배치 처리용 기본 플레이리스트 정보 사용 (실시간 크롤링 대신)
-        tracks = [{
-          id: playlistId,
-          title: preview.title,
-          artist: preview.channelTitle,
-          thumbnail_url: preview.thumbnail,
-          duration: 0,
-          youtube_url: url,
-          order: 1,
-          timestamp: '00:00',
-          video_type: 'Playlist'
-        }];
-
-        // 플레이리스트 정보 설정
-        playlistData = {
-          playlist_id: playlistId,
-          title: preview.title,
-          description: preview.description,
-          thumbnail_url: preview.thumbnail,
-          channel_title: preview.channelTitle,
-          channel_id: null,
-          channel_info: null,
-          tracks: tracks,
-          user_id: profile.id,
-          created_at: new Date().toISOString()
-        };
-      } catch (error) {
-        console.error('Error fetching playlist items:', error);
-        // 플레이리스트 아이템을 가져오지 못해도 기본 정보로 저장
-        tracks = [{
-          id: playlistId,
-          title: preview.title,
-          artist: preview.channelTitle,
-          thumbnail_url: preview.thumbnail,
-          duration: 0,
-          youtube_url: url,
-          order: 1
-        }];
-      }
-
-      playlistData = {
-        playlist_id: playlistId,
-        title: preview.title,
-        description: `플레이리스트: ${preview.title}`,
-        thumbnail_url: preview.thumbnail,
-        channel_title: preview.channelTitle,
-        channel_id: null,
-        channel_info: null,
-        tracks: tracks,
-        user_id: profile.id, // 사용자 ID를 profile에서 가져옴
-        created_at: new Date().toISOString()
-      };
-    } else {
-      return NextResponse.json({ 
-        success: false, 
-        errorCode: 'INVALID_TYPE',
-        message: 'Invalid URL type provided'
-      }, { status: 400 });
-    }
-
-    // 데이터베이스에 저장
-    console.log('💾 Saving playlist...');
-    console.log('✅ User ID confirmed:', profile.id);
-
-    // 데이터베이스에 저장
-    const { data: savedPlaylist, error: saveError } = await supabaseAdmin
-      .from('station_playlists')
-      .insert(playlistData)
-      .select()
-      .single();
-
-    if (saveError) {
-      console.error('❌ Save error details:', saveError);
-      console.error('📋 Error code:', saveError.code);
-      console.error('📋 Error message:', saveError.message);
-      
-      // 더 자세한 에러 정보 포함
-      return NextResponse.json({ 
-        success: false,
-        errorCode: 'SAVE_ERROR',
-        message: 'Failed to save playlist data',
-        details: {
-          code: saveError.code,
-          message: saveError.message,
-          hint: saveError.hint,
-          user_id: profile.id
-        }
-      }, { status: 500 });
-    }
-
-    console.log('✅ Playlist saved successfully:', savedPlaylist?.id);
-
-    return NextResponse.json({
-      success: true,
-      playlist: savedPlaylist,
-      message: type === 'video' ? '비디오가 플레이리스트로 저장되었습니다' : '플레이리스트가 저장되었습니다',
-      trackCount: tracks.length
     });
 
   } catch (error: any) {

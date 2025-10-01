@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Plus } from 'lucide-react';
+
+// Components
 import WaveCard from '@/components/wave/WaveCard';
 import RadioDisplay from '@/components/music/RadioDisplay';
 import Navigation from '@/components/layout/Navigation';
@@ -11,299 +13,122 @@ import CommentSheet from '@/components/wave/CommentSheet';
 import ShareModal from '@/components/wave/ShareModal';
 import SaveToPlaylistModal from '@/components/wave/SaveToPlaylistModal';
 import FilterModal from '@/components/feed/FilterModal';
-import EmptyState from '@/components/feed/EmptyState';
-import { dummyWaves, dummyTracks, dummyPlaylists } from '@/lib/dummy-data';
-import { TrackInfo, Wave } from '@/types';
 import GlobalPlayer from '@/components/music/GlobalPlayer';
-import { ensureSignedIn } from '@/lib/authSupa';
-import supabase from '@/lib/supabaseClient';
-import { parseYouTubeId } from '@/lib/youtube';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import ErrorMessage from '@/components/common/ErrorMessage';
+
+// Hooks
+import { useWaves } from '@/hooks/useWaves';
+import { useAuth } from '@/hooks/useAuth';
+
+// Services
+import { WaveService } from '@/services/waveService';
+
+// Types & Constants
+import { TrackInfo, Wave } from '@/types';
+import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/lib/constants';
+import { dummyPlaylists, dummyTracks } from '@/lib/dummy-data';
 
 export default function FeedPage() {
+  // Hooks
+  const { waves, isLoading, error, updateWave, refreshWaves } = useWaves();
+  const { ensureAuth } = useAuth();
+
+  // Player State
   const [currentTrack, setCurrentTrack] = useState<TrackInfo | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Modal States
   const [isCreateWaveModalOpen, setIsCreateWaveModalOpen] = useState(false);
   const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isSaveToPlaylistModalOpen, setIsSaveToPlaylistModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+  // Selected Items
   const [selectedWaveId, setSelectedWaveId] = useState<string>('');
   const [selectedTrackForSave, setSelectedTrackForSave] = useState<TrackInfo | null>(null);
   const [selectedWaveIdForSave, setSelectedWaveIdForSave] = useState<string | null>(null);
-  const [waves, setWaves] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
-  const hydratedRef = useRef<Set<string>>(new Set());
 
-  const handlePlay = (trackId: string) => {
+  // Memoized popular waves
+  const popularWaves = useMemo(() => waves.slice(0, 5), [waves]);
+  
+  // Selected wave for modals
+  const selectedWave = useMemo(
+    () => waves.find(w => w.id === selectedWaveId) || null,
+    [waves, selectedWaveId]
+  );
+
+  // Handlers
+  const handlePlay = useCallback((trackId: string) => {
     console.log('🎵 handlePlay called with trackId:', trackId);
     
-    // 먼저 Supabase 웨이브에서 찾기
-    let found = null;
-    if (waves.length > 0) {
-      found = waves.find(w => w.track.id === trackId)?.track;
-      console.log('🎵 Searching in Supabase waves:', waves.length, 'waves');
-    }
+    const found = waves.find(w => w.track.id === trackId)?.track || 
+                  dummyTracks.find(t => t.id === trackId) || 
+                  null;
     
-    // Supabase에서 찾지 못했다면 더미 웨이브에서 찾기
-    if (!found) {
-      found = dummyWaves.find(w => w.track.id === trackId)?.track;
-      console.log('🎵 Searching in dummy waves:', dummyWaves.length, 'waves');
-    }
-    
-    // 웨이브에서 찾지 못했다면 더미 트랙에서 직접 찾기
-    if (!found) {
-      found = dummyTracks.find(t => t.id === trackId) || null;
-      console.log('🎵 Searching in dummy tracks:', dummyTracks.length, 'tracks');
-    }
-    
-    console.log('🎵 Found track:', found);
     if (found) {
       setCurrentTrack(found);
       console.log('🎵 Current track set successfully');
     } else {
       console.log('❌ Track not found for ID:', trackId);
-      console.log('Available Supabase tracks:', waves.map(w => ({ id: w.track.id, title: w.track.title })));
-      console.log('Available dummy tracks:', dummyTracks.map(t => ({ id: t.id, title: t.title })));
     }
-  };
+  }, [waves]);
 
-  // Load waves from Supabase with profile join (2-step)
-  useEffect(() => {
-    const initializeWaves = async () => {
-      try {
-        setIsLoading(true);
-        if (!supabase) {
-          console.log('Supabase not available, using dummy data');
-          setWaves(dummyWaves);
-          setIsLoading(false);
-          return;
-        }
+  const handleLike = useCallback(async (waveId: string) => {
+    const user = await ensureAuth();
+    if (!user) return;
 
-        const { data } = await supabase
-          .from('waves')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(100);
-
-        if (data) {
-          const userIds = Array.from(new Set((data as any[]).map((w:any)=>w.user_id).filter(Boolean)));
-          let userMap: Record<string, { nickname?: string; avatar_url?: string }> = {};
-          if (userIds.length) {
-            try {
-              const { data: profs } = await supabase
-                .from('profiles')
-                .select('id,nickname,avatar_url')
-                .in('id', userIds);
-              (profs || []).forEach((p:any)=>{ userMap[p.id] = { nickname: p.nickname, avatar_url: p.avatar_url }; });
-            } catch {}
-          }
-          const mapped = data.map((w: any) => ({
-            id: w.id,
-            user: {
-              id: w.user_id || '00000000-0000-0000-0000-000000000000',
-              nickname: userMap[w.user_id]?.nickname || '사용자',
-              profileImage: userMap[w.user_id]?.avatar_url || '/default-avatar.png',
-              followers: 0,
-              following: 0,
-              preferences: { genres: [], notifications: { newWaves: true, comments: true, challenges: true } },
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              email: '',
-            },
-            track: {
-              id: w.track_external_id || 'yt',
-              title: w.track_title || 'Unknown',
-              artist: w.track_artist || '',
-              platform: 'youtube',
-              externalId: w.track_external_id || '',
-              thumbnailUrl: w.thumb_url || `https://img.youtube.com/vi/${w.track_external_id}/mqdefault.jpg`,
-              duration: 0,
-            },
-            comment: w.comment || '',
-            moodEmoji: w.mood_emoji || '',
-            moodText: w.mood_text || '',
-            timestamp: w.created_at,
-            likes: w.likes || 0,
-            comments: w.comments || 0,
-            saves: w.saves || 0,
-            shares: w.shares || 0,
-          }));
-          setWaves(mapped);
-        }
-      } catch (error) {
-        console.error('Error loading waves:', error);
-        setWaves(dummyWaves);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeWaves();
-  }, []);
-
-  // Separate useEffect for realtime subscription
-  useEffect(() => {
-    if (!supabase) return;
-
-    const ch = (supabase as any)
-      .channel('feed-comments')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments', filter: 'target_type=eq.wave' }, (payload: any) => {
-        const waveId = payload.new?.target_id;
-        if (!waveId) return;
-        setWaves(prev => {
-          const list = prev.length ? [...prev] : [];
-          const idx = list.findIndex(w => w.id === waveId);
-          if (idx >= 0) list[idx] = { ...list[idx], comments: (list[idx].comments || 0) + 1 };
-          return list;
-        });
-      })
-      .subscribe();
-
-    return () => {
-      try {
-        (supabase as any).removeChannel(ch);
-      } catch (error) {
-        console.error('Error removing channel:', error);
-      }
-    };
-  }, [supabase]);
-
-  const handlePause = () => {
-    setIsPlaying(false);
-    toast.success('재생 일시정지');
-  };
-
-  const handleLike = async (waveId: string) => {
-    const u = await ensureSignedIn();
-    if (!u || !supabase) return;
-    const { data: current } = await supabase
-      .from('waves')
-      .select('likes')
-      .eq('id', waveId)
-      .maybeSingle();
-    const next = ((current?.likes as number | null) ?? 0) + 1;
-    await supabase.from('waves').update({ likes: next }).eq('id', waveId);
-    toast.success('좋아요!');
-    const source = waves.length ? waves.slice() : dummyWaves.slice();
-    const idx = source.findIndex(w => w.id === waveId);
-    if (idx >= 0) {
-      source[idx] = { ...source[idx], likes: next };
-      setWaves(source);
+    try {
+      const newLikes = await WaveService.incrementLikes(waveId);
+      updateWave(waveId, { likes: newLikes });
+      toast.success('좋아요!');
+    } catch (error) {
+      console.error('Failed to like wave:', error);
+      toast.error(ERROR_MESSAGES.GENERIC_ERROR);
     }
-  };
+  }, [ensureAuth, updateWave]);
 
-  const handleComment = async (waveId: string) => {
-    const u = await ensureSignedIn();
-    if (!u) return;
+  const handleComment = useCallback(async (waveId: string) => {
+    const user = await ensureAuth();
+    if (!user) return;
+    
     setSelectedWaveId(waveId);
     setIsCommentSheetOpen(true);
-  };
+  }, [ensureAuth]);
 
-  const handleSave = async (waveId: string) => {
-    const u = await ensureSignedIn();
-    if (!u) return;
-    const wave = (waves.length ? waves : dummyWaves).find(w => w.id === waveId);
-    if (wave) setSelectedTrackForSave(wave.track);
-    setSelectedWaveIdForSave(waveId);
-    setIsSaveToPlaylistModalOpen(true);
-  };
+  const handleSave = useCallback(async (waveId: string) => {
+    const user = await ensureAuth();
+    if (!user) return;
+    
+    const wave = waves.find(w => w.id === waveId);
+    if (wave) {
+      setSelectedTrackForSave(wave.track);
+      setSelectedWaveIdForSave(waveId);
+      setIsSaveToPlaylistModalOpen(true);
+    }
+  }, [ensureAuth, waves]);
 
-  const handleShare = (waveId: string) => {
+  const handleShare = useCallback((waveId: string) => {
     setSelectedWaveId(waveId);
     setIsShareModalOpen(true);
-  };
+  }, []);
 
-  const handleCreateWave = async (waveData: any) => {
-    const u = await ensureSignedIn();
-    if (!u || !supabase) return;
-    let track = waveData.track || null;
-    // Resolve YouTube metadata if URL provided
-    if (!track && waveData.youtubeUrl) {
-      const resolvedId = parseYouTubeId(waveData.youtubeUrl);
-      if (resolvedId) {
-        try {
-          const res = await fetch(`/api/youtube/resolve?type=video&id=${resolvedId}`);
-          const meta = await res.json();
-          if (meta?.ok) {
-            track = {
-              id: resolvedId,
-              title: meta.title || 'Untitled',
-              artist: meta.channelTitle || '',
-              platform: 'youtube',
-              externalId: resolvedId,
-              thumbnailUrl: meta.thumbnails?.high?.url || meta.thumbnails?.medium?.url || meta.thumbnails?.default?.url || `https://img.youtube.com/vi/${resolvedId}/hqdefault.jpg`,
-              duration: typeof meta.duration === 'number' ? meta.duration : 0,
-            } as any;
-          }
-        } catch {}
-      }
-    }
-    const finalExternalId = parseYouTubeId(waveData.youtubeUrl || '') || (track?.externalId ?? null);
-    const payload: any = {
-      user_id: u.id,
-      comment: waveData.comment || '',
-      mood_emoji: waveData.moodEmoji || null,
-      mood_text: waveData.moodText || null,
-    };
-    if (finalExternalId) {
-      const finalTrack = track || {
-        title: 'Unknown',
-        artist: '',
-        externalId: finalExternalId,
-        thumbnailUrl: `https://img.youtube.com/vi/${finalExternalId}/mqdefault.jpg`,
-      };
-      payload.track_title = finalTrack.title;
-      payload.track_artist = finalTrack.artist;
-      payload.track_platform = 'youtube';
-      payload.track_external_id = finalExternalId;
-      payload.thumb_url = finalTrack.thumbnailUrl;
-    }
-    await supabase.from('waves').insert(payload);
-    toast.success('웨이브가 발행되었습니다!');
-    // reload list
-    const { data } = await supabase
-      .from('waves')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(100);
-    if (data) {
-      const mapped = data.map((w: any) => ({
-        id: w.id,
-        user: {
-          id: w.user_id || '00000000-0000-0000-0000-000000000000',
-          nickname: '사용자',
-          profileImage: '/default-avatar.png',
-          followers: 0,
-          following: 0,
-          preferences: { genres: [], notifications: { newWaves: true, comments: true, challenges: true } },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          email: '',
-        },
-        track: {
-          id: w.track_external_id || 'yt',
-          title: w.track_title || 'Unknown',
-          artist: w.track_artist || '',
-          platform: 'youtube',
-          externalId: w.track_external_id || '',
-          thumbnailUrl: w.thumb_url || `https://img.youtube.com/vi/${w.track_external_id}/mqdefault.jpg`,
-          duration: 0,
-        },
-        comment: w.comment || '',
-        moodEmoji: w.mood_emoji || '',
-        moodText: w.mood_text || '',
-        timestamp: w.created_at,
-        likes: w.likes || 0,
-        comments: w.comments || 0,
-        saves: w.saves || 0,
-        shares: w.shares || 0,
-      }));
-      setWaves(mapped);
-    }
-  };
+  const handleCreateWave = useCallback(async (waveData: any) => {
+    const user = await ensureAuth();
+    if (!user) return;
 
-  const handleCreateNewPlaylist = (name: string, description?: string) => {
+    try {
+      await WaveService.createWave(user.id, waveData);
+      toast.success(SUCCESS_MESSAGES.WAVE_CREATED);
+      await refreshWaves();
+      setIsCreateWaveModalOpen(false);
+    } catch (error) {
+      console.error('Failed to create wave:', error);
+      toast.error(ERROR_MESSAGES.GENERIC_ERROR);
+    }
+  }, [ensureAuth, refreshWaves]);
+
+  const handleCreateNewPlaylist = useCallback((name: string, description?: string) => {
     const newPlaylist = {
       id: String(dummyPlaylists.length + 1),
       title: name,
@@ -334,11 +159,56 @@ export default function FeedPage() {
     };
     dummyPlaylists.unshift(newPlaylist);
     toast.success('새 플레이리스트가 생성되었습니다!');
-  };
+  }, []);
+
+  const handleSaveToPlaylist = useCallback(async (playlistId: string, track: any) => {
+    console.log('Saving track to playlist:', playlistId, track);
+    toast.success(SUCCESS_MESSAGES.PLAYLIST_SAVED);
+    
+    if (selectedWaveIdForSave) {
+      try {
+        const wave = await WaveService.getWaveById(selectedWaveIdForSave);
+        if (wave) {
+          await WaveService.updateWave(selectedWaveIdForSave, { 
+            saves: (wave.saves ?? 0) + 1 
+          });
+          updateWave(selectedWaveIdForSave, { saves: (wave.saves ?? 0) + 1 });
+        }
+      } catch (error) {
+        console.error('Failed to update save count:', error);
+      }
+    }
+  }, [selectedWaveIdForSave, updateWave]);
+
+  const handleCommentSubmit = useCallback(async () => {
+    if (!selectedWaveId) return;
+    
+    try {
+      const wave = await WaveService.getWaveById(selectedWaveId);
+      if (wave) {
+        updateWave(selectedWaveId, { comments: (wave.comments || 0) + 1 });
+      }
+    } catch (error) {
+      console.error('Failed to update comment count:', error);
+    }
+  }, [selectedWaveId, updateWave]);
+
+  // Render error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-sk4-off-white pb-20 lg:pb-0 lg:ml-56">
+        <ErrorMessage 
+          message={error.message} 
+          onRetry={refreshWaves}
+        />
+        <Navigation onCreateWave={() => {}} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-sk4-off-white pb-20 lg:pb-0 lg:ml-56">
-      {/* Desktop Header - Enhanced */}
+      {/* Desktop Header */}
       <header className="hidden lg:block bg-white/95 backdrop-blur-sm border-b border-sk4-gray shadow-sm sticky top-0 z-40">
         <div className="max-w-4xl xl:max-w-6xl mx-auto px-sk4-lg py-sk4-md">
           <div className="flex items-center justify-between">
@@ -366,7 +236,10 @@ export default function FeedPage() {
                 </svg>
               </button>
               <button
-                onClick={async () => { const u = await ensureSignedIn(); if (!u) return; setIsCreateWaveModalOpen(true); }}
+                onClick={async () => { 
+                  const u = await ensureAuth(); 
+                  if (u) setIsCreateWaveModalOpen(true); 
+                }}
                 className="sk4-btn px-4 py-2.5 bg-gradient-to-r from-sk4-orange to-sk4-orange/90 text-white font-medium hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
               >
                 <Plus className="w-4 h-4 mr-1.5" />
@@ -377,19 +250,10 @@ export default function FeedPage() {
         </div>
       </header>
 
-      {/* Loading State - Enhanced */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-sk4-xl">
-          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-sk4-lg shadow-sm">
-            <div className="flex items-center space-x-sk4-md">
-              <div className="animate-spin rounded-full h-6 w-6 border-2 border-sk4-orange border-t-transparent"></div>
-              <span className="sk4-text-sm text-sk4-charcoal">음악을 불러오는 중...</span>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Loading State */}
+      {isLoading && <LoadingSpinner text="음악을 불러오는 중..." />}
 
-      {/* Mobile Header - Enhanced */}
+      {/* Mobile Header */}
       <header className="lg:hidden bg-white/95 backdrop-blur-sm border-b border-sk4-gray shadow-sm px-sk4-md py-sk4-md sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-sk4-md">
@@ -412,7 +276,10 @@ export default function FeedPage() {
               </svg>
             </button>
             <button
-              onClick={async () => { const u = await ensureSignedIn(); if (!u) return; setIsCreateWaveModalOpen(true); }}
+              onClick={async () => { 
+                const u = await ensureAuth(); 
+                if (u) setIsCreateWaveModalOpen(true); 
+              }}
               className="sk4-btn p-2.5 bg-gradient-to-r from-sk4-orange to-sk4-orange/90 text-white hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
             >
               <Plus className="w-5 h-5" />
@@ -421,14 +288,14 @@ export default function FeedPage() {
         </div>
       </header>
 
-      {/* Main Content - Enhanced Layout */}
+      {/* Main Content */}
       <div className="max-w-sm sm:max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-sk4-sm sm:px-sk4-md py-sk4-md sm:py-sk4-lg">
-        {/* Radio Display - Enhanced */}
+        {/* Radio Display */}
         <div className="mb-sk4-lg">
           <RadioDisplay />
         </div>
 
-        {/* Popular Waves Section - Enhanced */}
+        {/* Popular Waves Section */}
         <section className="mb-sk4-xl">
           <div className="flex items-center justify-between mb-sk4-md">
             <div>
@@ -440,15 +307,26 @@ export default function FeedPage() {
             </button>
           </div>
           <div className="flex space-x-sk4-md overflow-x-auto scrollbar-hide pb-sk4-sm snap-x snap-mandatory">
-            {(waves.length ? waves : dummyWaves).slice(0,5).map((wave, index)=> (
-              <div key={wave.id} className="min-w-[280px] sm:min-w-[300px] flex-shrink-0 snap-start" style={{ animationDelay: `${index * 50}ms` }}>
-                <WaveCard wave={wave} onLike={handleLike} onComment={handleComment} onSave={handleSave} onShare={handleShare} onPlay={handlePlay} />
+            {popularWaves.map((wave, index) => (
+              <div 
+                key={wave.id} 
+                className="min-w-[280px] sm:min-w-[300px] flex-shrink-0 snap-start" 
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <WaveCard 
+                  wave={wave} 
+                  onLike={handleLike} 
+                  onComment={handleComment} 
+                  onSave={handleSave} 
+                  onShare={handleShare} 
+                  onPlay={handlePlay} 
+                />
               </div>
             ))}
           </div>
         </section>
 
-        {/* All Waves Section - Enhanced */}
+        {/* All Waves Section */}
         <section>
           <div className="flex items-center justify-between mb-sk4-md">
             <div>
@@ -457,7 +335,7 @@ export default function FeedPage() {
             </div>
           </div>
 
-          {waves.length === 0 && dummyWaves.length === 0 && (
+          {waves.length === 0 && !isLoading && (
             <div className="bg-gradient-to-br from-sk4-light-gray to-sk4-off-white border border-sk4-gray p-sk4-xl text-center">
               <div className="mb-sk4-md">
                 <div className="w-16 h-16 bg-sk4-orange/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -468,7 +346,10 @@ export default function FeedPage() {
                 <h3 className="sk4-text-base font-medium text-sk4-charcoal mb-2">첫 번째 웨이브를 만들어보세요!</h3>
                 <p className="sk4-text-sm text-sk4-medium-gray mb-sk4-md">좋아하는 음악을 친구들과 공유해보세요</p>
                 <button
-                  onClick={() => setIsCreateWaveModalOpen(true)}
+                  onClick={async () => {
+                    const u = await ensureAuth();
+                    if (u) setIsCreateWaveModalOpen(true);
+                  }}
                   className="sk4-btn px-6 py-3 bg-gradient-to-r from-sk4-orange to-sk4-orange/90 text-white font-medium hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -479,7 +360,7 @@ export default function FeedPage() {
           )}
 
           <div className="grid gap-sk4-md sm:gap-sk4-lg">
-            {(waves.length ? waves : dummyWaves).map((wave, index) => (
+            {waves.map((wave, index) => (
               <div key={wave.id} className="sk4-slide-in" style={{ animationDelay: `${index * 100}ms` }}>
                 <WaveCard
                   wave={wave}
@@ -495,7 +376,11 @@ export default function FeedPage() {
         </section>
       </div>
 
-      <Navigation onCreateWave={() => {}} />
+      <Navigation onCreateWave={async () => {
+        const u = await ensureAuth();
+        if (u) setIsCreateWaveModalOpen(true);
+      }} />
+      
       <GlobalPlayer track={currentTrack} onClose={() => setCurrentTrack(null)} />
 
       {/* Modals */}
@@ -509,27 +394,13 @@ export default function FeedPage() {
         isOpen={isCommentSheetOpen}
         onClose={() => setIsCommentSheetOpen(false)}
         waveId={selectedWaveId}
-        onAfterSubmit={async ()=>{
-          if (!selectedWaveId || !supabase) return;
-          const source = waves.length ? waves.slice() : dummyWaves.slice();
-          const idx = source.findIndex(w=>w.id===selectedWaveId);
-          if (idx>=0) {
-            const current = source[idx];
-            const { count } = await supabase
-              .from('comments')
-              .select('*', { count:'exact', head:true })
-              .eq('target_type','wave')
-              .eq('target_id', selectedWaveId);
-            source[idx] = { ...current, comments: count || (current.comments||0)+1 };
-            setWaves(source);
-          }
-        }}
+        onAfterSubmit={handleCommentSubmit}
       />
 
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        wave={dummyWaves.find(w => w.id === selectedWaveId) || dummyWaves[0]}
+        wave={selectedWave || waves[0]}
       />
 
       <SaveToPlaylistModal
@@ -538,28 +409,7 @@ export default function FeedPage() {
         track={selectedTrackForSave || dummyTracks[0]}
         playlists={dummyPlaylists}
         onCreatePlaylist={handleCreateNewPlaylist}
-        onSaveToPlaylist={async (playlistId: string, track: any) => {
-          // 플레이리스트에 트랙 저장 로직
-          console.log('Saving track to playlist:', playlistId, track);
-          toast.success('플레이리스트에 저장되었습니다!');
-          
-          // 웨이브 저장 수 업데이트
-          if (selectedWaveIdForSave && supabase) {
-            const { data: w } = await supabase
-              .from('waves')
-              .select('id, saves')
-              .eq('id', selectedWaveIdForSave)
-              .maybeSingle();
-            if (w) {
-              const source = waves.length ? waves.slice() : dummyWaves.slice();
-              const idx = source.findIndex(x => x.id === w.id);
-              if (idx >= 0) {
-                source[idx] = { ...source[idx], saves: (w.saves ?? 0) + 1 };
-                setWaves(source);
-              }
-            }
-          }
-        }}
+        onSaveToPlaylist={handleSaveToPlaylist}
       />
 
       <FilterModal
@@ -577,3 +427,4 @@ export default function FeedPage() {
     </div>
   );
 }
+
