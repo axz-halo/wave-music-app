@@ -19,13 +19,10 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
 
   return (
     <>
-      {/* Mobile Bottom Navigation - Enhanced with glass morphism */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 sk4-safe-area">
-        <div className="h-20 bg-white/80 backdrop-blur-xl border-t border-white/20 shadow-sk4-hard">
-          <div className="h-full flex relative">
-            {/* Gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-t from-white/50 to-transparent pointer-events-none" />
-            
+      {/* Mobile Bottom Navigation - Clean and Responsive */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
+        <div className="mx-4 mb-4 rounded-2xl bg-white/90 backdrop-blur-xl border border-white/30 shadow-lg">
+          <div className="h-16 flex items-center justify-around px-2 py-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -35,87 +32,28 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
                   key={item.name}
                   href={item.href}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`relative flex flex-col items-center justify-center flex-1 h-full group z-10 ${
-                    isActive ? 'text-sk4-orange' : 'text-sk4-dark-gray'
+                  className={`relative flex flex-col items-center justify-center flex-1 h-full group transition-all duration-300 ${
+                    isActive ? 'text-sk4-orange' : 'text-sk4-dark-gray hover:text-sk4-orange'
                   }`}
                 >
-                  <div className={`p-2 rounded-2xl transition-all duration-300 transform ${
+                  <div className={`p-2.5 rounded-xl transition-all duration-300 ${
                     isActive 
-                      ? 'bg-gradient-to-br from-sk4-orange to-sk4-orange-light shadow-sk4-glow scale-110' 
-                      : 'group-hover:bg-sk4-light-gray group-hover:scale-105'
+                      ? 'bg-sk4-orange text-white shadow-sm' 
+                      : 'group-hover:bg-sk4-orange/10'
                   }`}>
-                    <Icon className={`w-6 h-6 transition-all duration-300 ${isActive ? 'text-white' : 'group-hover:text-sk4-orange'}`} />
+                    <Icon className="w-5 h-5" />
                   </div>
-                  <span className={`sk4-text-xs font-semibold mt-1.5 transition-all duration-300 ${
-                    isActive ? 'text-sk4-orange scale-105' : 'text-sk4-dark-gray group-hover:text-sk4-orange'
+                  <span className={`text-xs font-medium mt-1 transition-all duration-300 ${
+                    isActive ? 'text-sk4-orange' : 'text-sk4-dark-gray group-hover:text-sk4-orange'
                   }`}>
                     {item.name}
                   </span>
-                  {/* Enhanced indicator */}
-                  <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 h-1 rounded-full transition-all duration-300 ${
-                    isActive ? 'bg-sk4-orange w-12 opacity-100' : 'bg-transparent w-0 opacity-0'
-                  }`} />
                 </a>
               );
             })}
           </div>
         </div>
 
-        {/* Floating CTA per tab - Enhanced with proper spacing and safe area */}
-        <div className="pointer-events-none">
-          {pathname === '/feed' && onCreateWave && (
-            <button
-              onClick={onCreateWave}
-              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300"
-              style={{ 
-                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 2rem)',
-                right: '1rem',
-                zIndex: 60
-              }}
-            >
-              <Plus className="w-7 h-7" />
-            </button>
-          )}
-          {pathname === '/station' && (
-            <button
-              onClick={() => (document.querySelector('[data-upload-trigger]') as HTMLElement)?.click()}
-              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300"
-              style={{ 
-                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 2rem)',
-                right: '1rem',
-                zIndex: 60
-              }}
-            >
-              <Plus className="w-7 h-7" />
-            </button>
-          )}
-          {pathname === '/challenge' && (
-            <a 
-              href="/challenge/create" 
-              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300"
-              style={{ 
-                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 2rem)',
-                right: '1rem',
-                zIndex: 60
-              }}
-            >
-              <Plus className="w-7 h-7" />
-            </a>
-          )}
-          {pathname === '/profile' && (
-            <a 
-              href="/profile/playlists" 
-              className="pointer-events-auto fixed w-16 h-16 rounded-full bg-gradient-to-br from-sk4-orange to-sk4-orange-light text-white flex items-center justify-center shadow-sk4-hard hover:shadow-sk4-glow-strong sk4-btn animate-sk4-float border-3 border-white/50 hover:scale-110 transition-all duration-300"
-              style={{ 
-                bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px) + 2rem)',
-                right: '1rem',
-                zIndex: 60
-              }}
-            >
-              <Plus className="w-7 h-7" />
-            </a>
-          )}
-        </div>
       </nav>
 
       {/* Desktop Sidebar - Enhanced with glass morphism */}
