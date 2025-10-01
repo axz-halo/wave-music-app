@@ -120,16 +120,30 @@ export default function StationPage() {
     if (!preview || uploading) return;
 
     setUploading(true);
-    setUploadProgress('업로드 중...');
+    setUploadProgress('처리 시작 중...');
 
     try {
-      await StationService.uploadStation({
+      // Show different messages based on type
+      if (urlType === 'playlist') {
+        setUploadProgress('📋 플레이리스트 정보 가져오는 중...');
+        await new Promise(resolve => setTimeout(resolve, 500)); // Visual feedback
+        
+        setUploadProgress('🎵 트랙 정보 처리 중...');
+      } else {
+        setUploadProgress('🎵 비디오 정보 처리 중...');
+      }
+
+      const result = await StationService.uploadStation({
         url: uploadUrl,
         type: urlType as 'video' | 'playlist',
         preview,
       });
 
-      setUploadProgress('✅ 업로드 완료!');
+      if (urlType === 'playlist' && result.tracksCount) {
+        setUploadProgress(`✅ ${result.tracksCount}개 트랙 추가 완료!`);
+      } else {
+        setUploadProgress('✅ 업로드 완료!');
+      }
       
       setTimeout(() => {
         refreshPlaylists();
@@ -138,12 +152,22 @@ export default function StationPage() {
         setUrlType('unknown');
         setIsUploadModalOpen(false);
         setUploadProgress('');
-        toast.success(SUCCESS_MESSAGES.UPLOAD_SUCCESS);
-      }, 800);
+        
+        if (result.tracksCount) {
+          toast.success(`${result.tracksCount}개 트랙이 추가되었습니다!`, {
+            duration: 3000,
+            icon: '🎉'
+          });
+        } else {
+          toast.success(SUCCESS_MESSAGES.UPLOAD_SUCCESS);
+        }
+      }, 1000);
     } catch (error: any) {
       setUploadProgress('');
       const errorMessage = error.message || ERROR_MESSAGES.UPLOAD_FAILED;
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        duration: 4000,
+      });
     } finally {
       setUploading(false);
     }

@@ -129,7 +129,8 @@ export class StationService {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch('/api/station/upload', {
+    // Use the new v2 endpoint for immediate processing
+    const response = await fetch('/api/station/upload-v2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

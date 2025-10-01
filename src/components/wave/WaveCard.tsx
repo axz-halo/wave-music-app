@@ -48,39 +48,47 @@ export default function WaveCard({
   };
 
   return (
-    <div className="bg-sk4-white border border-sk4-gray p-sk4-md hover:border-sk4-orange hover:shadow-sm sk4-interactive h-full flex flex-col min-h-[240px] sm:min-h-[260px] sk4-slide-in group">
+    <div className="bg-gradient-to-br from-white to-sk4-off-white border border-sk4-gray p-sk4-md hover:border-sk4-orange sk4-hover-lift h-full flex flex-col min-h-[240px] sm:min-h-[260px] sk4-slide-in group rounded-sk4-card overflow-hidden relative">
+      {/* Gradient overlay on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-sk4-orange/0 to-sk4-orange/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      
       {/* User Info - Enhanced */}
-      <div className="flex items-center space-x-sk4-sm mb-sk4-md">
-        <img
-          src={wave.user.profileImage || '/default-avatar.png'}
-          alt={wave.user.nickname}
-          className="w-8 h-8 rounded-full border-2 border-sk4-light-gray group-hover:border-sk4-orange transition-colors duration-200"
-        />
+      <div className="flex items-center space-x-sk4-sm mb-sk4-md relative z-10">
+        <div className="relative">
+          <img
+            src={wave.user.profileImage || '/default-avatar.png'}
+            alt={wave.user.nickname}
+            className="w-9 h-9 rounded-full border-2 border-sk4-light-gray group-hover:border-sk4-orange transition-all duration-300 group-hover:scale-110"
+          />
+          <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-sk4-orange rounded-full border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </div>
         <div className="flex-1 min-w-0">
-          <span className="sk4-text-base font-medium text-sk4-charcoal block truncate">{wave.user.nickname}</span>
+          <span className="sk4-text-base font-semibold text-sk4-charcoal block truncate group-hover:text-sk4-orange transition-colors duration-300">{wave.user.nickname}</span>
           <span className="sk4-text-xs text-sk4-medium-gray">{formatTimeAgo(wave.timestamp)}</span>
         </div>
       </div>
 
       {/* Music Info - Enhanced Layout */}
-      <div className="flex items-center space-x-sk4-md mb-sk4-md cursor-pointer" onClick={() => onPlay?.(wave.track.id)}>
-        <div className="relative">
+      <div className="flex items-center space-x-sk4-md mb-sk4-md cursor-pointer relative z-10" onClick={() => onPlay?.(wave.track.id)}>
+        <div className="relative group/play">
           <LPRecord
             src={wave.track.thumbnailUrl}
             alt={wave.track.title}
             size="md"
             onPlay={() => onPlay?.(wave.track.id)}
           />
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-20 rounded-full transition-all duration-200">
-            <Play className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" fill="currentColor" />
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover/play:bg-opacity-30 rounded-full transition-all duration-300">
+            <div className="transform scale-0 group-hover/play:scale-100 transition-transform duration-300">
+              <Play className="w-7 h-7 text-white drop-shadow-lg" fill="currentColor" />
+            </div>
           </div>
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="sk4-text-lg font-semibold text-sk4-charcoal mb-1 truncate group-hover:text-sk4-orange transition-colors duration-200">{wave.track.title}</h3>
-          <p className="sk4-text-sm text-sk4-medium-gray truncate">{wave.track.artist}</p>
+          <h3 className="sk4-text-lg font-bold text-sk4-charcoal mb-0.5 truncate group-hover:sk4-gradient-text transition-all duration-300">{wave.track.title}</h3>
+          <p className="sk4-text-sm text-sk4-medium-gray truncate group-hover:text-sk4-dark-gray transition-colors duration-300">{wave.track.artist}</p>
         </div>
-        <div className="text-right">
-          <span className="sk4-text-xs text-sk4-medium-gray block">
+        <div className="text-right bg-sk4-light-gray px-2 py-1 rounded-full group-hover:bg-sk4-orange group-hover:text-white transition-all duration-300">
+          <span className="sk4-text-xs font-medium block">
             {Math.floor((wave.track.duration||0)/60)}:{String((wave.track.duration||0)%60).padStart(2,'0')}
           </span>
         </div>
@@ -88,58 +96,58 @@ export default function WaveCard({
 
       {/* Comment - Enhanced */}
       {wave.comment && (
-        <div className="mb-sk4-md p-sk4-sm bg-sk4-off-white rounded-lg border-l-2 border-sk4-orange">
-          <p className="sk4-text-sm text-sk4-charcoal leading-relaxed line-clamp-2">{wave.comment}</p>
+        <div className="mb-sk4-md p-sk4-md bg-gradient-to-r from-sk4-off-white to-sk4-light-gray rounded-lg border-l-3 border-sk4-orange relative z-10 group-hover:shadow-sm transition-shadow duration-300">
+          <p className="sk4-text-sm text-sk4-charcoal leading-relaxed line-clamp-2 italic">&ldquo;{wave.comment}&rdquo;</p>
         </div>
       )}
 
       {/* Mood - Enhanced */}
       {wave.moodEmoji && (
-        <div className="flex items-center space-x-sk4-sm mb-sk4-md p-sk4-sm bg-sk4-light-gray rounded-lg">
-          <span className="text-xl">{wave.moodEmoji}</span>
-          <span className="sk4-text-sm text-sk4-dark-gray font-medium">{wave.moodText}</span>
+        <div className="flex items-center space-x-sk4-sm mb-sk4-md p-sk4-md bg-gradient-to-br from-sk4-light-gray to-sk4-off-white rounded-full relative z-10 group-hover:from-sk4-orange/10 group-hover:to-sk4-orange/5 transition-all duration-300">
+          <span className="text-2xl group-hover:scale-110 transition-transform duration-300">{wave.moodEmoji}</span>
+          <span className="sk4-text-sm text-sk4-dark-gray font-semibold">{wave.moodText}</span>
         </div>
       )}
 
       {/* Actions - Enhanced with better visual hierarchy */}
-      <div className="flex items-center justify-between pt-sk4-md border-t border-sk4-light-gray mt-auto">
-        <div className="flex items-center space-x-1">
+      <div className="flex items-center justify-between pt-sk4-md border-t border-sk4-gray/50 mt-auto relative z-10">
+        <div className="flex items-center space-x-2">
           <button
             onClick={handleLike}
-            className={`sk4-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-full transition-all duration-200 ${
+            className={`sk4-btn flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105 ${
               isLiked
-                ? 'bg-sk4-orange text-white shadow-sm'
-                : 'text-sk4-medium-gray hover:bg-sk4-off-white hover:text-sk4-orange'
+                ? 'bg-gradient-to-r from-sk4-orange to-sk4-orange-light text-white shadow-sk4-glow'
+                : 'text-sk4-medium-gray hover:bg-gradient-to-r hover:from-sk4-off-white hover:to-sk4-light-gray hover:text-sk4-orange border border-transparent hover:border-sk4-orange/20'
             }`}
           >
-            <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-            <span className="sk4-text-xs font-medium">{wave.likes}</span>
+            <Heart className={`w-4 h-4 transition-transform duration-300 ${isLiked ? 'fill-current scale-110' : ''}`} />
+            <span className="sk4-text-xs font-semibold">{wave.likes}</span>
           </button>
 
           <button
             onClick={() => onComment?.(wave.id)}
-            className="sk4-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-sk4-medium-gray hover:bg-sk4-off-white hover:text-sk4-orange transition-all duration-200"
+            className="sk4-btn flex items-center space-x-2 px-4 py-2 rounded-full text-sk4-medium-gray hover:bg-gradient-to-r hover:from-sk4-off-white hover:to-sk4-light-gray hover:text-sk4-orange border border-transparent hover:border-sk4-orange/20 transition-all duration-300 transform hover:scale-105"
           >
             <MessageCircle className="w-4 h-4" />
-            <span className="sk4-text-xs font-medium">{wave.comments}</span>
+            <span className="sk4-text-xs font-semibold">{wave.comments}</span>
           </button>
 
           <button
             onClick={handleSave}
-            className={`sk4-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-full transition-all duration-200 ${
+            className={`sk4-btn flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105 ${
               isSaved
-                ? 'bg-sk4-orange text-white shadow-sm'
-                : 'text-sk4-medium-gray hover:bg-sk4-off-white hover:text-sk4-orange'
+                ? 'bg-gradient-to-r from-sk4-orange to-sk4-orange-light text-white shadow-sk4-glow'
+                : 'text-sk4-medium-gray hover:bg-gradient-to-r hover:from-sk4-off-white hover:to-sk4-light-gray hover:text-sk4-orange border border-transparent hover:border-sk4-orange/20'
             }`}
           >
-            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-            <span className="sk4-text-xs font-medium">{wave.saves}</span>
+            <Bookmark className={`w-4 h-4 transition-transform duration-300 ${isSaved ? 'fill-current scale-110' : ''}`} />
+            <span className="sk4-text-xs font-semibold">{wave.saves}</span>
           </button>
         </div>
 
         <button
           onClick={() => onShare?.(wave.id)}
-          className="sk4-btn p-2 text-sk4-medium-gray hover:bg-sk4-off-white hover:text-sk4-orange rounded-full transition-all duration-200"
+          className="sk4-btn p-2.5 text-sk4-medium-gray hover:bg-gradient-to-br hover:from-sk4-off-white hover:to-sk4-light-gray hover:text-sk4-orange rounded-full border border-transparent hover:border-sk4-orange/20 transition-all duration-300 transform hover:scale-110 hover:rotate-12"
         >
           <Share className="w-4 h-4" />
         </button>
