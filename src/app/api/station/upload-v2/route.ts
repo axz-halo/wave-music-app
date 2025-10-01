@@ -159,7 +159,6 @@ async function handlePlaylistUpload(url: string, userId: string, supabaseAdmin: 
         channel_info: playlistMeta.channelInfo,
         tracks: tracks,
         user_id: userId,
-        status: 'completed',
         created_at: new Date().toISOString()
       })
       .select()
@@ -246,7 +245,6 @@ async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any
           channel_info: channelInfo,
           tracks: tracksWithLinks,
           user_id: userId,
-          status: 'completed',
           created_at: new Date().toISOString()
         })
         .select()
@@ -286,7 +284,6 @@ async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any
           channel_id: video.snippet.channelId,
           tracks: [track],
           user_id: userId,
-          status: 'completed',
           created_at: new Date().toISOString()
         })
         .select()
