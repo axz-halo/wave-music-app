@@ -133,7 +133,13 @@ export default function StationPage() {
         setUploadProgress('🎵 비디오 정보 처리 중...');
       }
 
-      const result = await StationService.uploadStation({
+      const result: {
+        success: boolean;
+        message?: string;
+        tracksCount?: number;
+        playlist?: any;
+        type?: string;
+      } = await StationService.uploadStation({
         url: uploadUrl,
         type: urlType as 'video' | 'playlist',
         preview,
