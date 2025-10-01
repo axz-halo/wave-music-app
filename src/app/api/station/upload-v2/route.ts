@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabaseServer';
+import { createClient } from '@supabase/supabase-js';
 import { parseYouTubePlaylistId, parseYouTubeId } from '@/lib/youtube';
 
 const YT_API_KEY = process.env.YT_API_KEY || 'AIzaSyCs23HnOg6r7VmpD_hEPqOr4wkx80hYmEg';
@@ -31,26 +31,52 @@ export async function POST(req: NextRequest) {
   try {
     const { url, type } = await req.json();
     
-    if (!supabaseServer) {
+    // Database configuration
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json({ 
         success: false, 
-        message: 'Database not available' 
+        message: 'Database configuration missing' 
       }, { status: 500 });
     }
 
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabaseServer.auth.getUser();
-    if (authError || !user) {
+    // Create admin client for database operations
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    // Verify user authentication
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ 
         success: false, 
-        message: 'Authentication required' 
+        message: 'Authentication required - no token provided' 
       }, { status: 401 });
     }
 
+    const token = authHeader.substring(7);
+    const supabaseAuth = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Invalid authentication token' 
+      }, { status: 401 });
+    }
+
+    console.log('✅ User authenticated:', user.id);
+
     if (type === 'playlist') {
-      return await handlePlaylistUpload(url, user.id);
+      return await handlePlaylistUpload(url, user.id, supabaseAdmin);
     } else if (type === 'video') {
-      return await handleVideoUpload(url, user.id);
+      return await handleVideoUpload(url, user.id, supabaseAdmin);
     } else {
       return NextResponse.json({ 
         success: false, 
@@ -71,7 +97,7 @@ export async function POST(req: NextRequest) {
 /**
  * Handle playlist upload with full track extraction
  */
-async function handlePlaylistUpload(url: string, userId: string) {
+async function handlePlaylistUpload(url: string, userId: string, supabaseAdmin: any) {
   const playlistId = parseYouTubePlaylistId(url);
   
   if (!playlistId) {
@@ -96,8 +122,8 @@ async function handlePlaylistUpload(url: string, userId: string) {
     const tracks = await batchProcessVideos(items);
     console.log('✅ Processed', tracks.length, 'tracks');
 
-    // 4. Save to database
-    const { data, error } = await supabaseServer!
+    // 4. Save to database using admin client
+    const { data, error } = await supabaseAdmin
       .from('station_playlists')
       .insert({
         playlist_id: playlistId,
@@ -138,7 +164,7 @@ async function handlePlaylistUpload(url: string, userId: string) {
 /**
  * Handle single video upload with smart tracklist detection
  */
-async function handleVideoUpload(url: string, userId: string) {
+async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any) {
   const videoId = parseYouTubeId(url);
   
   if (!videoId) {
@@ -177,7 +203,7 @@ async function handleVideoUpload(url: string, userId: string) {
       // Fetch channel info
       const channelInfo = await fetchChannelInfo(video.snippet.channelId);
       
-      const { data: savedData, error } = await supabaseServer!
+      const { data: savedData, error } = await supabaseAdmin
         .from('station_playlists')
         .insert({
           playlist_id: `tracklist_${videoId}`,
@@ -218,7 +244,7 @@ async function handleVideoUpload(url: string, userId: string) {
         platform: 'youtube'
       };
 
-      const { data: savedData, error } = await supabaseServer!
+      const { data: savedData, error } = await supabaseAdmin
         .from('station_playlists')
         .insert({
           playlist_id: `video_${videoId}`,
