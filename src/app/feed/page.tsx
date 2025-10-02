@@ -251,24 +251,31 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-24 lg:pb-0 lg:ml-56">
-      {/* Desktop Header - Spotify Style */}
-      <header className="hidden lg:block bg-black/90 backdrop-blur-xl border-b border-gray-800/50 shadow-2xl sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center rounded-full shadow-lg">
-                <span className="text-white font-bold text-lg">W</span>
+    <div className="min-h-screen bg-sk4-off-white pb-24 lg:pb-0 lg:ml-56">
+      {/* Desktop Header - Original Style */}
+      <header className="hidden lg:block sk4-spotify-header sticky top-0 z-40">
+        <div className="max-w-4xl xl:max-w-6xl mx-auto px-sk4-lg py-sk4-md relative">
+          {/* Gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-sk4-orange/5 to-transparent pointer-events-none" />
+          
+          <div className="flex items-center justify-between relative z-10">
+            <div className="flex items-center space-x-sk4-md group">
+              <div className="w-12 h-12 bg-gradient-to-br from-sk4-orange to-sk4-orange-light flex items-center justify-center shadow-sk4-soft rounded-lg group-hover:shadow-sk4-glow transition-all duration-300">
+                <span className="text-white font-bold text-xl">W</span>
               </div>
               <div>
-                <h1 className="text-white font-bold text-xl">WAVE</h1>
-                <p className="text-gray-400 text-sm">친구들과 음악을 공유하고 발견하세요</p>
+                <h1 className="sk4-spotify-title">WAVE</h1>
+                <p className="sk4-spotify-caption">친구들과 음악을 공유하고 발견하세요</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-sk4-md">
+              <div className="hidden xl:block text-right bg-gradient-to-br from-sk4-light-gray to-sk4-off-white rounded-lg px-4 py-2">
+                <p className="sk4-text-sm font-semibold text-sk4-charcoal">오늘의 발견</p>
+                <p className="sk4-text-xs text-sk4-medium-gray">새로운 음악과 친구들</p>
+              </div>
               <button
                 onClick={() => setIsFilterModalOpen(true)}
-                className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-full transition-all duration-200"
+                className="sk4-btn p-3 text-sk4-medium-gray hover:bg-gradient-to-br hover:from-sk4-light-gray hover:to-sk4-off-white hover:text-sk4-orange rounded-xl transition-all duration-300 transform hover:scale-105"
                 title="필터"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,10 +287,11 @@ export default function FeedPage() {
                   const u = await ensureAuth(); 
                   if (u) setIsCreateWaveModalOpen(true); 
                 }}
-                className="bg-white text-black px-6 py-2 rounded-full font-semibold hover:scale-105 transition-all duration-200 shadow-lg"
+                className="sk4-spotify-btn"
               >
-                <div className="flex items-center">
-                  <Plus className="w-4 h-4 mr-2" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                <div className="relative flex items-center">
+                  <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
                   웨이브 만들기
                 </div>
               </button>
@@ -295,21 +303,25 @@ export default function FeedPage() {
       {/* Loading State */}
       {isLoading && <LoadingSpinner text="음악을 불러오는 중..." />}
 
-      {/* Mobile Header - Spotify Style */}
-      <header className="lg:hidden bg-black/90 backdrop-blur-xl border-b border-gray-800/50 shadow-2xl px-4 py-3 sticky top-0 z-40">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center rounded-full shadow-lg">
-              <span className="text-white font-bold text-sm">W</span>
+      {/* Mobile Header - Original Style */}
+      <header className="lg:hidden bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sk4-medium px-sk4-md py-sk4-md sticky top-0 z-40">
+        <div className="flex items-center justify-between relative">
+          {/* Gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-sk4-orange/5 to-transparent pointer-events-none" />
+          
+          <div className="flex items-center space-x-sk4-md relative z-10 group">
+            <div className="w-10 h-10 bg-gradient-to-br from-sk4-orange to-sk4-orange-light flex items-center justify-center shadow-sk4-soft rounded-lg group-hover:shadow-sk4-glow transition-all duration-300">
+              <span className="text-white font-bold text-lg">W</span>
             </div>
             <div>
-              <h1 className="text-white font-bold text-lg">WAVE</h1>
+              <h1 className="sk4-text-lg font-bold sk4-gradient-text">WAVE</h1>
+              <p className="sk4-text-xs text-sk4-medium-gray">친구들과 음악 공유</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 relative z-10">
             <button
               onClick={() => setIsFilterModalOpen(true)}
-              className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-full transition-all duration-200"
+              className="p-2.5 text-sk4-medium-gray hover:bg-sk4-light-gray hover:text-sk4-orange rounded-sk4-soft transition-all duration-300"
               title="필터"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,7 +333,7 @@ export default function FeedPage() {
                 const u = await ensureAuth(); 
                 if (u) setIsCreateWaveModalOpen(true); 
               }}
-              className="p-2 bg-white text-black rounded-full hover:scale-105 transition-all duration-200 shadow-lg"
+              className="p-2.5 bg-sk4-orange text-white rounded-sk4-soft shadow-sk4-soft hover:shadow-sk4-medium transition-all duration-300"
             >
               <Plus className="w-5 h-5" />
             </button>
@@ -329,29 +341,32 @@ export default function FeedPage() {
         </div>
       </header>
 
-      {/* Main Content - Spotify Style */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      {/* Main Content */}
+      <div className="max-w-sm sm:max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-sk4-sm sm:px-sk4-md py-sk4-md sm:py-sk4-lg">
         {/* Radio Display */}
-        <div className="mb-8">
+        <div className="mb-sk4-lg">
           <RadioDisplay />
         </div>
 
-        {/* Popular Waves Section - Spotify Style */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
+        {/* Popular Waves Section - Enhanced */}
+        <section className="mb-sk4-xl">
+          <div className="flex items-center justify-between mb-sk4-lg bg-gradient-to-r from-sk4-orange/10 to-transparent rounded-xl p-4">
             <div>
-              <h2 className="text-white font-bold text-2xl mb-1">🔥 인기 웨이브</h2>
-              <p className="text-gray-400 text-sm">지금 뜨고 있는 음악</p>
+              <h2 className="sk4-spotify-title mb-1 flex items-center">
+                <span className="text-2xl mr-2 animate-sk4-pulse">🔥</span>
+                <span className="text-sk4-orange">인기 웨이브</span>
+              </h2>
+              <p className="sk4-spotify-caption">지금 뜨고 있는 음악</p>
             </div>
-            <button className="text-gray-400 hover:text-white text-sm font-semibold transition-colors">
+            <button className="sk4-spotify-btn-secondary text-sm">
               전체보기 →
             </button>
           </div>
-          <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory -mx-6 px-6">
+          <div className="flex space-x-sk4-md overflow-x-auto scrollbar-hide pb-sk4-sm snap-x snap-mandatory -mx-sk4-sm px-sk4-sm">
             {popularWaves.map((wave, index) => (
               <div 
                 key={wave.id} 
-                className="min-w-[280px] sm:min-w-[320px] flex-shrink-0 snap-start" 
+                className="min-w-[280px] sm:min-w-[320px] flex-shrink-0 snap-start sk4-slide-in" 
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <WaveCard 
@@ -367,34 +382,35 @@ export default function FeedPage() {
           </div>
         </section>
 
-        {/* All Waves Section - Spotify Style */}
+        {/* All Waves Section - Enhanced */}
         <section>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-sk4-lg bg-gradient-to-br from-sk4-light-gray to-sk4-off-white rounded-xl p-4">
             <div>
-              <h2 className="text-white font-bold text-2xl mb-1">✨ 최근 웨이브</h2>
-              <p className="text-gray-400 text-sm">친구들의 새로운 음악 발견</p>
+              <h2 className="sk4-spotify-title mb-1">✨ 최근 웨이브</h2>
+              <p className="sk4-spotify-caption">친구들의 새로운 음악 발견</p>
             </div>
           </div>
 
           {waves.length === 0 && !isLoading && (
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-12 text-center">
-              <div className="mb-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-green-400/20 to-green-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-gradient-to-br from-white to-sk4-off-white border-2 border-dashed border-sk4-orange/30 rounded-2xl p-sk4-xl text-center sk4-scale-in">
+              <div className="mb-sk4-md">
+                <div className="w-20 h-20 bg-gradient-to-br from-sk4-orange/20 to-sk4-orange/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-sk4-float">
+                  <svg className="w-10 h-10 text-sk4-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                   </svg>
                 </div>
-                <h3 className="text-white font-bold text-xl mb-2">첫 번째 웨이브를 만들어보세요!</h3>
-                <p className="text-gray-400 mb-8 max-w-sm mx-auto">좋아하는 음악을 친구들과 공유해보세요</p>
+                <h3 className="sk4-spotify-title mb-2 text-sk4-charcoal">첫 번째 웨이브를 만들어보세요!</h3>
+                <p className="sk4-spotify-subtitle mb-sk4-lg max-w-sm mx-auto">좋아하는 음악을 친구들과 공유해보세요</p>
                 <button
                   onClick={async () => {
                     const u = await ensureAuth();
                     if (u) setIsCreateWaveModalOpen(true);
                   }}
-                  className="bg-white text-black px-6 py-3 rounded-full font-semibold hover:scale-105 transition-all duration-200 shadow-lg"
+                  className="sk4-spotify-btn"
                 >
-                  <div className="flex items-center">
-                    <Plus className="w-5 h-5 mr-2" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  <div className="relative flex items-center">
+                    <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
                     첫 웨이브 만들기
                   </div>
                 </button>
@@ -402,9 +418,9 @@ export default function FeedPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="sk4-spotify-grid">
             {waves.map((wave, index) => (
-              <div key={wave.id} style={{ animationDelay: `${index * 100}ms` }}>
+              <div key={wave.id} className="sk4-slide-in" style={{ animationDelay: `${index * 100}ms` }}>
                 <WaveCard
                   wave={wave}
                   onLike={handleLike}
@@ -470,5 +486,6 @@ export default function FeedPage() {
     </div>
   );
 }
+
 
 

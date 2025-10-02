@@ -19,10 +19,10 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
 
   return (
     <>
-      {/* Mobile Bottom Navigation - Spotify Style */}
+      {/* Mobile Bottom Navigation - Improved */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
-        <div className="mx-4 mb-4 bg-black/90 backdrop-blur-xl border border-gray-800/50 rounded-2xl shadow-2xl">
-          <div className="h-16 flex items-center justify-around px-2 py-2">
+        <div className="mx-3 mb-3 sk4-spotify-card">
+          <div className="h-14 flex items-center justify-between px-3 py-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -32,17 +32,19 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
                   key={item.name}
                   href={item.href}
                   aria-current={isActive ? 'page' : undefined}
-                  className="flex-1 flex flex-col items-center justify-center"
+                  className={`sk4-spotify-nav-item flex-1 ${
+                    isActive ? 'sk4-spotify-nav-item-active' : ''
+                  }`}
                 >
-                  <div className={`p-2.5 rounded-lg transition-all duration-300 ${
+                  <div className={`p-2 rounded-sk4-soft transition-all duration-300 ${
                     isActive 
-                      ? 'bg-white text-black shadow-lg' 
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                      ? 'bg-sk4-orange text-white shadow-sk4-soft' 
+                      : 'group-hover:bg-sk4-orange/10'
                   }`}>
-                    <Icon className="w-5 h-5" />
+                    <Icon className="sk4-spotify-nav-icon" />
                   </div>
-                  <span className={`text-xs mt-1 transition-all duration-300 ${
-                    isActive ? 'text-white font-semibold' : 'text-gray-400 font-medium'
+                  <span className={`sk4-spotify-caption mt-0.5 transition-all duration-300 ${
+                    isActive ? 'text-sk4-orange font-semibold' : 'font-medium'
                   }`}>
                     {item.name}
                   </span>
@@ -53,22 +55,25 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
         </div>
       </nav>
 
-      {/* Desktop Sidebar - Spotify Style */}
-      <aside className="hidden lg:block fixed left-0 top-0 bottom-0 w-64 bg-black/90 backdrop-blur-xl border-r border-gray-800/50 shadow-2xl z-30">
-        <div className="p-6 h-full flex flex-col">
-          {/* Logo */}
-          <div className="flex items-center space-x-3 mb-8 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg rounded-lg group-hover:scale-105 transition-all duration-300">
-              <span className="text-white font-bold text-lg">W</span>
+      {/* Desktop Sidebar - Original Style */}
+      <aside className="hidden lg:block fixed left-0 top-0 bottom-0 w-64 sk4-spotify-sidebar z-30">
+        <div className="p-sk4-lg h-full flex flex-col relative">
+          {/* Gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-sk4-orange/5 pointer-events-none" />
+          
+          {/* Logo - Enhanced */}
+          <div className="flex items-center space-x-sk4-md mb-sk4-xl relative z-10 group">
+            <div className="w-12 h-12 bg-gradient-to-br from-sk4-orange to-sk4-orange-light flex items-center justify-center shadow-sk4-soft rounded-lg group-hover:shadow-sk4-glow transition-all duration-300 group-hover:scale-105">
+              <span className="text-white font-bold text-xl">W</span>
             </div>
             <div>
-              <span className="text-white font-bold text-xl">WAVE</span>
-              <span className="text-gray-400 text-xs block">Music Social</span>
+              <span className="sk4-text-xl font-bold bg-gradient-to-r from-sk4-charcoal to-sk4-dark-gray bg-clip-text text-transparent block group-hover:from-sk4-orange group-hover:to-sk4-orange-light transition-all duration-300">WAVE</span>
+              <span className="sk4-text-xs text-sk4-medium-gray group-hover:text-sk4-orange transition-colors duration-300">Music Social</span>
             </div>
           </div>
 
-          {/* Navigation Items */}
-          <nav className="flex-1 space-y-2">
+          {/* Navigation Items - Enhanced */}
+          <nav className="flex-1 space-y-2 relative z-10">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -77,31 +82,39 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
                 <a
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center space-x-3 py-3 px-3 rounded-lg transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-white text-black' 
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  className={`sk4-spotify-sidebar-item ${
+                    isActive ? 'sk4-spotify-sidebar-item-active' : ''
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
+                  <div className={`p-2 rounded-sk4-soft transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-sk4-orange text-white shadow-sk4-soft' 
+                      : 'bg-sk4-light-gray group-hover:bg-sk4-orange/20'
+                  }`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
                   <div className="flex-1">
-                    <span className="font-medium text-sm">{item.name}</span>
-                    <span className="text-xs opacity-70 block">{item.description}</span>
+                    <span className={`sk4-spotify-subtitle block transition-all duration-300 ${
+                      isActive ? 'text-sk4-orange font-semibold' : 'font-medium'
+                    }`}>{item.name}</span>
+                    <span className="sk4-spotify-caption block transition-colors duration-300">{item.description}</span>
                   </div>
                 </a>
               );
             })}
           </nav>
 
-          {/* Create Wave Button */}
+          {/* Create Wave Button - Enhanced */}
           {onCreateWave && (
-            <div className="mt-auto">
+            <div className="mt-auto relative z-10">
               <button
                 onClick={onCreateWave}
-                className="w-full bg-white text-black py-3 px-4 rounded-full font-semibold hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center"
+                className="w-full sk4-spotify-btn relative overflow-hidden group"
               >
-                <Plus className="w-5 h-5 mr-2" />
-                웨이브 만들기
+                <div className="flex items-center justify-center">
+                  <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+                  웨이브 만들기
+                </div>
               </button>
             </div>
           )}

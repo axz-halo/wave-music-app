@@ -96,62 +96,49 @@ export default function ChallengePage() {
   };
 
   return (
-    <div className="min-h-screen bg-black pb-20 lg:pb-0 lg:ml-56">
-      {/* Desktop Header - Spotify Style */}
-      <header className="hidden lg:block bg-black/90 backdrop-blur-xl border-b border-gray-800/50 shadow-2xl sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center rounded-full shadow-lg">
-                <Trophy className="w-5 h-5 text-white" />
-              </div>
-              <h1 className="text-white font-bold text-xl">챌린지</h1>
-            </div>
-            <Link href="/challenge/create" className="bg-white text-black px-6 py-2 rounded-full font-semibold hover:scale-105 transition-all duration-200 shadow-lg">
-              챌린지 만들기
-            </Link>
-          </div>
+    <div className="min-h-screen bg-cream-50 pb-20 lg:pb-0 lg:ml-56">
+      {/* Desktop Header */}
+      <header className="hidden lg:block bg-sk4-white border-b border-sk4-gray px-6 py-4 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="text-hierarchy-2xl font-semibold text-beige-800">챌린지</h1>
+          <Link href="/challenge/create" className="px-sk4-md py-sk4-sm bg-sk4-orange text-sk4-white sk4-text-sm font-medium rounded hover:bg-opacity-90 transition-all duration-200">
+            챌린지 만들기
+          </Link>
         </div>
       </header>
 
-      {/* Mobile Header - Spotify Style */}
-      <header className="lg:hidden bg-black/90 backdrop-blur-xl border-b border-gray-800/50 shadow-2xl px-4 py-3 sticky top-0 z-40">
+      {/* Mobile Header */}
+      <header className="lg:hidden bg-sk4-white border-b border-sk4-gray px-4 py-4 sticky top-0 z-40">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center rounded-full shadow-lg">
-              <Trophy className="w-4 h-4 text-white" />
-            </div>
-            <h1 className="text-white font-bold text-lg">챌린지</h1>
-          </div>
-          <Link href="/challenge/create" className="w-9 h-9 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-all duration-200 shadow-lg">
+          <h1 className="text-hierarchy-xl font-semibold text-beige-800">챌린지</h1>
+          <Link href="/challenge/create" className="w-9 h-9 bg-sk4-orange rounded-full flex items-center justify-center text-sk4-white hover:bg-opacity-90 transition-all duration-200">
             <Plus className="w-5 h-5" />
           </Link>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {/* Featured Top 3 Carousel - Spotify Style */}
+      <div className="max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {/* Featured Top 3 Carousel - upcoming & active only */}
         <section>
-          <div className="flex space-x-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2" style={{height: '200px'}}>
+          <div className="flex space-x-sk4-sm overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-sk4-sm" style={{height: '180px'}}>
             {source.filter((c:any)=>c.status==='upcoming' || c.status==='active').slice(0,5).map((c:any)=> (
-              <div key={c.id} className="min-w-[320px] h-full snap-start">
+              <div key={c.id} className="min-w-[300px] h-full snap-start">
                 <FeaturedChallengeBanner challenge={c} />
               </div>
             ))}
           </div>
         </section>
-        
-        {/* Status Tabs - Spotify Style */}
-        <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-2">
+        {/* Status Tabs */}
+        <div className="bg-cream-100 rounded-medium p-1 shadow-minimal border border-cream-200">
           <div className="flex justify-around">
             {statuses.map((status) => (
               <button
                 key={status}
                 onClick={() => setSelectedStatus(status)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                className={`px-sk4-md py-sk4-sm rounded sk4-text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                   selectedStatus === status
-                    ? 'bg-white text-black'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    ? 'bg-sk4-orange text-sk4-white'
+                    : 'bg-sk4-light-gray text-sk4-charcoal hover:bg-sk4-gray'
                 }`}
               >
                 {status}
@@ -160,10 +147,10 @@ export default function ChallengePage() {
           </div>
         </div>
 
-        {/* 완료된 챌린지 - Spotify Style */}
+        {/* 완료된 챌린지 */}
         <div>
-          <h2 className="text-white font-bold text-2xl mb-6">🏆 완료된 챌린지</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <h2 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">완료된 챌린지</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {source.filter((c:any)=>c.status==='completed').map((challenge:any) => (
               <ChallengeCard
                 key={challenge.id}
@@ -176,10 +163,10 @@ export default function ChallengePage() {
           </div>
         </div>
 
-        {/* All Challenges - Spotify Style */}
+        {/* All Challenges */}
         <div>
-          <h2 className="text-white font-bold text-2xl mb-6">✨ 전체 챌린지</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <h2 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">전체 챌린지</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredChallenges.map((challenge: any) => (
               <ChallengeCard
                 key={challenge.id}
