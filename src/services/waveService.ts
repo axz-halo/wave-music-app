@@ -186,6 +186,78 @@ export class WaveService {
     }
   }
 
+  static async toggleLike(waveId: string, userId: string): Promise<boolean> {
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
+
+    // Check if user already liked this wave
+    const { data: existing } = await supabase
+      .from('interactions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('target_id', waveId)
+      .eq('target_type', 'wave')
+      .eq('interaction_type', 'like')
+      .maybeSingle();
+
+    if (existing) {
+      // Unlike: remove interaction
+      await supabase
+        .from('interactions')
+        .delete()
+        .eq('id', existing.id);
+      return false;
+    } else {
+      // Like: add interaction
+      await supabase
+        .from('interactions')
+        .insert({
+          user_id: userId,
+          target_id: waveId,
+          target_type: 'wave',
+          interaction_type: 'like'
+        });
+      return true;
+    }
+  }
+
+  static async toggleSave(waveId: string, userId: string): Promise<boolean> {
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
+
+    // Check if user already saved this wave
+    const { data: existing } = await supabase
+      .from('interactions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('target_id', waveId)
+      .eq('target_type', 'wave')
+      .eq('interaction_type', 'save')
+      .maybeSingle();
+
+    if (existing) {
+      // Unsave: remove interaction
+      await supabase
+        .from('interactions')
+        .delete()
+        .eq('id', existing.id);
+      return false;
+    } else {
+      // Save: add interaction
+      await supabase
+        .from('interactions')
+        .insert({
+          user_id: userId,
+          target_id: waveId,
+          target_type: 'wave',
+          interaction_type: 'save'
+        });
+      return true;
+    }
+  }
+
   static async incrementLikes(waveId: string): Promise<number> {
     if (!supabase) {
       throw new Error('Supabase client not available');

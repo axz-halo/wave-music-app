@@ -210,105 +210,107 @@ export default function StationPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-sk4-off-white pb-20 lg:pb-0 lg:ml-56">
-        {/* Header */}
-        <header className="hidden lg:block bg-sk4-white border-b border-sk4-gray px-sk4-lg py-sk4-md sticky top-0 z-30 shadow-minimal">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-sk4-md">
-              <div className="w-8 h-8 bg-sk4-orange rounded-full flex items-center justify-center">
-                <Music className="w-4 h-4 text-sk4-white" />
+      <div className="min-h-screen bg-black pb-20 lg:pb-0 lg:ml-56">
+        {/* Header - Spotify Style */}
+        <header className="hidden lg:block bg-black/90 backdrop-blur-xl border-b border-gray-800/50 shadow-2xl sticky top-0 z-30">
+          <div className="max-w-6xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center rounded-full shadow-lg">
+                  <Music className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="text-white font-bold text-xl">Station</h1>
               </div>
-              <h1 className="sk4-text-large-title text-sk4-charcoal">Station</h1>
+              <button
+                onClick={() => setIsUploadModalOpen(true)}
+                className="bg-white text-black px-6 py-2 rounded-full font-semibold hover:scale-105 transition-all duration-200 shadow-lg flex items-center space-x-2"
+              >
+                <Upload className="w-4 h-4" />
+                <span>업로드</span>
+              </button>
             </div>
-            <button
-              onClick={() => setIsUploadModalOpen(true)}
-              className="sk4-action-button bg-sk4-orange text-sk4-white hover:bg-opacity-90 transition-all duration-200 flex items-center space-x-sk4-sm"
-            >
-              <Upload className="w-4 h-4" />
-              <span className="sk4-text-sm">업로드</span>
-            </button>
           </div>
         </header>
 
         {/* Loading State */}
         {isLoading && <LoadingSpinner text="플레이리스트를 불러오는 중..." />}
 
-        <div className="max-w-6xl mx-auto px-sk4-md py-sk4-lg">
+        <div className="max-w-6xl mx-auto px-6 py-8">
           {/* Mobile Upload Button */}
-          <div className="lg:hidden mb-sk4-lg">
+          <div className="lg:hidden mb-8">
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="w-full sk4-action-button bg-sk4-orange text-sk4-white hover:bg-opacity-90 transition-all duration-200 flex items-center justify-center space-x-sk4-sm"
+              className="w-full bg-white text-black py-3 rounded-full font-semibold hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center space-x-2"
             >
               <Upload className="w-4 h-4" />
-              <span className="sk4-text-base">YouTube 업로드</span>
+              <span>YouTube 업로드</span>
             </button>
           </div>
 
-          {/* Welcome Section */}
-          <div className="bg-sk4-white rounded-xl shadow-minimal border border-sk4-gray p-sk4-lg mb-sk4-lg">
-            <div className="flex items-center space-x-sk4-md mb-sk4-md">
-              <div className="w-12 h-12 bg-sk4-orange rounded-xl flex items-center justify-center">
-                <Music className="w-6 h-6 text-sk4-white" />
+          {/* Welcome Section - Spotify Style */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 mb-8">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Music className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="sk4-text-lg font-semibold text-sk4-charcoal">Smart Upload</h2>
-                <p className="sk4-text-sm text-sk4-dark-gray">YouTube 링크 하나로 모든 것이 자동 처리됩니다</p>
+                <h2 className="text-white font-bold text-xl">Smart Upload</h2>
+                <p className="text-gray-400 text-sm">YouTube 링크 하나로 모든 것이 자동 처리됩니다</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-sk4-md">
-              <div className="flex items-center space-x-sk4-sm p-sk4-sm bg-sk4-light-gray rounded-lg">
-                <div className="w-8 h-8 bg-sk4-orange rounded-lg flex items-center justify-center">
-                  <Play className="w-4 h-4 text-sk4-white" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center space-x-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                  <Play className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="sk4-text-xs font-medium text-sk4-charcoal">비디오 업로드</p>
-                  <p className="sk4-text-xs text-sk4-dark-gray">단일 비디오를 플레이리스트로</p>
+                  <p className="text-white font-medium text-sm">비디오 업로드</p>
+                  <p className="text-gray-400 text-xs">단일 비디오를 플레이리스트로</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-sk4-sm p-sk4-sm bg-sk4-light-gray rounded-lg">
-                <div className="w-8 h-8 bg-sk4-orange rounded-lg flex items-center justify-center">
-                  <Users className="w-4 h-4 text-sk4-white" />
+              <div className="flex items-center space-x-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                  <Users className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="sk4-text-xs font-medium text-sk4-charcoal">플레이리스트</p>
-                  <p className="sk4-text-xs text-sk4-dark-gray">전체 플레이리스트 가져오기</p>
+                  <p className="text-white font-medium text-sm">플레이리스트</p>
+                  <p className="text-gray-400 text-xs">전체 플레이리스트 가져오기</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-sk4-sm p-sk4-sm bg-sk4-light-gray rounded-lg">
-                <div className="w-8 h-8 bg-sk4-orange rounded-lg flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-sk4-white" />
+              <div className="flex items-center space-x-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="sk4-text-xs font-medium text-sk4-charcoal">채널 정보</p>
-                  <p className="sk4-text-xs text-sk4-dark-gray">구독자 수, 프로필 이미지</p>
+                  <p className="text-white font-medium text-sm">채널 정보</p>
+                  <p className="text-gray-400 text-xs">구독자 수, 프로필 이미지</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Playlists Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-sk4-lg">
+          {/* Playlists Grid - Spotify Style */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="bg-sk4-white rounded-xl shadow-minimal border border-sk4-gray p-sk4-md animate-pulse">
-                  <div className="aspect-square bg-sk4-light-gray rounded-lg mb-sk4-md"></div>
-                  <div className="h-4 bg-sk4-light-gray rounded mb-2"></div>
-                  <div className="h-3 bg-sk4-light-gray rounded w-2/3"></div>
+                <div key={i} className="bg-gray-900/50 border border-gray-800 rounded-2xl p-4 animate-pulse">
+                  <div className="aspect-square bg-gray-800 rounded-lg mb-4"></div>
+                  <div className="h-4 bg-gray-800 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-800 rounded w-2/3"></div>
                 </div>
               ))
             ) : playlists.length === 0 ? (
-              <div className="col-span-full text-center py-sk4-xl">
-                <div className="w-20 h-20 bg-sk4-light-gray rounded-full flex items-center justify-center mx-auto mb-sk4-md">
-                  <Music className="w-8 h-8 text-sk4-medium-gray" />
+              <div className="col-span-full text-center py-12">
+                <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Music className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="sk4-text-lg font-medium text-sk4-charcoal mb-2">플레이리스트가 없습니다</h3>
-                <p className="sk4-text-sm text-sk4-dark-gray mb-sk4-md">YouTube 비디오나 플레이리스트를 업로드해서 시작하세요</p>
+                <h3 className="text-white font-bold text-lg mb-2">플레이리스트가 없습니다</h3>
+                <p className="text-gray-400 mb-6">YouTube 비디오나 플레이리스트를 업로드해서 시작하세요</p>
                 <button
                   onClick={() => setIsUploadModalOpen(true)}
-                  className="sk4-action-button bg-sk4-orange text-sk4-white hover:bg-opacity-90 transition-all duration-200"
+                  className="bg-white text-black px-6 py-3 rounded-full font-semibold hover:scale-105 transition-all duration-200 shadow-lg"
                 >
-                  <span className="sk4-text-sm">첫 업로드하기</span>
+                  첫 업로드하기
                 </button>
               </div>
             ) : (
@@ -316,38 +318,40 @@ export default function StationPage() {
                 <div
                   key={playlist.id}
                   onClick={() => handlePlaylistClick(playlist)}
-                  className="bg-sk4-white rounded-xl shadow-minimal border border-sk4-gray p-sk4-md cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                  className="bg-gray-900/50 border border-gray-800 rounded-2xl p-4 cursor-pointer hover:bg-gray-800/50 transition-all duration-200 hover:scale-105 group"
                 >
-                  <div className="aspect-square bg-sk4-light-gray rounded-lg mb-sk4-md overflow-hidden shadow-minimal relative group">
+                  <div className="aspect-square bg-gray-800 rounded-lg mb-4 overflow-hidden shadow-lg relative">
                     <img
                       src={playlist.thumbnail_url || '/placeholder.png'}
                       alt={playlist.title}
                       className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                      <Play className="w-8 h-8 text-sk4-white" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg">
+                        <Play className="w-6 h-6 text-black ml-1" />
+                      </div>
                     </div>
                   </div>
                   
                   <div>
-                    <h3 className="font-semibold text-sk4-charcoal mb-1 line-clamp-2 sk4-text-sm">{playlist.title}</h3>
+                    <h3 className="font-semibold text-white mb-1 line-clamp-2 text-sm">{playlist.title}</h3>
                     
                     {playlist.channel_info ? (
-                      <div className="flex items-center space-x-1.5 mb-2">
+                      <div className="flex items-center space-x-2 mb-2">
                         <img
                           src={playlist.channel_info.profileImage}
                           alt={playlist.channel_info.title}
                           className="w-4 h-4 rounded-full object-cover"
                         />
-                        <p className="sk4-text-xs text-sk4-dark-gray truncate">{playlist.channel_info.title}</p>
+                        <p className="text-xs text-gray-400 truncate">{playlist.channel_info.title}</p>
                       </div>
                     ) : (
-                      <p className="sk4-text-xs text-sk4-dark-gray mb-2">{playlist.channel_title}</p>
+                      <p className="text-xs text-gray-400 mb-2">{playlist.channel_title}</p>
                     )}
                     
-                    <div className="flex items-center justify-between sk4-text-xs text-sk4-medium-gray">
+                    <div className="flex items-center justify-between text-xs text-gray-500">
                       <span className="flex items-center">
-                        <span className="w-1.5 h-1.5 bg-sk4-orange rounded-full mr-sk4-xs"></span>
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></span>
                         {playlist.tracks?.length || 0}곡
                       </span>
                       {playlist.channel_info?.subscriberCount && (
