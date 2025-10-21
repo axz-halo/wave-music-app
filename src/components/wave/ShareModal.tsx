@@ -7,6 +7,7 @@ interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   wave: {
+    id: string;
     track: {
       title: string;
       artist: string;
@@ -61,7 +62,7 @@ export default function ShareModal({ isOpen, onClose, wave }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
 
   const handleShare = async (optionId: string) => {
-    const shareUrl = `${window.location.origin}/wave/123`; // 실제 웨이브 ID로 교체
+    const shareUrl = `${window.location.origin}/wave/${wave.id}`;
     const shareText = `${wave.track.title} - ${wave.track.artist} ${wave.comment ? `"${wave.comment}"` : ''} ${wave.moodEmoji} ${wave.moodText}`;
 
     switch (optionId) {

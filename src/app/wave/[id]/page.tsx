@@ -1,31 +1,210 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { ArrowLeft, Heart, MessageCircle, Bookmark, Share, Play, MoreHorizontal, UserPlus } from 'lucide-react';
-import Navigation from '@/components/layout/Navigation';
-import { dummyWaves, dummyUsers } from '@/lib/dummy-data';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft, Heart, MessageCircle, Bookmark, Share, Play, ExternalLink } from 'lucide-react';
+import supabase from '@/lib/supabaseClient';
 import { Wave } from '@/types';
+import LPRecord from '@/components/music/LPRecord';
+import CommentSheet from '@/components/wave/CommentSheet';
+import { WaveService } from '@/services/waveService';
+import { ensureSignedIn } from '@/lib/authSupa';
+import toast from 'react-hot-toast';
 
 export default function WaveDetailPage() {
   const params = useParams();
-  const id = Array.isArray(params?.id) ? params?.id[0] : (params?.id as string);
-  const initial = useMemo(() => dummyWaves.find(w => w.id === id) || dummyWaves[0], [id]);
-  const [wave] = useState<Wave>(initial);
-  const [isLiked, setIsLiked] = useState(wave.isLiked || false);
-  const [isSaved, setIsSaved] = useState(wave.isSaved || false);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const router = useRouter();
+  const waveId = Array.isArray(params?.id) ? params?.id[0] : (params?.id as string);
+  
+  const [wave, setWave] = useState<Wave | null>(null);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [saveCount, setSaveCount] = useState(0);
+  const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
+  useEffect(() => {
+    const loadWave = async () => {
+      if (!supabase || !waveId) return;
+
+      try {
+        setIsLoading(true);
+
+        // Get current user
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id || null;
+        setCurrentUserId(userId);
+
+        // Load wave data
+        const { data: waveData, error } = await supabase
+          .from('waves')
+          .select(`
+            *,
+            user:profiles!waves_user_id_fkey(nickname, avatar_url)
+          `)
+          .eq('id', waveId)
+          .single();
+
+        if (error) {
+          console.error('Error loading wave:', error);
+          toast.error('Wave를 불러올 수 없습니다.');
+          router.push('/feed');
+          return;
+        }
+
+        if (waveData) {
+          const wave: Wave = {
+            id: waveData.id,
+            user: {
+              id: waveData.user_id,
+              nickname: waveData.user?.nickname || '익명',
+              profileImage: waveData.user?.avatar_url || '/default-avatar.png',
+              followers: 0,
+              following: 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              email: '',
+              preferences: {
+                genres: [],
+                notifications: { newWaves: true, comments: true, challenges: true },
+              },
+            },
+            track: {
+              id: waveData.track_info?.id || '',
+              title: waveData.track_info?.title || 'Unknown',
+              artist: waveData.track_info?.artist || 'Unknown',
+              thumbnailUrl: waveData.track_info?.thumbnailUrl || '/placeholder.png',
+              duration: waveData.track_info?.duration || 0,
+              externalId: waveData.track_info?.externalId || '',
+              platform: waveData.track_info?.platform || 'youtube',
+            },
+            comment: waveData.comment || '',
+            moodEmoji: waveData.mood_emoji || null,
+            moodText: waveData.mood_text || null,
+            likes: waveData.likes || 0,
+            comments: waveData.comments || 0,
+            saves: waveData.saves || 0,
+            shares: waveData.shares || 0,
+            timestamp: waveData.created_at,
+            isLiked: false, // Will be updated below
+            isSaved: false, // Will be updated below
+          };
+
+          setWave(wave);
+          setLikeCount(wave.likes);
+          setSaveCount(wave.saves);
+
+          // Check if user liked/saved this wave
+          if (userId) {
+            try {
+              const [liked, saved] = await Promise.all([
+                WaveService.checkLikeStatus(waveId, userId),
+                WaveService.checkSaveStatus(waveId, userId)
+              ]);
+              setIsLiked(liked);
+              setIsSaved(saved);
+            } catch (error) {
+              console.error('Error checking like/save status:', error);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading wave:', error);
+        toast.error('Wave를 불러오는 중 오류가 발생했습니다.');
+        router.push('/feed');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadWave();
+  }, [waveId, router]);
+
+  const handleLike = async () => {
+    if (!currentUserId) {
+      toast.error('로그인이 필요합니다.');
+      return;
+    }
+
+    const previousIsLiked = isLiked;
+    const previousCount = likeCount;
+    const newIsLiked = !isLiked;
+    
+    // Optimistic update
+    setIsLiked(newIsLiked);
+    const newCount = newIsLiked ? likeCount + 1 : Math.max(0, likeCount - 1);
+    setLikeCount(newCount);
+    
+    try {
+      await WaveService.toggleLike(waveId, currentUserId);
+    } catch (error) {
+      // Revert on error
+      setIsLiked(previousIsLiked);
+      setLikeCount(previousCount);
+      console.error('Failed to like wave:', error);
+      toast.error('좋아요 처리에 실패했습니다.');
+    }
   };
 
-  const handleSave = () => {
-    setIsSaved(!isSaved);
+  const handleSave = async () => {
+    if (!currentUserId) {
+      toast.error('로그인이 필요합니다.');
+      return;
+    }
+
+    const previousIsSaved = isSaved;
+    const previousCount = saveCount;
+    const newIsSaved = !isSaved;
+    
+    // Optimistic update
+    setIsSaved(newIsSaved);
+    const newCount = newIsSaved ? saveCount + 1 : Math.max(0, saveCount - 1);
+    setSaveCount(newCount);
+    
+    try {
+      await WaveService.toggleSave(waveId, currentUserId);
+    } catch (error) {
+      // Revert on error
+      setIsSaved(previousIsSaved);
+      setSaveCount(previousCount);
+      console.error('Failed to save wave:', error);
+      toast.error('저장 처리에 실패했습니다.');
+    }
   };
 
-  const handleFollow = () => {
-    setIsFollowing(!isFollowing);
+  const handleShare = async () => {
+    if (!wave) return;
+
+    const shareUrl = `${window.location.origin}/wave/${wave.id}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${wave.user.nickname}님이 공유한 Wave`,
+          text: `${wave.track.title} - ${wave.track.artist}`,
+          url: shareUrl,
+        });
+      } catch (error) {
+        console.log('Share cancelled');
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('링크가 클립보드에 복사되었습니다!');
+      } catch (error) {
+        console.error('Failed to copy to clipboard:', error);
+        toast.error('링크 복사에 실패했습니다.');
+      }
+    }
+  };
+
+  const handlePlay = () => {
+    if (!wave) return;
+    // Play functionality can be implemented here
+    toast.success('재생 기능은 곧 추가됩니다!');
   };
 
   const formatTimeAgo = (timestamp: string) => {
@@ -39,181 +218,166 @@ export default function WaveDetailPage() {
     return `${Math.floor(diffInSeconds / 86400)}일 전`;
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-sk4-orange border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Wave를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!wave) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Wave를 찾을 수 없습니다.</p>
+          <button
+            onClick={() => router.push('/feed')}
+            className="btn-primary"
+          >
+            피드로 돌아가기
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-    <div className="min-h-screen bg-cream-50 pb-20 lg:pb-0 lg:ml-56">
-      {/* Desktop Header */}
-      <header className="hidden lg:block bg-cream-100 border-b border-cream-200 px-6 py-4 sticky top-0 z-30 shadow-minimal">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <button className="p-2 hover:bg-cream-200 rounded-medium transition-all duration-150">
-            <ArrowLeft className="w-5 h-5 text-beige-600" />
-          </button>
-          <h1 className="text-hierarchy-lg font-semibold text-beige-800">{wave.user.nickname}의 웨이브</h1>
-          <button className="p-2 hover:bg-cream-200 rounded-medium transition-all duration-150">
-            <MoreHorizontal className="w-5 h-5 text-beige-600" />
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile Header */}
-      <header className="lg:hidden bg-cream-100 border-b border-cream-200 px-4 py-4 sticky top-0 z-40 shadow-minimal">
-        <div className="flex items-center justify-between">
-          <button className="p-2 hover:bg-cream-200 rounded-medium transition-all duration-150">
-            <ArrowLeft className="w-5 h-5 text-beige-600" />
-          </button>
-          <h1 className="text-hierarchy-lg font-semibold text-beige-800">{wave.user.nickname}의 웨이브</h1>
-          <button className="p-2 hover:bg-cream-200 rounded-medium transition-all duration-150">
-            <MoreHorizontal className="w-5 h-5 text-beige-600" />
-          </button>
-        </div>
-      </header>
-
-      {/* Wave Content */}
-      <div className="max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* Wave Card */}
-        <div className="bg-cream-100 rounded-medium shadow-minimal border border-cream-200 p-6">
-          <div className="space-y-6">
-            {/* User Info */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <img 
-                    src={wave.user.profileImage || '/default-avatar.png'} 
-                    alt={wave.user.nickname}
-                    className="w-12 h-12 rounded-full shadow-minimal"
-                  />
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-cream-100"></div>
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-beige-800">{wave.user.nickname}</p>
-                  <p className="text-sm text-beige-600">{formatTimeAgo(wave.timestamp)}</p>
-                </div>
-              </div>
-              <button
-                onClick={handleFollow}
-                className={`px-4 py-2 rounded-medium text-sm font-medium transition-all duration-150 shadow-minimal ${
-                  isFollowing
-                    ? 'bg-cream-200 text-beige-700 hover:bg-cream-300'
-                    : 'bg-primary-500 text-white hover:bg-primary-600'
-                }`}
-              >
-                {isFollowing ? '팔로잉' : '팔로우'}
-              </button>
-            </div>
-
-            {/* Music Info */}
-            <div className="flex items-center space-x-4">
-              <div className="relative group">
-                <img 
-                  src={wave.track.thumbnailUrl} 
-                  alt={wave.track.title}
-                  className="w-24 h-24 rounded-medium shadow-minimal"
-                />
-                <button className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 rounded-medium opacity-0 group-hover:opacity-100 transition-all duration-150">
-                  <div className="w-12 h-12 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow-minimal">
-                    <Play className="w-6 h-6 text-beige-800 ml-1" />
-                  </div>
-                </button>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-hierarchy-xl text-beige-800">{wave.track.title}</h3>
-                <p className="text-beige-600 font-medium">{wave.track.artist}</p>
-                <p className="text-sm text-beige-500 mt-1">{Math.floor((wave.track.duration||0)/60)}:{String((wave.track.duration||0)%60).padStart(2,'0')}</p>
-              </div>
-            </div>
-
-            {/* Comment */}
-            <p className="text-beige-700 leading-relaxed text-base">{wave.comment}</p>
-
-            {/* Mood */}
-            <div className="flex items-center space-x-3">
-              <span className="text-3xl">{wave.moodEmoji}</span>
-              <span className="bg-cream-200 px-4 py-2 rounded-medium text-sm font-medium text-beige-700 shadow-minimal">
-                {wave.moodText}
-              </span>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center space-x-8">
-                <button 
-                  onClick={handleLike}
-                  className={`flex items-center space-x-2 transition-all duration-150 hover:scale-105 ${
-                    isLiked ? 'text-red-500' : 'text-beige-500 hover:text-red-500'
-                  }`}
-                >
-                  <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
-                  <span className="text-sm font-medium">{wave.likes}</span>
-                </button>
-                
-                <button className="flex items-center space-x-2 text-beige-500 hover:text-primary-500 hover:scale-105 transition-all duration-150">
-                  <MessageCircle className="w-6 h-6" />
-                  <span className="text-sm font-medium">{wave.comments}</span>
-                </button>
-                
-                <button 
-                  onClick={handleSave}
-                  className={`flex items-center space-x-2 transition-all duration-150 hover:scale-105 ${
-                    isSaved ? 'text-primary-500' : 'text-beige-500 hover:text-primary-500'
-                  }`}
-                >
-                  <Bookmark className={`w-6 h-6 ${isSaved ? 'fill-current' : ''}`} />
-                  <span className="text-sm font-medium">{wave.saves}</span>
-                </button>
-              </div>
-              
-              <button className="w-10 h-10 bg-cream-200 rounded-full flex items-center justify-center hover:bg-cream-300 transition-all duration-150 shadow-minimal">
-                <Share className="w-5 h-5 text-beige-600" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* User Stats */}
-        <div className="bg-cream-100 rounded-medium shadow-minimal border border-cream-200 p-6">
-          <div className="flex items-center justify-around">
-            <div className="text-center">
-              <p className="text-hierarchy-xl font-bold text-beige-800">{wave.user.followers}</p>
-              <p className="text-sm text-beige-600">팔로워</p>
-            </div>
-            <div className="text-center">
-              <p className="text-hierarchy-xl font-bold text-beige-800">{wave.user.following}</p>
-              <p className="text-sm text-beige-600">팔로잉</p>
-            </div>
-            <div className="text-center">
-              <p className="text-hierarchy-xl font-bold text-beige-800">156</p>
-              <p className="text-sm text-beige-600">웨이브</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Related Waves */}
-        <div className="bg-cream-100 rounded-medium shadow-minimal border border-cream-200 p-6">
-          <h3 className="text-hierarchy-lg font-semibold text-beige-800 mb-4">다른 웨이브</h3>
-          <div className="space-y-3">
-            {dummyWaves.slice(1, 4).map((relatedWave) => (
-              <div key={relatedWave.id} className="flex items-center space-x-3 p-3 bg-cream-50 rounded-medium shadow-minimal border border-cream-200">
-                <img
-                  src={relatedWave.track.thumbnailUrl}
-                  alt={relatedWave.track.title}
-                  className="w-12 h-12 rounded-medium shadow-minimal"
-                />
-                <div className="flex-1">
-                  <p className="font-medium text-beige-800 text-sm">{relatedWave.track.title}</p>
-                  <p className="text-xs text-beige-600">{relatedWave.track.artist}</p>
-                  <p className="text-xs text-beige-500 mt-1">{relatedWave.comment}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-lg">{relatedWave.moodEmoji}</span>
-                  <span className="text-xs text-beige-500">❤️ {relatedWave.likes}</span>
-                </div>
-              </div>
-            ))}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl font-semibold text-gray-900">Wave 상세</h1>
           </div>
         </div>
       </div>
+
+      {/* Wave Content */}
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          {/* User Info */}
+          <div className="flex items-center space-x-3 mb-6">
+            <img
+              src={wave.user.profileImage}
+              alt={wave.user.nickname}
+              className="w-12 h-12 rounded-full border-2 border-gray-200"
+            />
+            <div>
+              <h2 className="font-semibold text-gray-900">{wave.user.nickname}</h2>
+              <p className="text-sm text-gray-500">{formatTimeAgo(wave.timestamp)}</p>
+            </div>
+          </div>
+
+          {/* Music Info */}
+          <div className="flex items-center space-x-4 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div className="relative">
+              <LPRecord
+                src={wave.track.thumbnailUrl}
+                alt={wave.track.title}
+                size="lg"
+                onPlay={handlePlay}
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-30 rounded-full transition-all duration-300 cursor-pointer">
+                <div className="transform scale-0 hover:scale-100 transition-transform duration-300">
+                  <Play className="w-8 h-8 text-white drop-shadow-lg" fill="currentColor" />
+                </div>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">{wave.track.title}</h3>
+              <p className="text-gray-600 mb-2">{wave.track.artist}</p>
+              <div className="flex items-center space-x-4 text-sm text-gray-500">
+                <span>{Math.floor(wave.track.duration / 60)}:{String(wave.track.duration % 60).padStart(2, '0')}</span>
+                <span className="flex items-center space-x-1">
+                  <ExternalLink className="w-3 h-3" />
+                  <span>{wave.track.platform}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Comment */}
+          {wave.comment && (
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border-l-4 border-sk4-orange">
+              <p className="text-gray-800 leading-relaxed">&ldquo;{wave.comment}&rdquo;</p>
+            </div>
+          )}
+
+          {/* Mood */}
+          {wave.moodEmoji && (
+            <div className="flex items-center space-x-3 mb-6 p-4 bg-gray-50 rounded-lg">
+              <span className="text-3xl">{wave.moodEmoji}</span>
+              <span className="text-gray-700">{wave.moodText}</span>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleLike}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  isLiked
+                    ? 'bg-sk4-orange text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                <span className="font-medium">{likeCount}</span>
+              </button>
+
+              <button
+                onClick={() => setIsCommentSheetOpen(true)}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span className="font-medium">{wave.comments}</span>
+              </button>
+
+              <button
+                onClick={handleSave}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  isSaved
+                    ? 'bg-sk4-orange text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+                <span className="font-medium">{saveCount}</span>
+              </button>
+            </div>
+
+            <button
+              onClick={handleShare}
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+            >
+              <Share className="w-4 h-4" />
+              <span className="font-medium">공유</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Comment Sheet */}
+      <CommentSheet
+        isOpen={isCommentSheetOpen}
+        onClose={() => setIsCommentSheetOpen(false)}
+        waveId={waveId}
+        onAfterSubmit={() => {
+          // Refresh comment count
+          setWave(prev => prev ? { ...prev, comments: (prev.comments || 0) + 1 } : null);
+        }}
+      />
     </div>
-    <Navigation />
-    </>
   );
 }

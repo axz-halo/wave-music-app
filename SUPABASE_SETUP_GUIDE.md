@@ -218,3 +218,8 @@ CREATE TRIGGER trigger_increment_interaction_count
 
 **⚠️ 이 스크립트를 실행하지 않으면 좋아요/댓글/저장하기 기능이 계속 작동하지 않습니다!**
 
+
+
+
+
+

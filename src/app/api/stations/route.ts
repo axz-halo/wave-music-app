@@ -5,8 +5,8 @@ export async function GET() {
   try {
     if (!supabase) return NextResponse.json({ items: [] });
     const { data, error } = await supabase
-      .from('stations')
-      .select('id, user_id, title, description, track_external_id, track_platform, track_title, track_artist, thumb_url, created_at')
+      .from('station_playlists')
+      .select('id, user_id, title, description, thumbnail_url, channel_title, channel_id, channel_info, tracks, likes, comments, shares, is_shared, shared_at, created_at')
       .order('created_at', { ascending: false })
       .limit(50);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -15,6 +15,9 @@ export async function GET() {
     return NextResponse.json({ error: e?.message || 'Unknown error' }, { status: 500 });
   }
 }
+
+
+
 
 
 

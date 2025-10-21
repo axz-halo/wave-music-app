@@ -62,6 +62,36 @@ export interface Playlist {
   updatedAt: string;
 }
 
+// Station (공유 가능한 플레이리스트)
+export interface Station {
+  id: string;
+  title: string;
+  description?: string;
+  user: User;
+  tracks: TrackInfo[];
+  thumbnailUrl?: string;
+  channelTitle?: string;
+  channelId?: string;
+  channelInfo?: {
+    title: string;
+    profileImage: string;
+    subscriberCount: number;
+    videoCount: number;
+  };
+  isShared: boolean;
+  sharedAt?: string;
+  likes: number;
+  comments: number;
+  shares: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Feed에 표시될 통합 아이템 타입
+export type FeedItem = 
+  | { type: 'wave'; data: Wave; timestamp: string }
+  | { type: 'station'; data: Station; timestamp: string };
+
 export interface Challenge {
   id: string;
   title: string;

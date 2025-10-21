@@ -25,8 +25,8 @@ export async function POST(req: NextRequest) {
     console.log('🚀 [Upload-v2] Started');
     
     const body = await req.json();
-    const { url, type } = body;
-    console.log('📝 [Upload-v2] Request:', { url, type });
+    const { url, type, extractComments = true } = body; // 디폴트로 댓글 추출 활성화
+    console.log('📝 [Upload-v2] Request:', { url, type, extractComments });
     
     // === 1. Environment validation ===
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -74,9 +74,9 @@ export async function POST(req: NextRequest) {
 
     // === 4. Route to appropriate handler ===
     if (type === 'playlist') {
-      return await handlePlaylistUpload(url, user.id, supabaseAdmin);
+      return await handlePlaylistUpload(url, user.id, supabaseAdmin, extractComments);
     } else if (type === 'video') {
-      return await handleVideoUpload(url, user.id, supabaseAdmin);
+      return await handleVideoUpload(url, user.id, supabaseAdmin, extractComments);
     } else {
       return NextResponse.json({ 
         success: false, 
@@ -97,9 +97,86 @@ export async function POST(req: NextRequest) {
 }
 
 /**
+ * YouTube 댓글에서 음원 정보 추출하는 함수
+ */
+async function extractMusicFromComments(videoId: string): Promise<Track[]> {
+  try {
+    const commentsUrl = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId=${videoId}&maxResults=100&order=relevance&key=${YT_API_KEY}`;
+    
+    const commentsRes = await fetch(commentsUrl);
+    if (!commentsRes.ok) {
+      console.log('댓글 API 에러:', commentsRes.status);
+      return [];
+    }
+
+    const commentsData = await commentsRes.json();
+    const comments = commentsData.items || [];
+    
+    const musicTracks: Track[] = [];
+    
+    // 댓글에서 음원 정보 추출
+    comments.forEach((comment: any) => {
+      const text = comment.snippet?.topLevelComment?.snippet?.textDisplay || '';
+      
+      // 시간 정보와 함께 음원 정보가 있는 패턴들
+      const patterns = [
+        // "00:00 Song Name - Artist" 패턴
+        /(\d{1,2}:\d{2})\s*([^-\n]+?)\s*-\s*([^\n]+)/g,
+        // "00:00 Song Name by Artist" 패턴  
+        /(\d{1,2}:\d{2})\s*([^-\n]+?)\s*by\s*([^\n]+)/g,
+        // "Song Name - Artist (00:00)" 패턴
+        /([^-\n]+?)\s*-\s*([^\n]+?)\s*\((\d{1,2}:\d{2})\)/g,
+        // "Song Name by Artist (00:00)" 패턴
+        /([^-\n]+?)\s*by\s*([^\n]+?)\s*\((\d{1,2}:\d{2})\)/g,
+      ];
+
+      patterns.forEach(pattern => {
+        let match;
+        while ((match = pattern.exec(text)) !== null) {
+          let timeStr, songName, artist;
+          
+          if (match[3] && match[3].includes(':')) {
+            // 시간이 마지막에 있는 패턴
+            songName = match[1].trim();
+            artist = match[2].trim();
+            timeStr = match[3];
+          } else {
+            // 시간이 처음에 있는 패턴
+            timeStr = match[1];
+            songName = match[2].trim();
+            artist = match[3].trim();
+          }
+
+          // 시간을 초로 변환
+          const timeParts = timeStr.split(':');
+          const duration = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+
+          musicTracks.push({
+            id: `comment_${comment.id}_${musicTracks.length}`,
+            title: songName,
+            artist: artist,
+            thumbnail_url: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+            duration: duration,
+            youtube_url: `https://www.youtube.com/watch?v=${videoId}&t=${timeStr}`,
+            platform: 'youtube',
+            timestamp: timeStr,
+            video_type: 'comment_extracted'
+          });
+        }
+      });
+    });
+
+    return musicTracks;
+  } catch (error) {
+    console.error('댓글에서 음원 추출 에러:', error);
+    return [];
+  }
+}
+
+/**
  * Handle YouTube playlist upload
  */
-async function handlePlaylistUpload(url: string, userId: string, supabaseAdmin: any) {
+async function handlePlaylistUpload(url: string, userId: string, supabaseAdmin: any, extractComments: boolean = false) {
   const playlistId = parseYouTubePlaylistId(url);
   
   if (!playlistId) {
@@ -121,8 +198,52 @@ async function handlePlaylistUpload(url: string, userId: string, supabaseAdmin: 
     console.log('✅ [Playlist] Items:', items.length);
 
     // Process videos
-    const tracks = await batchProcessVideos(items);
+    let tracks = await batchProcessVideos(items);
     console.log('✅ [Playlist] Tracks:', tracks.length);
+
+    // 댓글에서 음원 추출이 요청된 경우
+    if (extractComments) {
+      console.log('🎵 [Playlist] 댓글에서 음원 정보 추출 및 검색 시작...');
+      
+      try {
+        // 각 비디오의 댓글에서 음원 정보 추출 및 검색 (최대 3개만 처리)
+        for (const item of items.slice(0, 3)) {
+          const videoId = item.contentDetails?.videoId;
+          if (videoId) {
+            console.log(`📝 [Playlist] ${videoId} 댓글에서 음원 추출 및 검색 중...`);
+            
+            try {
+              // 새로운 extract-and-search API 사용
+              const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/youtube/extract-and-search?videoId=${videoId}`);
+              const data = await response.json();
+              
+              if (data.success && data.tracks) {
+                const commentTracks = data.tracks.map((track: any) => ({
+                  id: track.id,
+                  title: track.title,
+                  artist: track.artist,
+                  thumbnail_url: track.thumbnailUrl,
+                  duration: track.duration,
+                  youtube_url: track.youtubeUrl,
+                  platform: 'youtube',
+                  timestamp: track.originalTimestamp,
+                  video_type: 'comment_extracted'
+                }));
+                
+                tracks = [...tracks, ...commentTracks];
+                console.log(`✅ [Playlist] ${videoId}에서 ${commentTracks.length}개 재생 가능한 음원 추출`);
+              }
+            } catch (error) {
+              console.error(`❌ [Playlist] 댓글 추출 에러 (${videoId}):`, error);
+            }
+          }
+        }
+        
+        console.log(`🎶 [Playlist] 총 ${tracks.length}개 트랙 추출 완료`);
+      } catch (error) {
+        console.error('❌ [Playlist] 댓글 추출 전체 에러:', error);
+      }
+    }
 
     // Save to database
     const playlistData = {
@@ -169,7 +290,7 @@ async function handlePlaylistUpload(url: string, userId: string, supabaseAdmin: 
 /**
  * Handle single video upload with smart tracklist detection
  */
-async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any) {
+async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any, extractComments: boolean = true) {
   const videoId = parseYouTubeId(url);
   
   if (!videoId) {
@@ -188,7 +309,7 @@ async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any
 
     // Try to extract tracklist
     console.log('🔍 [Video] Checking for tracklist...');
-    const tracklist = await extractTracklist(videoId, videoDetails.description);
+    const tracklist = await extractTracklist(videoId, videoDetails.description, videoDetails.channelTitle);
 
     if (tracklist.length >= 3) {
       // Found tracklist - process as multi-track playlist
@@ -230,10 +351,10 @@ async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any
       });
 
     } else {
-      // No tracklist - save as single video
+      // No tracklist - save as single video with optional comment extraction
       console.log('ℹ️  [Video] No tracklist, saving as single video');
 
-      const track: Track = {
+      let tracks: Track[] = [{
         id: videoId,
         title: videoDetails.title,
         artist: videoDetails.channelTitle,
@@ -241,17 +362,47 @@ async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any
         duration: videoDetails.duration,
         youtube_url: `https://www.youtube.com/watch?v=${videoId}`,
         platform: 'youtube'
-      };
+      }];
+
+      // 댓글에서 음원 추출이 요청된 경우
+      if (extractComments) {
+        console.log('🎵 [Video] 댓글에서 음원 정보 추출 및 검색 시작...');
+        
+        try {
+          // 새로운 extract-and-search API 사용
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/youtube/extract-and-search?videoId=${videoId}`);
+          const data = await response.json();
+          
+          if (data.success && data.tracks) {
+            const commentTracks = data.tracks.map((track: any) => ({
+              id: track.id,
+              title: track.title,
+              artist: track.artist,
+              thumbnail_url: track.thumbnailUrl,
+              duration: track.duration,
+              youtube_url: track.youtubeUrl,
+              platform: 'youtube',
+              timestamp: track.originalTimestamp,
+              video_type: 'comment_extracted'
+            }));
+            
+            tracks = [...tracks, ...commentTracks];
+            console.log(`✅ [Video] 댓글에서 ${commentTracks.length}개 재생 가능한 음원 추출`);
+          }
+        } catch (error) {
+          console.error('❌ [Video] 댓글 추출 에러:', error);
+        }
+      }
 
       const playlistData = {
         playlist_id: `video_${videoId}`,
         title: videoDetails.title,
         description: videoDetails.description,
-        thumbnail_url: track.thumbnail_url,
+        thumbnail_url: tracks[0].thumbnail_url,
         channel_title: videoDetails.channelTitle,
         channel_id: videoDetails.channelId,
         channel_info: videoDetails.channelInfo,
-        tracks: [track],
+        tracks: tracks,
         user_id: userId
       };
 
@@ -268,9 +419,9 @@ async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any
 
       return NextResponse.json({
         success: true,
-        message: 'Video added successfully',
+        message: `Video added successfully${tracks.length > 1 ? ` with ${tracks.length - 1} additional tracks from comments` : ''}`,
         playlist: data,
-        tracksCount: 1
+        tracksCount: tracks.length
       });
     }
 
@@ -346,35 +497,56 @@ async function fetchAllPlaylistItems(playlistId: string) {
 async function batchProcessVideos(items: any[]): Promise<Track[]> {
   const tracks: Track[] = [];
   const batchSize = 50;
+  const totalBatches = Math.ceil(items.length / batchSize);
+
+  console.log(`📦 [Batch] Processing ${items.length} items in ${totalBatches} batches`);
 
   for (let i = 0; i < items.length; i += batchSize) {
+    const batchNum = Math.floor(i / batchSize) + 1;
     const batch = items.slice(i, i + batchSize);
     const videoIds = batch.map(item => item.contentDetails?.videoId).filter(Boolean).join(',');
 
-    if (!videoIds) continue;
+    if (!videoIds) {
+      console.warn(`⚠️  [Batch ${batchNum}/${totalBatches}] No valid video IDs found`);
+      continue;
+    }
 
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoIds}&key=${YT_API_KEY}`;
-    const res = await fetch(url);
-    
-    if (!res.ok) continue;
+    try {
+      console.log(`📦 [Batch ${batchNum}/${totalBatches}] Fetching ${batch.length} videos...`);
+      
+      const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoIds}&key=${YT_API_KEY}`;
+      const res = await fetch(url);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`❌ [Batch ${batchNum}/${totalBatches}] API error (${res.status}):`, errorText);
+        continue;
+      }
 
-    const data = await res.json();
+      const data = await res.json();
+      const videosFound = data.items?.length || 0;
+      console.log(`✅ [Batch ${batchNum}/${totalBatches}] Found ${videosFound} videos`);
 
-    for (const video of data.items || []) {
-      tracks.push({
-        id: video.id,
-        title: video.snippet.title,
-        artist: video.snippet.channelTitle,
-        thumbnail_url: video.snippet.thumbnails.medium?.url || 
-                      video.snippet.thumbnails.default?.url || 
-                      `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`,
-        duration: parseDuration(video.contentDetails.duration),
-        youtube_url: `https://www.youtube.com/watch?v=${video.id}`,
-        platform: 'youtube'
-      });
+      for (const video of data.items || []) {
+        tracks.push({
+          id: video.id,
+          title: video.snippet.title,
+          artist: video.snippet.channelTitle,
+          thumbnail_url: video.snippet.thumbnails.medium?.url || 
+                        video.snippet.thumbnails.default?.url || 
+                        `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`,
+          duration: parseDuration(video.contentDetails.duration),
+          youtube_url: `https://www.youtube.com/watch?v=${video.id}`,
+          platform: 'youtube'
+        });
+      }
+    } catch (error: any) {
+      console.error(`❌ [Batch ${batchNum}/${totalBatches}] Error:`, error.message);
+      continue;
     }
   }
 
+  console.log(`✅ [Batch] Total tracks processed: ${tracks.length}`);
   return tracks;
 }
 
@@ -442,85 +614,167 @@ async function fetchChannelInfo(channelId: string) {
 /**
  * Extract tracklist from description and comments
  */
-async function extractTracklist(videoId: string, description: string) {
-  // Try description first
-  const descTracks = parseTracklistFromText(description);
+async function extractTracklist(videoId: string, description: string, channelTitle: string = '') {
+  console.log('🔍 [Tracklist] Starting extraction...');
   
-  if (descTracks.length >= 3) {
-    console.log(`✅ [Tracklist] Found ${descTracks.length} in description`);
-    return descTracks;
-  }
-
-  // Try comments
+  // Try comments first (more likely to have detailed tracklist)
   try {
     const url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=20&order=relevance&key=${YT_API_KEY}`;
     const res = await fetch(url);
     
     if (res.ok) {
       const data = await res.json();
+      console.log(`📝 [Tracklist] Found ${data.items?.length || 0} comments`);
       
       for (const item of data.items || []) {
-        const commentText = item.snippet.topLevelComment.snippet.textDisplay.replace(/<[^>]*>/g, '');
-        const commentTracks = parseTracklistFromText(commentText);
+        let commentText = item.snippet.topLevelComment.snippet.textDisplay;
+        
+        // HTML 태그를 줄바꿈으로 변환 (특히 <br>)
+        commentText = commentText.replace(/<br\s*\/?>/gi, '\n');
+        commentText = commentText.replace(/<[^>]*>/g, '');
+        
+        console.log(`🔍 [Tracklist] Parsing comment (${commentText.length} chars)...`);
+        const commentTracks = parseTracklistFromText(commentText, channelTitle);
+        
+        console.log(`📊 [Tracklist] Found ${commentTracks.length} tracks in comment`);
         
         if (commentTracks.length >= 3) {
-          console.log(`✅ [Tracklist] Found ${commentTracks.length} in comments`);
+          console.log(`✅ [Tracklist] Found ${commentTracks.length} tracks in comments`);
           return commentTracks;
         }
       }
+    } else {
+      console.warn('⚠️  [Tracklist] Comments API error:', res.status);
     }
-  } catch (error) {
-    console.warn('⚠️  [Tracklist] Could not fetch comments');
+  } catch (error: any) {
+    console.warn('⚠️  [Tracklist] Could not fetch comments:', error.message);
   }
 
+  // Try description as fallback
+  console.log('🔍 [Tracklist] Trying description...');
+  const descTracks = parseTracklistFromText(description, channelTitle);
+  
+  if (descTracks.length >= 3) {
+    console.log(`✅ [Tracklist] Found ${descTracks.length} tracks in description`);
+    return descTracks;
+  }
+
+  console.log('❌ [Tracklist] No tracklist found');
   return [];
 }
 
 /**
  * Parse tracklist from text using timestamp patterns
  */
-function parseTracklistFromText(text: string): any[] {
+function parseTracklistFromText(text: string, channelTitle: string = ''): any[] {
   const tracks: any[] = [];
-  const timestampPattern = /(\d{1,2}:\d{2}(?::\d{2})?)/g;
-  const matches: { timestamp: string; index: number }[] = [];
+  const lines = text.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 0);
   
-  let match;
-  while ((match = timestampPattern.exec(text)) !== null) {
-    matches.push({ timestamp: match[1], index: match.index });
-  }
+  console.log(`📄 [Parse] Processing ${lines.length} lines`);
   
-  // Extract track between timestamps
-  for (let i = 0; i < matches.length; i++) {
-    const current = matches[i];
-    const next = matches[i + 1];
-    const trackText = text.substring(current.index, next?.index || text.length).trim();
-    const cleanText = trackText.replace(current.timestamp, '').trim();
-    const parts = cleanText.split(/\s*[-–—]\s*/);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     
-    if (parts.length >= 2) {
-      const artist = parts[0].trim();
-      const title = parts.slice(1).join(' - ').trim();
+    // 패턴 1: "시간 곡 정보" 형식 (한 줄에 모두)
+    const sameLine = line.match(/^(\d{1,2}:\d{2}(?::\d{2})?)\s+(.+)$/);
+    
+    if (sameLine) {
+      const timestamp = sameLine[1];
+      let content = sameLine[2].trim();
       
-      if (artist && title && 
-          artist.length > 1 && artist.length < 100 && 
-          title.length > 1 && title.length < 100 &&
-          !artist.startsWith('http')) {
-        
+      // HTML 태그 제거
+      content = content.replace(/<[^>]*>/g, '').trim();
+      
+      // 유효성 검사
+      if (content.length < 2 || /^\d+$/.test(content) || content.startsWith('http')) {
+        continue;
+      }
+      
+      const trackInfo = parseTrackInfo(content, channelTitle);
+      if (trackInfo) {
         tracks.push({
-          id: `track_${i + 1}`,
-          artist,
-          title,
-          timestamp: current.timestamp,
+          id: `track_${tracks.length + 1}`,
+          artist: trackInfo.artist,
+          title: trackInfo.title,
+          timestamp: timestamp,
           thumbnail_url: '',
           duration: 0,
           youtube_url: '',
           platform: 'youtube'
         });
+        console.log(`✅ [Parse] Track ${tracks.length}: ${timestamp} - ${trackInfo.artist} - ${trackInfo.title}`);
+      }
+    }
+    // 패턴 2: "시간" 단독 라인, 다음 줄에 곡 정보
+    else if (line.match(/^(\d{1,2}:\d{2}(?::\d{2})?)$/)) {
+      const timestamp = line;
+      
+      // 다음 줄 확인
+      if (i + 1 < lines.length) {
+        let content = lines[i + 1].trim();
+        
+        // HTML 태그 제거
+        content = content.replace(/<[^>]*>/g, '').trim();
+        
+        // 유효성 검사
+        if (content.length >= 2 && !/^\d+$/.test(content) && !content.startsWith('http') && !content.match(/^\d{1,2}:\d{2}/)) {
+          const trackInfo = parseTrackInfo(content, channelTitle);
+          if (trackInfo) {
+            tracks.push({
+              id: `track_${tracks.length + 1}`,
+              artist: trackInfo.artist,
+              title: trackInfo.title,
+              timestamp: timestamp,
+              thumbnail_url: '',
+              duration: 0,
+              youtube_url: '',
+              platform: 'youtube'
+            });
+            console.log(`✅ [Parse] Track ${tracks.length}: ${timestamp} - ${trackInfo.artist} - ${trackInfo.title}`);
+            i++; // 다음 줄은 이미 처리했으므로 건너뛰기
+          }
+        }
       }
     }
   }
   
+  console.log(`📊 [Parse] Total tracks found: ${tracks.length}`);
   return tracks;
+}
+
+/**
+ * 곡 정보에서 아티스트와 제목 분리
+ */
+function parseTrackInfo(content: string, channelTitle: string): { artist: string; title: string } | null {
+  let artist = '';
+  let title = '';
+  
+  // "아티스트 - 곡제목" 형식
+  if (content.includes(' - ')) {
+    const parts = content.split(/\s*[-–—]\s*/);
+    artist = parts[0].trim();
+    title = parts.slice(1).join(' - ').trim();
+  } 
+  // "아티스트 by 곡제목" 형식
+  else if (content.includes(' by ')) {
+    const parts = content.split(/\s+by\s+/i);
+    artist = parts[0].trim();
+    title = parts.slice(1).join(' by ').trim();
+  }
+  // "곡제목만" 있는 경우
+  else {
+    title = content;
+    artist = channelTitle || 'Unknown Artist';
+  }
+  
+  // 유효성 검사
+  if (title && title.length > 1 && title.length < 200 && 
+      artist && artist.length > 0 && artist.length < 200 &&
+      !title.startsWith('http') && !artist.startsWith('http')) {
+    return { artist, title };
+  }
+  
+  return null;
 }
 
 /**

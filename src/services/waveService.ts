@@ -1,5 +1,6 @@
 import supabase from '@/lib/supabaseClient';
 import { parseYouTubeId } from '@/lib/youtube';
+import { AnalyticsService } from './analyticsService';
 
 export interface WaveData {
   id: string;
@@ -168,6 +169,11 @@ export class WaveService {
       throw new Error(`Failed to create wave: ${error.message}`);
     }
 
+    // 로그 기록
+    if (data?.id) {
+      await AnalyticsService.logWaveUpload(userId, data.id);
+    }
+
     return data as WaveData;
   }
 
@@ -207,6 +213,9 @@ export class WaveService {
         .from('interactions')
         .delete()
         .eq('id', existing.id);
+      
+      // 로그 기록
+      await AnalyticsService.logUnlike(userId, 'wave', waveId);
       return false;
     } else {
       // Like: add interaction
@@ -218,6 +227,9 @@ export class WaveService {
           target_type: 'wave',
           interaction_type: 'like'
         });
+      
+      // 로그 기록
+      await AnalyticsService.logLike(userId, 'wave', waveId);
       return true;
     }
   }
@@ -243,6 +255,14 @@ export class WaveService {
         .from('interactions')
         .delete()
         .eq('id', existing.id);
+      
+      // 로그 기록
+      await AnalyticsService.logActivity({
+        userId,
+        actionType: 'unsave',
+        targetType: 'wave',
+        targetId: waveId,
+      });
       return false;
     } else {
       // Save: add interaction
@@ -254,6 +274,9 @@ export class WaveService {
           target_type: 'wave',
           interaction_type: 'save'
         });
+      
+      // 로그 기록
+      await AnalyticsService.logSave(userId, 'wave', waveId);
       return true;
     }
   }
@@ -289,6 +312,44 @@ export class WaveService {
     if (error) {
       throw new Error(`Failed to delete wave: ${error.message}`);
     }
+  }
+
+  static async checkLikeStatus(waveId: string, userId: string): Promise<boolean> {
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
+
+    const { data, error } = await supabase
+      .from('wave_likes')
+      .select('id')
+      .eq('wave_id', waveId)
+      .eq('user_id', userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+      throw new Error(`Failed to check like status: ${error.message}`);
+    }
+
+    return !!data;
+  }
+
+  static async checkSaveStatus(waveId: string, userId: string): Promise<boolean> {
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
+
+    const { data, error } = await supabase
+      .from('wave_saves')
+      .select('id')
+      .eq('wave_id', waveId)
+      .eq('user_id', userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+      throw new Error(`Failed to check save status: ${error.message}`);
+    }
+
+    return !!data;
   }
 }
 

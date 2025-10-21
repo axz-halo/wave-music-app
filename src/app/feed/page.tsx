@@ -6,16 +6,19 @@ import { Plus } from 'lucide-react';
 
 // Components
 import WaveCard from '@/components/wave/WaveCard';
+import StationFeedCard from '@/components/station/StationFeedCard';
 import RadioDisplay from '@/components/music/RadioDisplay';
 import Navigation from '@/components/layout/Navigation';
 import CreateWaveModal from '@/components/wave/CreateWaveModal';
 import CommentSheet from '@/components/wave/CommentSheet';
 import ShareModal from '@/components/wave/ShareModal';
 import SaveToPlaylistModal from '@/components/wave/SaveToPlaylistModal';
-import FilterModal from '@/components/feed/FilterModal';
-import GlobalPlayer from '@/components/music/GlobalPlayer';
+import UnifiedPlayer from '@/components/music/UnifiedPlayer';
+import SimplePlayer from '@/components/music/SimplePlayer';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorMessage from '@/components/common/ErrorMessage';
+import OnboardingTutorial from '@/components/onboarding/OnboardingTutorial';
+import { useOnboarding } from '@/hooks/useOnboarding';
 
 // Hooks
 import { useWaves } from '@/hooks/useWaves';
@@ -32,17 +35,22 @@ import { dummyPlaylists, dummyTracks } from '@/lib/dummy-data';
 export default function FeedPage() {
   // Hooks
   const { waves, isLoading, error, updateWave, refreshWaves } = useWaves();
-  const { ensureAuth } = useAuth();
+  const { ensureAuth, user } = useAuth();
+  
+  // Onboarding
+  const { showTutorial, completeOnboarding } = useOnboarding();
 
   // Player State
   const [currentTrack, setCurrentTrack] = useState<TrackInfo | null>(null);
+  const [playlist, setPlaylist] = useState<TrackInfo[]>([]);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(false);
 
   // Modal States
   const [isCreateWaveModalOpen, setIsCreateWaveModalOpen] = useState(false);
   const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isSaveToPlaylistModalOpen, setIsSaveToPlaylistModalOpen] = useState(false);
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   // Selected Items
   const [selectedWaveId, setSelectedWaveId] = useState<string>('');
@@ -51,6 +59,15 @@ export default function FeedPage() {
 
   // Memoized popular waves
   const popularWaves = useMemo(() => waves.slice(0, 5), [waves]);
+  
+  // Memoized feed items (all waves and stations combined)
+  const feedItems = useMemo(() => {
+    return waves.map(wave => ({
+      type: 'wave' as const,
+      data: wave,
+      timestamp: new Date().toISOString() // 임시로 현재 시간 사용
+    }));
+  }, [waves]);
   
   // Selected wave for modals
   const selectedWave = useMemo(
@@ -66,13 +83,59 @@ export default function FeedPage() {
                   dummyTracks.find(t => t.id === trackId) || 
                   null;
     
+    console.log('🎵 Found track:', found);
+    
     if (found) {
+      console.log('🎵 Setting current track:', {
+        id: found.id,
+        externalId: found.externalId,
+        platform: found.platform,
+        title: found.title,
+        artist: found.artist
+      });
       setCurrentTrack(found);
+      setShowPlayer(true);
+      setIsPlaying(true);
       console.log('🎵 Current track set successfully');
     } else {
       console.log('❌ Track not found for ID:', trackId);
     }
   }, [waves]);
+
+  const handleNext = useCallback(() => {
+    if (!currentTrack || playlist.length === 0) return;
+    const currentIndex = playlist.findIndex(t => t.id === currentTrack.id);
+    if (currentIndex < playlist.length - 1) {
+      setCurrentTrack(playlist[currentIndex + 1]);
+    }
+  }, [currentTrack, playlist]);
+
+  const handlePrevious = useCallback(() => {
+    if (!currentTrack || playlist.length === 0) return;
+    const currentIndex = playlist.findIndex(t => t.id === currentTrack.id);
+    if (currentIndex > 0) {
+      setCurrentTrack(playlist[currentIndex - 1]);
+    }
+  }, [currentTrack, playlist]);
+
+  const handleTrackSelect = useCallback((track: TrackInfo) => {
+    setCurrentTrack(track);
+  }, []);
+
+  const handleStationLike = useCallback(async (stationId: string) => {
+    // Station like handler - placeholder
+    console.log('Station like:', stationId);
+  }, []);
+
+  const handleStationComment = useCallback(async (stationId: string) => {
+    // Station comment handler - placeholder
+    console.log('Station comment:', stationId);
+  }, []);
+
+  const handleStationShare = useCallback(async (stationId: string) => {
+    // Station share handler - placeholder
+    console.log('Station share:', stationId);
+  }, []);
 
   const handleLike = useCallback(async (waveId: string) => {
     const user = await ensureAuth();
@@ -149,6 +212,20 @@ export default function FeedPage() {
     setSelectedWaveId(waveId);
     setIsShareModalOpen(true);
   }, []);
+
+  const handleDelete = useCallback(async (waveId: string) => {
+    const user = await ensureAuth();
+    if (!user) return;
+
+    try {
+      await WaveService.deleteWave(waveId);
+      await refreshWaves();
+      toast.success('Wave가 삭제되었습니다.');
+    } catch (error) {
+      console.error('Failed to delete wave:', error);
+      toast.error('Wave 삭제에 실패했습니다.');
+    }
+  }, [ensureAuth, refreshWaves]);
 
   const handleCreateWave = useCallback(async (waveData: any) => {
     const user = await ensureAuth();
@@ -252,121 +329,85 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-sk4-off-white pb-24 lg:pb-0 lg:ml-56">
-      {/* Desktop Header - Original Style */}
-      <header className="hidden lg:block sk4-spotify-header sticky top-0 z-40">
-        <div className="max-w-4xl xl:max-w-6xl mx-auto px-sk4-lg py-sk4-md relative">
-          {/* Gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-sk4-orange/5 to-transparent pointer-events-none" />
-          
-          <div className="flex items-center justify-between relative z-10">
-            <div className="flex items-center space-x-sk4-md group">
-              <div className="w-12 h-12 bg-gradient-to-br from-sk4-orange to-sk4-orange-light flex items-center justify-center shadow-sk4-soft rounded-lg group-hover:shadow-sk4-glow transition-all duration-300">
-                <span className="text-white font-bold text-xl">W</span>
+      {/* Desktop Header */}
+      <header className="hidden lg:block bg-white/90 backdrop-blur-md border-b border-sk4-gray/30 sticky top-0 z-40">
+        <div className="max-w-4xl xl:max-w-6xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-sk4-orange to-sk4-orange-light flex items-center justify-center rounded-lg shadow-sk4-soft">
+                <span className="text-white font-bold text-lg">W</span>
               </div>
               <div>
-                <h1 className="sk4-spotify-title">WAVE</h1>
-                <p className="sk4-spotify-caption">친구들과 음악을 공유하고 발견하세요</p>
+                <h1 className="text-xl font-bold text-sk4-charcoal">WAVE</h1>
+                <p className="text-xs text-sk4-medium-gray">친구들과 음악 공유</p>
               </div>
             </div>
-            <div className="flex items-center space-x-sk4-md">
-              <div className="hidden xl:block text-right bg-gradient-to-br from-sk4-light-gray to-sk4-off-white rounded-lg px-4 py-2">
-                <p className="sk4-text-sm font-semibold text-sk4-charcoal">오늘의 발견</p>
-                <p className="sk4-text-xs text-sk4-medium-gray">새로운 음악과 친구들</p>
-              </div>
-              <button
-                onClick={() => setIsFilterModalOpen(true)}
-                className="sk4-btn p-3 text-sk4-medium-gray hover:bg-gradient-to-br hover:from-sk4-light-gray hover:to-sk4-off-white hover:text-sk4-orange rounded-xl transition-all duration-300 transform hover:scale-105"
-                title="필터"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
-                </svg>
-              </button>
-              <button
-                onClick={async () => { 
-                  const u = await ensureAuth(); 
-                  if (u) setIsCreateWaveModalOpen(true); 
-                }}
-                className="sk4-spotify-btn"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                <div className="relative flex items-center">
-                  <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-                  웨이브 만들기
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Loading State */}
-      {isLoading && <LoadingSpinner text="음악을 불러오는 중..." />}
-
-      {/* Mobile Header - Original Style */}
-      <header className="lg:hidden bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sk4-medium px-sk4-md py-sk4-md sticky top-0 z-40">
-        <div className="flex items-center justify-between relative">
-          {/* Gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-sk4-orange/5 to-transparent pointer-events-none" />
-          
-          <div className="flex items-center space-x-sk4-md relative z-10 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-sk4-orange to-sk4-orange-light flex items-center justify-center shadow-sk4-soft rounded-lg group-hover:shadow-sk4-glow transition-all duration-300">
-              <span className="text-white font-bold text-lg">W</span>
-            </div>
-            <div>
-              <h1 className="sk4-text-lg font-bold sk4-gradient-text">WAVE</h1>
-              <p className="sk4-text-xs text-sk4-medium-gray">친구들과 음악 공유</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2 relative z-10">
-            <button
-              onClick={() => setIsFilterModalOpen(true)}
-              className="p-2.5 text-sk4-medium-gray hover:bg-sk4-light-gray hover:text-sk4-orange rounded-sk4-soft transition-all duration-300"
-              title="필터"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
-              </svg>
-            </button>
             <button
               onClick={async () => { 
                 const u = await ensureAuth(); 
                 if (u) setIsCreateWaveModalOpen(true); 
               }}
-              className="p-2.5 bg-sk4-orange text-white rounded-sk4-soft shadow-sk4-soft hover:shadow-sk4-medium transition-all duration-300"
+              className="flex items-center px-4 py-2.5 bg-sk4-orange text-white rounded-xl hover:bg-sk4-orange-dark transition-colors shadow-sk4-soft"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-5 h-5 mr-2" />
+              웨이브 만들기
             </button>
           </div>
         </div>
       </header>
 
+      {/* Mobile Header */}
+      <header className="lg:hidden bg-white/90 backdrop-blur-md border-b border-sk4-gray/30 px-4 py-3 sticky top-0 z-40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-sk4-orange to-sk4-orange-light flex items-center justify-center rounded-lg shadow-sk4-soft">
+              <span className="text-white font-bold text-lg">W</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-sk4-charcoal">WAVE</h1>
+              <p className="text-xs text-sk4-medium-gray">친구들과 음악 공유</p>
+            </div>
+          </div>
+          <button
+            onClick={async () => { 
+              const u = await ensureAuth(); 
+              if (u) setIsCreateWaveModalOpen(true); 
+            }}
+            className="p-2.5 bg-sk4-orange text-white rounded-lg shadow-sk4-soft"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
+
       {/* Main Content */}
       <div className="max-w-sm sm:max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto px-sk4-sm sm:px-sk4-md py-sk4-md sm:py-sk4-lg">
-        {/* Radio Display */}
-        <div className="mb-sk4-lg">
-          <RadioDisplay />
-        </div>
-
-        {/* Popular Waves Section - Enhanced */}
-        <section className="mb-sk4-xl">
-          <div className="flex items-center justify-between mb-sk4-lg bg-gradient-to-r from-sk4-orange/10 to-transparent rounded-xl p-4">
-            <div>
-              <h2 className="sk4-spotify-title mb-1 flex items-center">
-                <span className="text-2xl mr-2 animate-sk4-pulse">🔥</span>
-                <span className="text-sk4-orange">인기 웨이브</span>
-              </h2>
-              <p className="sk4-spotify-caption">지금 뜨고 있는 음악</p>
+        {/* Loading State */}
+        {isLoading ? (
+          <LoadingSpinner text="음악을 불러오는 중..." />
+        ) : (
+          <>
+            {/* Radio Display */}
+            <div className="mb-sk4-lg">
+              <RadioDisplay />
             </div>
-            <button className="sk4-spotify-btn-secondary text-sm">
-              전체보기 →
-            </button>
+
+            {/* Popular Waves Section */}
+            <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-sk4-charcoal flex items-center">
+                <span className="text-2xl mr-2">🔥</span>
+                인기 웨이브
+              </h2>
+              <p className="text-sm text-sk4-medium-gray mt-1">지금 뜨고 있는 음악</p>
+            </div>
           </div>
           <div className="flex space-x-sk4-md overflow-x-auto scrollbar-hide pb-sk4-sm snap-x snap-mandatory -mx-sk4-sm px-sk4-sm">
             {popularWaves.map((wave, index) => (
               <div 
                 key={wave.id} 
-                className="min-w-[280px] sm:min-w-[320px] flex-shrink-0 snap-start sk4-slide-in" 
+                className="w-[calc(100vw-3rem)] sm:w-[320px] lg:w-[340px] max-w-[400px] flex-shrink-0 snap-start sk4-slide-in" 
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <WaveCard 
@@ -375,23 +416,28 @@ export default function FeedPage() {
                   onComment={handleComment} 
                   onSave={handleSave} 
                   onShare={handleShare} 
-                  onPlay={handlePlay} 
+                  onPlay={handlePlay}
+                  onDelete={handleDelete}
+                  currentUserId={user?.id}
                 />
               </div>
             ))}
           </div>
         </section>
 
-        {/* All Waves Section - Enhanced */}
+        {/* All Waves Section */}
         <section>
-          <div className="flex items-center justify-between mb-sk4-lg bg-gradient-to-br from-sk4-light-gray to-sk4-off-white rounded-xl p-4">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="sk4-spotify-title mb-1">✨ 최근 웨이브</h2>
-              <p className="sk4-spotify-caption">친구들의 새로운 음악 발견</p>
+              <h2 className="text-xl font-bold text-sk4-charcoal flex items-center">
+                <span className="text-2xl mr-2">✨</span>
+                최근 웨이브
+              </h2>
+              <p className="text-sm text-sk4-medium-gray mt-1">친구들의 새로운 음악 발견</p>
             </div>
           </div>
 
-          {waves.length === 0 && !isLoading && (
+          {feedItems.length === 0 && !isLoading && (
             <div className="bg-gradient-to-br from-white to-sk4-off-white border-2 border-dashed border-sk4-orange/30 rounded-2xl p-sk4-xl text-center sk4-scale-in">
               <div className="mb-sk4-md">
                 <div className="w-20 h-20 bg-gradient-to-br from-sk4-orange/20 to-sk4-orange/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-sk4-float">
@@ -418,21 +464,32 @@ export default function FeedPage() {
             </div>
           )}
 
-          <div className="sk4-spotify-grid">
-            {waves.map((wave, index) => (
-              <div key={wave.id} className="sk4-slide-in" style={{ animationDelay: `${index * 100}ms` }}>
-                <WaveCard
-                  wave={wave}
-                  onLike={handleLike}
-                  onComment={handleComment}
-                  onSave={handleSave}
-                  onShare={handleShare}
-                  onPlay={handlePlay}
-                />
+          {/* List View for Feed Items */}
+          <div className="space-y-4">
+            {feedItems.map((item, index) => (
+              <div 
+                key={`${item.type}-${item.data.id}`}
+                className="sk4-slide-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {item.type === 'wave' ? (
+                  <WaveCard 
+                    wave={item.data} 
+                    onLike={handleLike}
+                    onComment={handleComment}
+                    onSave={handleSave}
+                    onShare={handleShare}
+                    onPlay={handlePlay}
+                    onDelete={handleDelete}
+                    currentUserId={user?.id}
+                  />
+                ) : null}
               </div>
             ))}
           </div>
         </section>
+          </>
+        )}
       </div>
 
       <Navigation onCreateWave={async () => {
@@ -440,7 +497,17 @@ export default function FeedPage() {
         if (u) setIsCreateWaveModalOpen(true);
       }} />
       
-      <GlobalPlayer track={currentTrack} onClose={() => setCurrentTrack(null)} />
+      <SimplePlayer 
+        track={currentTrack} 
+        isPlaying={isPlaying}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onClose={() => {
+          setShowPlayer(false);
+          setCurrentTrack(null);
+          setIsPlaying(false);
+        }}
+      />
 
       {/* Modals */}
       <CreateWaveModal
@@ -471,17 +538,11 @@ export default function FeedPage() {
         onSaveToPlaylist={handleSaveToPlaylist}
       />
 
-      <FilterModal
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
-        onApplyFilters={() => {}}
-        currentFilters={{
-          timeRange: 'all',
-          mood: [],
-          genre: [],
-          userType: 'all',
-          sortBy: 'latest'
-        }}
+      {/* Onboarding Tutorial */}
+      <OnboardingTutorial
+        isOpen={showTutorial}
+        onClose={() => completeOnboarding()}
+        onComplete={() => completeOnboarding()}
       />
     </div>
   );

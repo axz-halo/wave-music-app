@@ -1,22 +1,38 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import supabase from '@/lib/supabaseClient';
 import { ensureSignedIn } from '@/lib/authSupa';
 import { useParams } from 'next/navigation';
 import { dummyPlaylists } from '@/lib/dummy-data';
 import Navigation from '@/components/layout/Navigation';
-import SaveToPlaylistModal from '@/components/wave/SaveToPlaylistModal';
+import TrackToWaveModal from '@/components/station/TrackToWaveModal';
+import StationCommentSheet from '@/components/station/StationCommentSheet';
+import { WaveService } from '@/services/waveService';
+import { StationService, StationTrack } from '@/services/stationService';
+import { Heart, MessageCircle, Share2 } from 'lucide-react';
 
 export default function StationDetailPage() {
   const params = useParams();
   const id = Array.isArray(params?.id) ? params?.id[0] : (params?.id as string);
   const [playlist, setPlaylist] = useState<any>(() => dummyPlaylists.find(p => p.id === id) || dummyPlaylists[0]);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [isWaveModalOpen, setIsWaveModalOpen] = useState(false);
+  const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
+  const [selectedTrackForWave, setSelectedTrackForWave] = useState<StationTrack | null>(null);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [commentCount, setCommentCount] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
     const load = async () => {
       if (!supabase) return;
+
+      // Get current user
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || null;
+      setCurrentUserId(userId);
 
       // station_playlists 테이블에서 데이터 가져오기
       const { data } = await supabase
@@ -50,17 +66,76 @@ export default function StationDetailPage() {
           thumbnailUrl: data.thumbnail_url,
           channelTitle: data.channel_title,
           channelInfo: data.channel_info,
-          likes: 0,
+          likes: data.likes || 0,
+          comments: data.comments || 0,
           saves: 0,
           plays: 0,
         } as any;
+        
+        console.log('🎵 Station data loaded:', {
+          id: p.id,
+          title: p.title,
+          tracksCount: p.tracks?.length || 0,
+          tracks: p.tracks?.slice(0, 3) // 첫 3개 트랙만 로그
+        });
+        
         setPlaylist(p);
+        setLikeCount(data.likes || 0);
+        setCommentCount(data.comments || 0);
+
+        // Check if user liked this station
+        if (userId) {
+          const liked = await StationService.checkLikeStatus(id, userId);
+          setIsLiked(liked);
+        }
       }
     };
     load();
   }, [id]);
-  const [saveOpen, setSaveOpen] = useState(false);
-  const [selectedTrack, setSelectedTrack] = useState<any | null>(null);
+
+  const handleCreateWaveFromTrack = async (waveData: any) => {
+    try {
+      const u = await ensureSignedIn();
+      if (!u) return;
+
+      await WaveService.createWave(u.id, waveData);
+      toast.success('Wave가 생성되었습니다!');
+      setIsWaveModalOpen(false);
+      setSelectedTrackForWave(null);
+    } catch (error) {
+      console.error('Failed to create wave:', error);
+      toast.error('Wave 생성에 실패했습니다');
+    }
+  };
+
+  const handleLike = async () => {
+    try {
+      const u = await ensureSignedIn();
+      if (!u) return;
+
+      const result = await StationService.toggleLike(id, u.id);
+      setIsLiked(result.isLiked);
+      setLikeCount(result.likeCount);
+      toast.success(result.isLiked ? '좋아요!' : '좋아요 취소');
+    } catch (error) {
+      console.error('Failed to like station:', error);
+      toast.error('좋아요에 실패했습니다');
+    }
+  };
+
+  const handleCommentAfterSubmit = async () => {
+    // Reload station data to get updated comment count
+    if (!supabase) return;
+    const { data } = await supabase
+      .from('station_playlists')
+      .select('comments')
+      .eq('id', id)
+      .single();
+    
+    if (data) {
+      setCommentCount(data.comments || 0);
+    }
+  };
 
   const handleGroupSave = async () => {
     try {
@@ -120,7 +195,7 @@ export default function StationDetailPage() {
 
               {/* 채널 정보 */}
               {playlist.channelInfo && (
-                <div className="flex items-center space-x-2 mb-3">
+                <div className="flex items-center space-x-2 mb-4">
                   <img
                     src={playlist.channelInfo.profileImageUrl || '/default-avatar.png'}
                     alt={playlist.channelInfo.name}
@@ -132,6 +207,36 @@ export default function StationDetailPage() {
                   </div>
                 </div>
               )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center space-x-3 mb-4">
+                <button
+                  onClick={handleLike}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                    isLiked
+                      ? 'bg-sk4-orange text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                  <span className="text-sm font-medium">{likeCount}</span>
+                </button>
+
+                <button
+                  onClick={() => setIsCommentSheetOpen(true)}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">{commentCount}</span>
+                </button>
+
+                <button
+                  onClick={() => toast('공유 기능은 곧 추가됩니다')}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+                >
+                  <Share2 className="w-4 h-4" />
+                </button>
+              </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">{playlist.tracks?.length || 0}곡</span>
@@ -182,20 +287,19 @@ export default function StationDetailPage() {
                   </button>
                   <button
                     onClick={() => {
-                      setSelectedTrack({
+                      setSelectedTrackForWave({
                         id: t.id,
-                        externalId: t.id,
                         title: t.title,
                         artist: t.artist,
-                        platform: 'youtube',
-                        thumbnailUrl: t.thumbnail_url || `https://img.youtube.com/vi/${t.id}/mqdefault.jpg`,
-                        duration: t.duration
+                        thumbnail_url: t.thumbnail_url || `https://img.youtube.com/vi/${t.id}/mqdefault.jpg`,
+                        duration: t.duration || 0,
+                        youtube_url: t.youtube_url,
                       });
-                      setSaveOpen(true);
+                      setIsWaveModalOpen(true);
                     }}
                     className="px-3 py-1.5 text-xs rounded-lg bg-sk4-orange text-white hover:bg-sk4-orange/90 transition-colors"
                   >
-                    저장
+                    Wave로 공유
                   </button>
                 </div>
               </li>
@@ -220,13 +324,20 @@ export default function StationDetailPage() {
       </div>
     </div>
     <Navigation />
-    <SaveToPlaylistModal 
-      isOpen={saveOpen} 
-      onClose={() => setSaveOpen(false)} 
-      track={selectedTrack || {}} 
-      playlists={[]}
-      onCreatePlaylist={() => {}}
-      onSaveToPlaylist={() => {}}
+    <TrackToWaveModal 
+      isOpen={isWaveModalOpen}
+      onClose={() => {
+        setIsWaveModalOpen(false);
+        setSelectedTrackForWave(null);
+      }}
+      track={selectedTrackForWave}
+      onSubmit={handleCreateWaveFromTrack}
+    />
+    <StationCommentSheet
+      isOpen={isCommentSheetOpen}
+      onClose={() => setIsCommentSheetOpen(false)}
+      stationId={id}
+      onAfterSubmit={handleCommentAfterSubmit}
     />
     </>
   );

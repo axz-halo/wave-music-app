@@ -156,3 +156,8 @@ CREATE TRIGGER trigger_increment_interaction_count
     AFTER INSERT OR DELETE ON public.interactions
     FOR EACH ROW EXECUTE FUNCTION increment_interaction_count();
 
+
+
+
+
+

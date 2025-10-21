@@ -6,14 +6,16 @@ import { useEffect, useState } from 'react';
 import { X, Send, MoreHorizontal } from 'lucide-react';
 import supabase from '@/lib/supabaseClient';
 import { ensureSignedIn } from '@/lib/authSupa';
+import { AnalyticsService } from '@/services/analyticsService';
 
 interface CommentDoc {
   id: string;
+  wave_id: string;
   user_id: string;
-  user_nickname: string;
-  user_image?: string;
   content: string;
   created_at: string;
+  user_nickname?: string;
+  user_image?: string;
 }
 
 interface CommentSheetProps {
@@ -41,19 +43,42 @@ export default function CommentSheet({ isOpen, onClose, waveId, onAfterSubmit }:
     if (!isOpen || !waveId || !supabase) return;
     let isCancelled = false;
     const load = async () => {
-      const { data } = await supabase!
-        .from('comments')
+      const { data, error } = await supabase!
+        .from('wave_comments')
         .select('*')
-        .eq('target_type', 'wave')
-        .eq('target_id', waveId)
+        .eq('wave_id', waveId)
         .order('created_at', { ascending: false });
-      if (!isCancelled && data) setComments(data as any);
+      
+      if (error) {
+        console.error('Failed to load comments:', error);
+        return;
+      }
+      
+      if (!isCancelled && data) {
+        // 각 댓글의 사용자 정보를 별도로 가져오기
+        const commentsWithUser = await Promise.all(
+          data.map(async (comment: any) => {
+            const { data: profile } = await supabase!
+              .from('profiles')
+              .select('nickname, profile_image')
+              .eq('id', comment.user_id)
+              .single();
+            
+            return {
+              ...comment,
+              user_nickname: profile?.nickname || '사용자',
+              user_image: profile?.profile_image || null,
+            };
+          })
+        );
+        setComments(commentsWithUser);
+      }
     };
     load();
     // realtime subscribe
     const channel = (supabase as any)
       .channel(`comments-wave-${waveId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: `target_id=eq.${waveId}` }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wave_comments', filter: `wave_id=eq.${waveId}` }, load)
       .subscribe();
     return () => {
       isCancelled = true;
@@ -68,14 +93,15 @@ export default function CommentSheet({ isOpen, onClose, waveId, onAfterSubmit }:
     if (!content) return;
     const u = await ensureSignedIn();
     if (!u || !supabase) return;
-    await supabase!.from('comments').insert({
-      target_type: 'wave',
-      target_id: waveId,
+    await supabase!.from('wave_comments').insert({
+      wave_id: waveId,
       user_id: u.id,
-      user_nickname: u.user_metadata?.full_name || '사용자',
-      user_image: u.user_metadata?.avatar_url || null,
       content,
     });
+    
+    // 로그 기록
+    await AnalyticsService.logComment(u.id, 'wave', waveId);
+    
     setNewComment('');
     onAfterSubmit?.();
   };

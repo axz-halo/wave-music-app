@@ -1,11 +1,17 @@
-'use client';import { useEffect, useMemo, useState } from 'react';
-import { Radio } from 'lucide-react';
-import supabase from '@/lib/supabaseClient';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Radio, Users } from 'lucide-react';
+import { AnalyticsService } from '@/services/analyticsService';
 
 export default function RadioDisplay() {
   const [now, setNow] = useState(new Date());
   const [todayWaves, setTodayWaves] = useState<number>(0);
-  const [todayTracksSaved, setTodayTracksSaved] = useState<number>(0);
+  const [todayStations, setTodayStations] = useState<number>(0);
+  const [todayStationShares, setTodayStationShares] = useState<number>(0);
+  const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [todayLikes, setTodayLikes] = useState<number>(0);
+  const [todayComments, setTodayComments] = useState<number>(0);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
@@ -14,35 +20,31 @@ export default function RadioDisplay() {
 
   useEffect(() => {
     let isCancelled = false;
+    
     const fetchStats = async () => {
-      if (!supabase) return;
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      const startIso = start.toISOString();
-      const { count: wavesCount } = await supabase
-        .from('waves')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', startIso);
-      const { count: savedCount } = await supabase
-        .from('playlist_tracks')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', startIso);
+      const [stats, userCount] = await Promise.all([
+        AnalyticsService.getTodayStats(),
+        AnalyticsService.getTotalUserCount(),
+      ]);
+      
       if (!isCancelled) {
-        setTodayWaves(wavesCount || 0);
-        setTodayTracksSaved(savedCount || 0);
+        setTodayWaves(stats.waveUploads);
+        setTodayStations(stats.stationUploads);
+        setTodayStationShares(stats.stationShares);
+        setTodayLikes(stats.likes);
+        setTodayComments(stats.comments);
+        setTotalUsers(userCount);
       }
     };
+    
     fetchStats();
-    // subscribe to realtime inserts for instant updates
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const channel = (supabase as any)
-      .channel('radio-stats')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'waves' }, fetchStats)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'playlist_tracks' }, fetchStats)
-      .subscribe();
+    
+    // 15초마다 폴링
     const poll = setInterval(fetchStats, 15000);
-    return () => { isCancelled = true; clearInterval(poll); try { (supabase as any).removeChannel(channel); } catch {}
+    
+    return () => { 
+      isCancelled = true; 
+      clearInterval(poll); 
     };
   }, []);
 
@@ -86,9 +88,17 @@ export default function RadioDisplay() {
 
         {/* Row 3: Today's Stats */}
         <div className="text-center">
-          <div className="sk4-text-xs text-sk4-radio-text mb-1">Today's Stats</div>
-          <div className="sk4-text-sm text-sk4-white">
-            {todayWaves} waves | {todayTracksSaved} Tracks
+          <div className="sk4-text-xs text-sk4-radio-text mb-1">Today's Activity</div>
+          <div className="sk4-text-sm text-sk4-white flex items-center justify-center space-x-2 flex-wrap">
+            <span>{todayWaves} Waves</span>
+            <span className="text-sk4-radio-text">•</span>
+            <span>{todayStationShares} Stations</span>
+            <span className="text-sk4-radio-text">•</span>
+            <span>{todayLikes + todayComments} Interactions</span>
+          </div>
+          <div className="sk4-text-xs text-sk4-radio-text mt-1 flex items-center justify-center space-x-1">
+            <Users className="w-3 h-3" />
+            <span>{totalUsers} Members</span>
           </div>
         </div>
       </div>

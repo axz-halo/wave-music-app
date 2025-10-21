@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { X, Music, Link as LinkIcon, Send, ClipboardPaste, SkipForward } from 'lucide-react';
+import { X, Music, Link as LinkIcon, Send, ClipboardPaste, SkipForward, Search, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { TrackInfo } from '@/types';
 import { parseYouTubeId } from '@/lib/youtube';
@@ -31,7 +31,13 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
     youtubeUrl: '',
   });
 
+  const [searchMode, setSearchMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const urlInputRef = useRef<HTMLInputElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -83,6 +89,41 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
     if (initialTrack) {
       setWaveData(prev => ({ ...prev, track: initialTrack }));
     }
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      toast.error('검색어를 입력해주세요');
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(searchQuery)}&maxResults=10`);
+      const data = await response.json();
+
+      if (data.success) {
+        setSearchResults(data.results);
+        if (data.results.length === 0) {
+          toast('검색 결과가 없습니다');
+        }
+      } else {
+        toast.error('검색에 실패했습니다');
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast.error('검색 중 오류가 발생했습니다');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectSearchResult = (result: any) => {
+    setWaveData(prev => ({ ...prev, youtubeUrl: result.youtubeUrl }));
+    setSearchMode(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    toast.success('음악이 선택되었습니다');
   };
 
   const handleSubmit = () => {
@@ -139,59 +180,154 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
                 <Music className="w-8 h-8 text-sk4-orange" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900">음악 추가하기</h3>
-              <p className="text-sm text-gray-600">YouTube 링크를 입력하거나 건너뛸 수 있습니다</p>
+              <p className="text-sm text-gray-600">YouTube에서 검색하거나 링크를 입력하세요</p>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-1 h-6 bg-sk4-orange rounded-full"></div>
-                <span className="text-sm font-medium text-gray-900">YouTube 링크 (선택사항)</span>
-              </div>
-              <input
-                type="url"
-                placeholder="YouTube 링크를 붙여넣어 주세요"
-                value={waveData.youtubeUrl}
-                onChange={(e) => setWaveData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSubmit();
-                  }
+            {/* Mode Toggle */}
+            <div className="flex gap-2 p-1 bg-sk4-light-gray rounded-lg">
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchMode(false);
+                  setTimeout(() => urlInputRef.current?.focus(), 50);
                 }}
-                ref={urlInputRef}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-xs text-gray-500">또는 음악 앱에서 직접 공유하기</p>
-
-              {/* Quick actions */}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={handlePasteFromClipboard}
-                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg border border-sk4-gray text-sm text-sk4-charcoal hover:bg-sk4-light-gray"
-                >
-                  <ClipboardPaste className="w-4 h-4" />
-                  <span>클립보드에서 붙여넣기</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleUseCurrentTrack}
-                  disabled={!initialTrack}
-                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg border border-sk4-gray text-sm text-sk4-charcoal disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sk4-light-gray"
-                >
-                  <LinkIcon className="w-4 h-4" />
-                  <span>현재 트랙 사용</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-medium bg-sk4-orange bg-opacity-10 text-sk4-orange hover:bg-opacity-20 text-sm transition-all duration-200"
-                >
-                  <SkipForward className="w-4 h-4" />
-                  <span>건너뛰고 발행</span>
-                </button>
-              </div>
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                  !searchMode
+                    ? 'bg-white text-sk4-orange shadow-sk4-soft'
+                    : 'text-sk4-dark-gray hover:text-sk4-charcoal'
+                }`}
+              >
+                <LinkIcon className="w-4 h-4 inline mr-2" />
+                링크 입력
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchMode(true);
+                  setTimeout(() => searchInputRef.current?.focus(), 50);
+                }}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                  searchMode
+                    ? 'bg-white text-sk4-orange shadow-sk4-soft'
+                    : 'text-sk4-dark-gray hover:text-sk4-charcoal'
+                }`}
+              >
+                <Search className="w-4 h-4 inline mr-2" />
+                YouTube 검색
+              </button>
             </div>
+
+            {/* Link Input Mode */}
+            {!searchMode && (
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-1 h-6 bg-sk4-orange rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-900">YouTube 링크</span>
+                </div>
+                <input
+                  type="url"
+                  placeholder="YouTube 링크를 붙여넣어 주세요"
+                  value={waveData.youtubeUrl}
+                  onChange={(e) => setWaveData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSubmit();
+                    }
+                  }}
+                  ref={urlInputRef}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sk4-orange"
+                />
+
+                {/* Quick actions */}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handlePasteFromClipboard}
+                    className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg border border-sk4-gray text-sm text-sk4-charcoal hover:bg-sk4-light-gray"
+                  >
+                    <ClipboardPaste className="w-4 h-4" />
+                    <span>붙여넣기</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentTrack}
+                    disabled={!initialTrack}
+                    className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg border border-sk4-gray text-sm text-sk4-charcoal disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sk4-light-gray"
+                  >
+                    <LinkIcon className="w-4 h-4" />
+                    <span>현재 트랙</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Search Mode */}
+            {searchMode && (
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-1 h-6 bg-sk4-orange rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-900">YouTube 검색</span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="노래 제목, 아티스트 검색..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSearch();
+                      }
+                    }}
+                    ref={searchInputRef}
+                    className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sk4-orange"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSearch}
+                    disabled={isSearching}
+                    className="px-4 py-3 bg-sk4-orange text-white rounded-lg hover:bg-sk4-orange-dark transition-colors disabled:opacity-50"
+                  >
+                    {isSearching ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Search className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Search Results */}
+                {searchResults.length > 0 && (
+                  <div className="max-h-80 overflow-y-auto space-y-2 border border-sk4-gray rounded-lg p-2">
+                    {searchResults.map((result, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleSelectSearchResult(result)}
+                        className="w-full flex items-center space-x-3 p-2 hover:bg-sk4-light-gray rounded-lg transition-colors text-left"
+                      >
+                        <img
+                          src={result.thumbnailUrl}
+                          alt={result.title}
+                          className="w-20 h-14 object-cover rounded"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-sk4-charcoal truncate">
+                            {result.title}
+                          </p>
+                          <p className="text-xs text-sk4-dark-gray truncate">
+                            {result.artist}
+                          </p>
+                        </div>
+                        <Music className="w-5 h-5 text-sk4-orange flex-shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {waveData.youtubeUrl && (
               <div className={`rounded-lg p-3 border ${parseYouTubeId(waveData.youtubeUrl) ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
@@ -258,7 +394,7 @@ export default function CreateWaveModal({ isOpen, onClose, onSubmit, initialTrac
           <div className="space-y-3">
             <button
               onClick={handleSubmit}
-              className="w-full py-3 px-4 bg-sk4-orange text-sk4-white rounded-medium font-medium hover:bg-opacity-90 transition-all duration-200 flex items-center justify-center space-x-2"
+              className="w-full btn-primary flex items-center justify-center space-x-2"
             >
               <Send className="w-5 h-5" />
               <span>웨이브 발행하기</span>

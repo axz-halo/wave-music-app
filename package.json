@@ -27,6 +27,7 @@
     "autoprefixer": "^10.0.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "dotenv": "^17.2.3",
     "firebase": "^12.2.1",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.263.1",

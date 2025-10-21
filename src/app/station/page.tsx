@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { Music, Upload, Play, Users, Clock, ExternalLink } from 'lucide-react';
+import { Radio, Music, Upload, Play, Users, Clock, ExternalLink, Share2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Components
@@ -11,6 +11,7 @@ import ErrorMessage from '@/components/common/ErrorMessage';
 
 // Hooks
 import { useStations } from '@/hooks/useStations';
+import { useAuth } from '@/hooks/useAuth';
 
 // Services & Utils
 import { StationService, StationPlaylist } from '@/services/stationService';
@@ -32,6 +33,7 @@ interface PreviewData {
 
 export default function StationPage() {
   const { playlists, isLoading, error, refreshPlaylists } = useStations();
+  const { ensureAuth } = useAuth();
 
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState<StationPlaylist | null>(null);
@@ -41,6 +43,8 @@ export default function StationPage() {
   const [uploading, setUploading] = useState(false);
   const [urlType, setUrlType] = useState<UrlType>('unknown');
   const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [sharingStationId, setSharingStationId] = useState<string | null>(null);
+  const [deletingStationId, setDeletingStationId] = useState<string | null>(null);
 
   const detectUrlType = useCallback((url: string) => {
     if (!url.trim()) {
@@ -143,6 +147,7 @@ export default function StationPage() {
         url: uploadUrl,
         type: urlType as 'video' | 'playlist',
         preview,
+        extractComments: true, // 댓글 추출을 디폴트로 활성화
       });
 
       if (urlType === 'playlist' && result.tracksCount) {
@@ -184,6 +189,67 @@ export default function StationPage() {
     setIsDetailModalOpen(true);
   }, []);
 
+  const handleShareStation = useCallback(async (e: React.MouseEvent, playlistId: string) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 방지
+    
+    const user = await ensureAuth();
+    if (!user) return;
+
+    setSharingStationId(playlistId);
+    try {
+      await StationService.shareStation(playlistId, user.id);
+      toast.success('Station이 Feed에 공유되었습니다!');
+      await refreshPlaylists();
+    } catch (error) {
+      console.error('Failed to share station:', error);
+      toast.error('공유에 실패했습니다');
+    } finally {
+      setSharingStationId(null);
+    }
+  }, [ensureAuth, refreshPlaylists]);
+
+  const handleDeleteStation = useCallback(async (e: React.MouseEvent, playlistId: string) => {
+    e.stopPropagation();
+    
+    const user = await ensureAuth();
+    if (!user) return;
+
+    if (!window.confirm('정말로 이 스테이션을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+      return;
+    }
+
+    setDeletingStationId(playlistId);
+    try {
+      await StationService.deleteStation(playlistId, user.id);
+      toast.success('스테이션이 삭제되었습니다.');
+      await refreshPlaylists();
+    } catch (error) {
+      console.error('Station 삭제 에러:', error);
+      toast.error('스테이션 삭제에 실패했습니다.');
+    } finally {
+      setDeletingStationId(null);
+    }
+  }, [ensureAuth, refreshPlaylists]);
+
+  const handleUnshareStation = useCallback(async (e: React.MouseEvent, playlistId: string) => {
+    e.stopPropagation();
+    
+    const user = await ensureAuth();
+    if (!user) return;
+
+    setSharingStationId(playlistId);
+    try {
+      await StationService.unshareStation(playlistId, user.id);
+      toast.success('공유가 취소되었습니다');
+      await refreshPlaylists();
+    } catch (error) {
+      console.error('Failed to unshare station:', error);
+      toast.error('공유 취소에 실패했습니다');
+    } finally {
+      setSharingStationId(null);
+    }
+  }, [ensureAuth, refreshPlaylists]);
+
   const closeUploadModal = useCallback(() => {
     setIsUploadModalOpen(false);
     setUploadUrl('');
@@ -210,158 +276,209 @@ export default function StationPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-sk4-off-white pb-20 lg:pb-0 lg:ml-56">
-        {/* Header */}
-        <header className="hidden lg:block bg-sk4-white border-b border-sk4-gray px-sk4-lg py-sk4-md sticky top-0 z-30 shadow-minimal">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-sk4-md">
-              <div className="w-8 h-8 bg-sk4-orange rounded-full flex items-center justify-center">
-                <Music className="w-4 h-4 text-sk4-white" />
+      <div className="min-h-screen bg-sk4-off-white pb-24 lg:pb-0 lg:ml-56">
+        {/* Desktop Header */}
+        <header className="hidden lg:block bg-white/90 backdrop-blur-md border-b border-sk4-gray/30 sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-sk4-orange to-sk4-orange-light flex items-center justify-center rounded-lg shadow-sk4-soft">
+                  <Radio className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-sk4-charcoal">스테이션</h1>
+                  <p className="text-xs text-sk4-medium-gray">YouTube 플레이리스트 공유</p>
+                </div>
               </div>
-              <h1 className="sk4-text-large-title text-sk4-charcoal">Station</h1>
+              <button
+                onClick={() => setIsUploadModalOpen(true)}
+                className="flex items-center px-4 py-2.5 bg-sk4-orange text-white rounded-xl hover:bg-sk4-orange-dark transition-colors shadow-sk4-soft"
+              >
+                <Upload className="w-5 h-5 mr-2" />
+                업로드
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Mobile Header */}
+        <header className="lg:hidden bg-white/90 backdrop-blur-md border-b border-sk4-gray/30 px-4 py-3 sticky top-0 z-40">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-sk4-orange to-sk4-orange-light flex items-center justify-center rounded-lg shadow-sk4-soft">
+                <Radio className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-sk4-charcoal">스테이션</h1>
+                <p className="text-xs text-sk4-medium-gray">플레이리스트 공유</p>
+              </div>
             </div>
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="sk4-action-button bg-sk4-orange text-sk4-white hover:bg-opacity-90 transition-all duration-200 flex items-center space-x-sk4-sm"
+              className="p-2.5 bg-sk4-orange text-white rounded-lg shadow-sk4-soft"
             >
-              <Upload className="w-4 h-4" />
-              <span className="sk4-text-sm">업로드</span>
+              <Upload className="w-5 h-5" />
             </button>
           </div>
         </header>
 
-        {/* Loading State */}
-        {isLoading && <LoadingSpinner text="플레이리스트를 불러오는 중..." />}
-
-        <div className="max-w-6xl mx-auto px-sk4-md py-sk4-lg">
-          {/* Mobile Upload Button */}
-          <div className="lg:hidden mb-sk4-lg">
-            <button
-              onClick={() => setIsUploadModalOpen(true)}
-              className="w-full sk4-action-button bg-sk4-orange text-sk4-white hover:bg-opacity-90 transition-all duration-200 flex items-center justify-center space-x-sk4-sm"
-            >
-              <Upload className="w-4 h-4" />
-              <span className="sk4-text-base">YouTube 업로드</span>
-            </button>
-          </div>
-
-          {/* Welcome Section */}
-          <div className="bg-sk4-white rounded-xl shadow-minimal border border-sk4-gray p-sk4-lg mb-sk4-lg">
-            <div className="flex items-center space-x-sk4-md mb-sk4-md">
-              <div className="w-12 h-12 bg-sk4-orange rounded-xl flex items-center justify-center">
-                <Music className="w-6 h-6 text-sk4-white" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+          {isLoading ? (
+            <LoadingSpinner text="플레이리스트를 불러오는 중..." />
+          ) : playlists.length === 0 ? (
+            /* Empty State */
+            <div className="bg-white rounded-2xl p-8 text-center border-2 border-dashed border-sk4-gray">
+              <div className="w-20 h-20 bg-sk4-orange/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Radio className="w-10 h-10 text-sk4-orange" />
               </div>
-              <div>
-                <h2 className="sk4-text-lg font-semibold text-sk4-charcoal">Smart Upload</h2>
-                <p className="sk4-text-sm text-sk4-dark-gray">YouTube 링크 하나로 모든 것이 자동 처리됩니다</p>
-              </div>
+              <h3 className="text-xl font-bold text-sk4-charcoal mb-2">첫 스테이션을 만들어보세요</h3>
+              <p className="text-sm text-sk4-medium-gray mb-6 max-w-md mx-auto">
+                YouTube 플레이리스트를 가져와 친구들과 음악을 공유하세요
+              </p>
+              <button
+                onClick={() => setIsUploadModalOpen(true)}
+                className="inline-flex items-center px-6 py-3 bg-sk4-orange text-white rounded-xl hover:bg-sk4-orange-dark transition-colors shadow-sk4-soft"
+              >
+                <Upload className="w-5 h-5 mr-2" />
+                스테이션 만들기
+              </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-sk4-md">
-              <div className="flex items-center space-x-sk4-sm p-sk4-sm bg-sk4-light-gray rounded-lg">
-                <div className="w-8 h-8 bg-sk4-orange rounded-lg flex items-center justify-center">
-                  <Play className="w-4 h-4 text-sk4-white" />
-                </div>
+          ) : (
+            <>
+              {/* Section Header */}
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <p className="sk4-text-xs font-medium text-sk4-charcoal">비디오 업로드</p>
-                  <p className="sk4-text-xs text-sk4-dark-gray">단일 비디오를 플레이리스트로</p>
+                  <h2 className="text-xl font-bold text-sk4-charcoal">내 스테이션</h2>
+                  <p className="text-sm text-sk4-medium-gray mt-1">{playlists.length}개의 플레이리스트</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-sk4-sm p-sk4-sm bg-sk4-light-gray rounded-lg">
-                <div className="w-8 h-8 bg-sk4-orange rounded-lg flex items-center justify-center">
-                  <Users className="w-4 h-4 text-sk4-white" />
-                </div>
-                <div>
-                  <p className="sk4-text-xs font-medium text-sk4-charcoal">플레이리스트</p>
-                  <p className="sk4-text-xs text-sk4-dark-gray">전체 플레이리스트 가져오기</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-sk4-sm p-sk4-sm bg-sk4-light-gray rounded-lg">
-                <div className="w-8 h-8 bg-sk4-orange rounded-lg flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-sk4-white" />
-                </div>
-                <div>
-                  <p className="sk4-text-xs font-medium text-sk4-charcoal">채널 정보</p>
-                  <p className="sk4-text-xs text-sk4-dark-gray">구독자 수, 프로필 이미지</p>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Playlists Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-sk4-lg">
-            {isLoading ? (
-              Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="bg-sk4-white rounded-xl shadow-minimal border border-sk4-gray p-sk4-md animate-pulse">
-                  <div className="aspect-square bg-sk4-light-gray rounded-lg mb-sk4-md"></div>
-                  <div className="h-4 bg-sk4-light-gray rounded mb-2"></div>
-                  <div className="h-3 bg-sk4-light-gray rounded w-2/3"></div>
-                </div>
-              ))
-            ) : playlists.length === 0 ? (
-              <div className="col-span-full text-center py-sk4-xl">
-                <div className="w-20 h-20 bg-sk4-light-gray rounded-full flex items-center justify-center mx-auto mb-sk4-md">
-                  <Music className="w-8 h-8 text-sk4-medium-gray" />
-                </div>
-                <h3 className="sk4-text-lg font-medium text-sk4-charcoal mb-2">플레이리스트가 없습니다</h3>
-                <p className="sk4-text-sm text-sk4-dark-gray mb-sk4-md">YouTube 비디오나 플레이리스트를 업로드해서 시작하세요</p>
-                <button
-                  onClick={() => setIsUploadModalOpen(true)}
-                  className="sk4-action-button bg-sk4-orange text-sk4-white hover:bg-opacity-90 transition-all duration-200"
-                >
-                  <span className="sk4-text-sm">첫 업로드하기</span>
-                </button>
-              </div>
-            ) : (
-              playlists.map((playlist) => (
+              {/* Playlists Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {playlists.map((playlist) => (
                 <div
                   key={playlist.id}
-                  onClick={() => handlePlaylistClick(playlist)}
-                  className="bg-sk4-white rounded-xl shadow-minimal border border-sk4-gray p-sk4-md cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                  className="bg-sk4-white rounded-xl shadow-minimal border border-sk4-gray p-sk4-md hover:shadow-lg transition-all duration-200 relative group"
                 >
-                  <div className="aspect-square bg-sk4-light-gray rounded-lg mb-sk4-md overflow-hidden shadow-minimal relative group">
-                    <img
-                      src={playlist.thumbnail_url || '/placeholder.png'}
-                      alt={playlist.title}
-                      className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                      <Play className="w-8 h-8 text-sk4-white" />
+                  {/* Share Badge */}
+                  {playlist.is_shared && (
+                    <div className="absolute top-2 right-2 z-10 bg-gradient-to-r from-sk4-orange to-sk4-orange-light text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sk4-soft flex items-center space-x-1">
+                      <Share2 className="w-3 h-3" />
+                      <span>공유됨</span>
+                    </div>
+                  )}
+
+                  <div 
+                    onClick={() => handlePlaylistClick(playlist)}
+                    className="cursor-pointer"
+                  >
+                    <div className="aspect-square bg-sk4-light-gray rounded-lg mb-sk4-md overflow-hidden shadow-minimal relative group/img">
+                      <img
+                        src={playlist.thumbnail_url || '/placeholder.png'}
+                        alt={playlist.title}
+                        className="w-full h-full object-cover transition-transform duration-200 group-hover/img:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                        <Play className="w-8 h-8 text-sk4-white" />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-semibold text-sk4-charcoal mb-1 line-clamp-2 sk4-text-sm">{playlist.title}</h3>
+                      
+                      {playlist.channel_info ? (
+                        <div className="flex items-center space-x-1.5 mb-2">
+                          <img
+                            src={playlist.channel_info.profileImage}
+                            alt={playlist.channel_info.title}
+                            className="w-4 h-4 rounded-full object-cover"
+                          />
+                          <p className="sk4-text-xs text-sk4-dark-gray truncate">{playlist.channel_info.title}</p>
+                        </div>
+                      ) : (
+                        <p className="sk4-text-xs text-sk4-dark-gray mb-2">{playlist.channel_title}</p>
+                      )}
+                      
+                      <div className="flex items-center justify-between sk4-text-xs text-sk4-medium-gray">
+                        <span className="flex items-center">
+                          <span className="w-1.5 h-1.5 bg-sk4-orange rounded-full mr-sk4-xs"></span>
+                          {playlist.tracks?.length || 0}곡
+                        </span>
+                        {playlist.channel_info?.subscriberCount && (
+                          <span className="flex items-center">
+                            <Users className="w-3 h-3 mr-1" />
+                            {formatNumber(playlist.channel_info.subscriberCount)}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  
-                  <div>
-                    <h3 className="font-semibold text-sk4-charcoal mb-1 line-clamp-2 sk4-text-sm">{playlist.title}</h3>
-                    
-                    {playlist.channel_info ? (
-                      <div className="flex items-center space-x-1.5 mb-2">
-                        <img
-                          src={playlist.channel_info.profileImage}
-                          alt={playlist.channel_info.title}
-                          className="w-4 h-4 rounded-full object-cover"
-                        />
-                        <p className="sk4-text-xs text-sk4-dark-gray truncate">{playlist.channel_info.title}</p>
-                      </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-sk4-sm pt-sk4-sm border-t border-sk4-gray space-y-2">
+                    {/* Share Button */}
+                    {playlist.is_shared ? (
+                      <button
+                        onClick={(e) => handleUnshareStation(e, playlist.id)}
+                        disabled={sharingStationId === playlist.id}
+                        className="w-full px-3 py-2 text-xs rounded-lg border border-sk4-gray bg-sk4-light-gray hover:bg-sk4-gray text-sk4-dark-gray transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
+                      >
+                        {sharingStationId === playlist.id ? (
+                          <>
+                            <div className="w-3 h-3 border-2 border-sk4-dark-gray border-t-transparent rounded-full animate-spin" />
+                            <span>처리 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Share2 className="w-3 h-3" />
+                            <span>공유 취소</span>
+                          </>
+                        )}
+                      </button>
                     ) : (
-                      <p className="sk4-text-xs text-sk4-dark-gray mb-2">{playlist.channel_title}</p>
+                      <button
+                        onClick={(e) => handleShareStation(e, playlist.id)}
+                        disabled={sharingStationId === playlist.id}
+                        className="w-full px-3 py-2 text-xs rounded-lg bg-sk4-orange text-white hover:bg-sk4-orange-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
+                      >
+                        {sharingStationId === playlist.id ? (
+                          <>
+                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <span>공유 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Share2 className="w-3 h-3" />
+                            <span>Feed에 공유</span>
+                          </>
+                        )}
+                      </button>
                     )}
                     
-                    <div className="flex items-center justify-between sk4-text-xs text-sk4-medium-gray">
-                      <span className="flex items-center">
-                        <span className="w-1.5 h-1.5 bg-sk4-orange rounded-full mr-sk4-xs"></span>
-                        {playlist.tracks?.length || 0}곡
-                      </span>
-                      {playlist.channel_info?.subscriberCount && (
-                        <span className="flex items-center">
-                          <Users className="w-3 h-3 mr-1" />
-                          {formatNumber(playlist.channel_info.subscriberCount)}
-                        </span>
+                    {/* Delete Button */}
+                    <button
+                      onClick={(e) => handleDeleteStation(e, playlist.id)}
+                      disabled={deletingStationId === playlist.id}
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-red-300 bg-red-50 hover:bg-red-100 text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
+                    >
+                      {deletingStationId === playlist.id ? (
+                        <>
+                          <div className="w-3 h-3 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                          <span>삭제 중...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-3 h-3" />
+                          <span>삭제</span>
+                        </>
                       )}
-                    </div>
+                    </button>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -446,6 +563,8 @@ export default function StationPage() {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* 댓글 추출은 자동으로 활성화됨 */}
                 </div>
               )}
 
@@ -645,4 +764,5 @@ export default function StationPage() {
     </>
   );
 }
+
 

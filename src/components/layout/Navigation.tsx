@@ -1,16 +1,15 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Home, Radio, Trophy, User, Plus } from 'lucide-react';
+import { Home, Radio, User, Plus } from 'lucide-react';
 
 interface NavigationProps {
   onCreateWave?: () => void;
 }
 
 const navigationItems = [
-  { name: '홈', href: '/feed', icon: Home, description: '친구들의 음악' },
+  { name: '홈', href: '/feed', icon: Home, description: '음악 피드' },
   { name: '스테이션', href: '/station', icon: Radio, description: '플레이리스트' },
-  { name: '챌린지', href: '/challenge', icon: Trophy, description: '음악 챌린지' },
   { name: '마이', href: '/profile', icon: User, description: '내 프로필' },
 ];
 
@@ -19,39 +18,51 @@ export default function Navigation({ onCreateWave }: NavigationProps) {
 
   return (
     <>
-      {/* Mobile Bottom Navigation - Improved */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
-        <div className="mx-3 mb-3 sk4-spotify-card">
-          <div className="h-14 flex items-center justify-between px-3 py-2">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
+      {/* Mobile Bottom Navigation - Modern & Clean */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-200/50">
+        <div className="h-16 flex items-center justify-around px-2">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
 
-              return (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={`sk4-spotify-nav-item flex-1 ${
-                    isActive ? 'sk4-spotify-nav-item-active' : ''
-                  }`}
-                >
-                  <div className={`p-2 rounded-sk4-soft transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-sk4-orange text-white shadow-sk4-soft' 
-                      : 'group-hover:bg-sk4-orange/10'
-                  }`}>
-                    <Icon className="sk4-spotify-nav-icon" />
-                  </div>
-                  <span className={`sk4-spotify-caption mt-0.5 transition-all duration-300 ${
-                    isActive ? 'text-sk4-orange font-semibold' : 'font-medium'
-                  }`}>
-                    {item.name}
-                  </span>
-                </a>
-              );
-            })}
-          </div>
+            return (
+              <a
+                key={item.name}
+                href={item.href}
+                aria-current={isActive ? 'page' : undefined}
+                className="flex flex-col items-center justify-center flex-1 py-2 group relative"
+              >
+                {/* Active indicator */}
+                {isActive && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-sk4-orange rounded-full" />
+                )}
+                
+                {/* Icon */}
+                <div className="relative">
+                  <Icon 
+                    className={`w-6 h-6 transition-all duration-300 ${
+                      isActive 
+                        ? 'text-sk4-orange scale-110' 
+                        : 'text-gray-500 group-hover:text-sk4-orange group-hover:scale-105'
+                    }`}
+                    strokeWidth={isActive ? 2.5 : 2}
+                  />
+                  {isActive && (
+                    <div className="absolute inset-0 bg-sk4-orange/20 blur-lg rounded-full" />
+                  )}
+                </div>
+                
+                {/* Label */}
+                <span className={`text-xs mt-1 transition-all duration-300 ${
+                  isActive 
+                    ? 'text-sk4-orange font-semibold' 
+                    : 'text-gray-500 font-medium group-hover:text-sk4-orange'
+                }`}>
+                  {item.name}
+                </span>
+              </a>
+            );
+          })}
         </div>
       </nav>
 

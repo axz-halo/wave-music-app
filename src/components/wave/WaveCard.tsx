@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Heart, MessageCircle, Bookmark, Share, Play } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Share, Play, Trash2 } from 'lucide-react';
 import { Wave } from '@/types';
 import LPRecord from '@/components/music/LPRecord';
 
@@ -13,6 +13,8 @@ interface WaveCardProps {
   onSave?: (waveId: string) => void;
   onShare?: (waveId: string) => void;
   onPlay?: (trackId: string) => void;
+  onDelete?: (waveId: string) => void;
+  currentUserId?: string; // 현재 로그인한 사용자 ID
 }
 
 export default function WaveCard({ 
@@ -21,7 +23,9 @@ export default function WaveCard({
   onComment, 
   onSave, 
   onShare, 
-  onPlay 
+  onPlay,
+  onDelete,
+  currentUserId
 }: WaveCardProps) {
   const [isLiked, setIsLiked] = useState(wave.isLiked || false);
   const [isSaved, setIsSaved] = useState(wave.isSaved || false);
@@ -37,37 +41,45 @@ export default function WaveCard({
   }, [wave.isLiked, wave.isSaved, wave.likes, wave.saves]);
 
   const handleLike = async () => {
+    if (!onLike) return;
+
+    const previousIsLiked = isLiked;
+    const previousCount = likeCount;
     const newIsLiked = !isLiked;
-    setIsLiked(newIsLiked);
     
     // Optimistic update
+    setIsLiked(newIsLiked);
     const newCount = newIsLiked ? likeCount + 1 : Math.max(0, likeCount - 1);
     setLikeCount(newCount);
     
     try {
-      await onLike?.(wave.id);
+      await onLike(wave.id);
     } catch (error) {
       // Revert on error
-      setIsLiked(isLiked);
-      setLikeCount(likeCount);
+      setIsLiked(previousIsLiked);
+      setLikeCount(previousCount);
       console.error('Failed to like wave:', error);
     }
   };
 
   const handleSave = async () => {
+    if (!onSave) return;
+
+    const previousIsSaved = isSaved;
+    const previousCount = saveCount;
     const newIsSaved = !isSaved;
-    setIsSaved(newIsSaved);
     
     // Optimistic update
+    setIsSaved(newIsSaved);
     const newCount = newIsSaved ? saveCount + 1 : Math.max(0, saveCount - 1);
     setSaveCount(newCount);
     
     try {
-      await onSave?.(wave.id);
+      await onSave(wave.id);
     } catch (error) {
       // Revert on error
-      setIsSaved(isSaved);
-      setSaveCount(saveCount);
+      setIsSaved(previousIsSaved);
+      setSaveCount(previousCount);
       console.error('Failed to save wave:', error);
     }
   };
@@ -84,7 +96,11 @@ export default function WaveCard({
   };
 
   return (
-    <div className="sk4-spotify-wave-card p-sk4-md h-full flex flex-col min-h-[240px] sm:min-h-[260px] sk4-fade-in group overflow-hidden relative">
+    <div className="sk4-spotify-wave-card p-sk4-md h-full flex flex-col min-h-[160px] sk4-fade-in group overflow-hidden relative">
+      {/* Wave ID for debugging */}
+      <div className="absolute top-2 right-2 text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+        ID: {wave.id.slice(0, 8)}
+      </div>
       
       {/* User Info - Spotify Pattern */}
       <div className="flex items-center space-x-sk4-sm mb-sk4-md relative z-10">
@@ -97,19 +113,37 @@ export default function WaveCard({
           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-sk4-orange rounded-full border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
         <div className="flex-1 min-w-0">
-          <span className="sk4-spotify-subtitle block truncate group-hover:text-sk4-orange transition-colors duration-300">{wave.user.nickname}</span>
+          <Link href={`/wave/${wave.id}`} className="block">
+            <span className="sk4-spotify-subtitle block truncate group-hover:text-sk4-orange transition-colors duration-300 cursor-pointer">{wave.user.nickname}</span>
+          </Link>
           <span className="sk4-spotify-caption">{formatTimeAgo(wave.timestamp)}</span>
         </div>
       </div>
 
       {/* Music Info - Enhanced Layout */}
-      <div className="flex items-center space-x-sk4-md mb-sk4-md cursor-pointer relative z-10" onClick={() => onPlay?.(wave.track.id)}>
+      <div className="flex items-center space-x-sk4-md mb-sk4-md cursor-pointer relative z-10" onClick={() => {
+        console.log('WaveCard play clicked:', {
+          trackId: wave.track.id,
+          externalId: wave.track.externalId,
+          platform: wave.track.platform,
+          title: wave.track.title,
+          artist: wave.track.artist
+        });
+        onPlay?.(wave.track.id);
+      }}>
         <div className="relative group/play">
           <LPRecord
             src={wave.track.thumbnailUrl}
             alt={wave.track.title}
             size="md"
-            onPlay={() => onPlay?.(wave.track.id)}
+            onPlay={() => {
+              console.log('LPRecord play clicked:', {
+                trackId: wave.track.id,
+                externalId: wave.track.externalId,
+                platform: wave.track.platform
+              });
+              onPlay?.(wave.track.id);
+            }}
           />
           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover/play:bg-opacity-30 rounded-full transition-all duration-300">
             <div className="transform scale-0 group-hover/play:scale-100 transition-transform duration-300">
@@ -179,12 +213,28 @@ export default function WaveCard({
           </button>
         </div>
 
-        <button
-          onClick={() => onShare?.(wave.id)}
-          className="p-2 rounded-sk4-soft text-sk4-medium-gray hover:bg-sk4-light-gray hover:text-sk4-orange transition-all duration-300"
-        >
-          <Share className="w-4 h-4" />
-        </button>
+        <div className="flex items-center space-x-1">
+          <button
+            onClick={() => onShare?.(wave.id)}
+            className="p-2 rounded-sk4-soft text-sk4-medium-gray hover:bg-sk4-light-gray hover:text-sk4-orange transition-all duration-300"
+          >
+            <Share className="w-4 h-4" />
+          </button>
+          
+          {/* Delete button - only show for wave owner */}
+          {onDelete && currentUserId && wave.user?.id === currentUserId && (
+            <button
+              onClick={() => {
+                if (window.confirm('정말로 이 Wave를 삭제하시겠습니까?')) {
+                  onDelete(wave.id);
+                }
+              }}
+              className="p-2 rounded-sk4-soft text-red-500 hover:bg-red-50 hover:text-red-600 transition-all duration-300"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

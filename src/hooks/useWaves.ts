@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Wave } from '@/types';
 import { WaveService } from '@/services/waveService';
+import { useRealtimeUpdates } from './useRealtimeUpdates';
 import { transformWaveData } from '@/lib/transformers';
 
 interface UseWavesOptions {

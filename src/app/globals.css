@@ -482,21 +482,31 @@ a:focus-visible {
   @apply hover:border-sk4-orange/30;
 }
 
-/* Spotify-like Button Component */
-.sk4-spotify-btn {
-  @apply bg-sk4-orange text-white font-semibold;
-  @apply px-6 py-3 rounded-sk4-soft;
-  @apply hover:bg-sk4-orange-light hover:scale-105;
-  @apply active:scale-95 transition-all duration-200;
-  @apply shadow-sk4-soft hover:shadow-sk4-medium;
+/* Unified Button Styles */
+.btn-primary {
+  @apply bg-sk4-orange text-white font-medium;
+  @apply px-4 py-2 rounded-lg;
+  @apply hover:bg-sk4-orange-dark transition-colors;
+  @apply shadow-sm hover:shadow-md;
 }
 
-.sk4-spotify-btn-secondary {
-  @apply bg-sk4-light-gray text-sk4-charcoal font-semibold;
-  @apply px-6 py-3 rounded-sk4-soft;
-  @apply hover:bg-sk4-gray hover:scale-105;
-  @apply active:scale-95 transition-all duration-200;
-  @apply shadow-sk4-soft hover:shadow-sk4-medium;
+.btn-secondary {
+  @apply bg-gray-100 text-gray-700 font-medium;
+  @apply px-4 py-2 rounded-lg;
+  @apply hover:bg-gray-200 transition-colors;
+  @apply shadow-sm hover:shadow-md;
+}
+
+.btn-outline {
+  @apply border border-sk4-orange text-sk4-orange font-medium;
+  @apply px-4 py-2 rounded-lg;
+  @apply hover:bg-sk4-orange hover:text-white transition-colors;
+}
+
+.btn-ghost {
+  @apply text-gray-600 font-medium;
+  @apply px-3 py-2 rounded-lg;
+  @apply hover:bg-gray-100 transition-colors;
 }
 
 /* Spotify-like Grid System */
