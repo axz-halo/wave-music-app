@@ -7,7 +7,7 @@ import { onAuthStateChange, signInWithGoogle, signOutUser, getOrCreateProfile } 
 import supabase from '@/lib/supabaseClient';
 import { ProfileCardSkeleton, StatsCardSkeleton, ListSkeleton } from '@/components/common/SkeletonCard';
 import { analyzeMusicDNA, MusicDNA } from '@/services/musicDnaService';
-import { ProfileService } from '@/services/profileService';
+import { ProfileService, ProfileImageError } from '@/services/profileService';
 import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
@@ -21,7 +21,11 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [musicDNA, setMusicDNA] = useState<MusicDNA | null>(null);
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<{ message: string; code: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [retryFile, setRetryFile] = useState<File | null>(null);
 
   const formatJoinDate = (date: string) => {
     const joinDate = new Date(date);
@@ -34,39 +38,129 @@ export default function ProfilePage() {
     }
   };
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-
-    // 파일 크기 체크 (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('이미지 크기는 5MB 이하여야 합니다.');
-      return;
-    }
-
-    // 파일 타입 체크
-    if (!file.type.startsWith('image/')) {
-      toast.error('이미지 파일만 업로드 가능합니다.');
-      return;
-    }
+  const uploadImage = async (file: File) => {
+    if (!user) return;
 
     setUploadingImage(true);
+    setUploadProgress(0);
+    setLastError(null);
+    setRetryFile(file);
+
+    // 미리보기 생성
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // 진행 상태 토스트
+    const progressToast = toast.loading('이미지 업로드 중...', {
+      duration: Infinity,
+    });
+
     try {
-      // 이미지 업로드
-      const imageUrl = await ProfileService.uploadProfileImage(user.id, file);
+      // 이미지 업로드 (자동 압축 포함)
+      const imageUrl = await ProfileService.uploadProfileImage(user.id, file, {
+        autoCompress: true,
+        onProgress: (progress) => {
+          setUploadProgress(progress);
+          if (progress === 20) {
+            toast.loading('이미지 압축 중... 🔄', { id: progressToast });
+          } else if (progress === 50) {
+            toast.loading('업로드 중... ☁️', { id: progressToast });
+          } else if (progress === 80) {
+            toast.loading('거의 완료... ✨', { id: progressToast });
+          }
+        }
+      });
       
       // 프로필 업데이트
       await ProfileService.updateProfileImage(user.id, imageUrl);
       
       // 로컬 상태 업데이트
       setUser({ ...user, profileImage: imageUrl });
+      setImagePreview(null);
+      setRetryFile(null);
       
-      toast.success('프로필 이미지가 업데이트되었습니다!');
+      toast.success('프로필 이미지가 업데이트되었습니다! 🎉', { id: progressToast });
     } catch (error) {
       console.error('Failed to upload image:', error);
-      toast.error('이미지 업로드에 실패했습니다.');
+      
+      if (error instanceof ProfileImageError) {
+        setLastError({ message: error.message, code: error.code });
+        
+        // 에러 타입별 토스트 알림
+        const errorMessages: { [key: string]: { emoji: string; duration: number } } = {
+          'INVALID_FILE_TYPE': { emoji: '⚠️', duration: 5000 },
+          'FILE_TOO_LARGE': { emoji: '📦', duration: 5000 },
+          'FILE_TOO_LARGE_COMPRESS_FAILED': { emoji: '🗜️', duration: 6000 },
+          'NETWORK_ERROR': { emoji: '📡', duration: 5000 },
+          'UNAUTHORIZED': { emoji: '🔒', duration: 5000 },
+          'STORAGE_NOT_FOUND': { emoji: '❌', duration: 6000 },
+          'PAYLOAD_TOO_LARGE': { emoji: '📦', duration: 5000 },
+        };
+        
+        const errorConfig = errorMessages[error.code] || { emoji: '❌', duration: 5000 };
+        
+        toast.error(
+          <div>
+            <div className="font-semibold mb-1">{errorConfig.emoji} 업로드 실패</div>
+            <div className="text-sm whitespace-pre-line">{error.message}</div>
+            {['NETWORK_ERROR', 'UNKNOWN_ERROR'].includes(error.code) && (
+              <button 
+                onClick={() => {
+                  toast.dismiss();
+                  if (retryFile) uploadImage(retryFile);
+                }}
+                className="mt-2 text-xs text-sk4-orange font-semibold underline"
+              >
+                다시 시도
+              </button>
+            )}
+          </div>,
+          { 
+            id: progressToast,
+            duration: errorConfig.duration,
+          }
+        );
+      } else {
+        setLastError({ 
+          message: '알 수 없는 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.', 
+          code: 'UNKNOWN' 
+        });
+        toast.error('이미지 업로드에 실패했습니다. 다시 시도해주세요.', { id: progressToast });
+      }
+      
+      setImagePreview(null);
     } finally {
       setUploadingImage(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // 기본 파일 타입 체크
+    if (!file.type.startsWith('image/')) {
+      toast.error('이미지 파일만 업로드 가능합니다. 🖼️');
+      return;
+    }
+
+    await uploadImage(file);
+    
+    // input 리셋
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRetry = () => {
+    if (retryFile) {
+      uploadImage(retryFile);
+    } else if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
@@ -177,29 +271,60 @@ export default function ProfilePage() {
           <div className="text-center space-y-sk4-md">
             <div className="relative inline-block group">
               <img 
-                src={(user?.profileImage) || '/default-avatar.png'} 
+                src={imagePreview || user?.profileImage || '/default-avatar.png'} 
                 alt={(user?.nickname) || 'user'}
-                className="w-24 h-24 rounded-full border-4 border-sk4-light-gray shadow-sk4-medium object-cover"
+                className={`w-24 h-24 rounded-full border-4 border-sk4-light-gray shadow-sk4-medium object-cover transition-all duration-300 ${
+                  uploadingImage ? 'blur-sm' : ''
+                }`}
               />
               
+              {/* 업로드 진행 상황 */}
+              {uploadingImage && (
+                <div className="absolute inset-0 w-24 h-24 rounded-full bg-black/60 flex flex-col items-center justify-center">
+                  <div className="relative w-16 h-16">
+                    {/* 진행 원형 */}
+                    <svg className="w-16 h-16 transform -rotate-90">
+                      <circle
+                        cx="32"
+                        cy="32"
+                        r="28"
+                        stroke="white"
+                        strokeWidth="3"
+                        fill="none"
+                        opacity="0.3"
+                      />
+                      <circle
+                        cx="32"
+                        cy="32"
+                        r="28"
+                        stroke="white"
+                        strokeWidth="3"
+                        fill="none"
+                        strokeDasharray={`${2 * Math.PI * 28}`}
+                        strokeDashoffset={`${2 * Math.PI * 28 * (1 - uploadProgress / 100)}`}
+                        className="transition-all duration-300"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">{uploadProgress}%</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* 이미지 업로드 버튼 (로그인 시에만 표시) */}
-              {user && (
+              {user && !uploadingImage && (
                 <>
                   <button
                     onClick={handleImageClick}
-                    disabled={uploadingImage}
-                    className="absolute inset-0 w-24 h-24 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+                    className="absolute inset-0 w-24 h-24 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer"
                   >
-                    {uploadingImage ? (
-                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <Camera className="w-6 h-6 text-white" />
-                    )}
+                    <Camera className="w-6 h-6 text-white" />
                   </button>
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                     onChange={handleImageChange}
                     className="hidden"
                   />
@@ -207,6 +332,18 @@ export default function ProfilePage() {
                     Active
                   </div>
                 </>
+              )}
+              
+              {/* 에러 상태 */}
+              {lastError && !uploadingImage && (
+                <button
+                  onClick={handleRetry}
+                  className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-sk4-soft flex items-center gap-1 transition-colors"
+                  title={lastError.message}
+                >
+                  <span>재시도</span>
+                  <span>🔄</span>
+                </button>
               )}
             </div>
             
