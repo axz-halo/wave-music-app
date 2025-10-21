@@ -133,7 +133,12 @@ export class ProfileService {
 
       if (error) {
         // Supabase 에러 코드별 처리
-        if (error.message.includes('storage/object-not-found')) {
+        if (error.message.includes('Bucket not found') || error.message.includes('bucket_id')) {
+          throw new ProfileImageError(
+            'Storage 설정이 완료되지 않았습니다.\n\n해결 방법:\n1. Supabase Dashboard > Storage 메뉴\n2. "avatars" 버킷 생성 (Public 체크)\n3. 업로드 정책 설정 후 재시도',
+            'BUCKET_NOT_FOUND'
+          );
+        } else if (error.message.includes('storage/object-not-found')) {
           throw new ProfileImageError(
             'Storage 버킷을 찾을 수 없습니다.\n관리자에게 문의해주세요.',
             'STORAGE_NOT_FOUND'

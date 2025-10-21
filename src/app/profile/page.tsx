@@ -96,6 +96,7 @@ export default function ProfilePage() {
           'FILE_TOO_LARGE_COMPRESS_FAILED': { emoji: '🗜️', duration: 6000 },
           'NETWORK_ERROR': { emoji: '📡', duration: 5000 },
           'UNAUTHORIZED': { emoji: '🔒', duration: 5000 },
+          'BUCKET_NOT_FOUND': { emoji: '🗂️', duration: 10000 },
           'STORAGE_NOT_FOUND': { emoji: '❌', duration: 6000 },
           'PAYLOAD_TOO_LARGE': { emoji: '📦', duration: 5000 },
         };
