@@ -7,6 +7,7 @@ import { X, Send, Trash2 } from 'lucide-react';
 import supabase from '@/lib/supabaseClient';
 import { ensureSignedIn, getCurrentSession } from '@/lib/authSupa';
 import { AnalyticsService } from '@/services/analyticsService';
+import { IMAGE_URLS } from '@/lib/constants';
 import toast from 'react-hot-toast';
 
 interface CommentDoc {
@@ -201,7 +202,7 @@ export default function CommentSheet({ isOpen, onClose, waveId, onAfterSubmit }:
                 >
                   {/* Avatar */}
                   <img
-                    src={comment.user_image || '/default-avatar.png'}
+                    src={comment.user_image || IMAGE_URLS.DEFAULT_AVATAR(comment.user_nickname)}
                     alt={comment.user_nickname}
                     className="w-9 h-9 rounded-full flex-shrink-0 object-cover ring-2 ring-white shadow-sm"
                   />

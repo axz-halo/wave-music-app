@@ -8,6 +8,7 @@ import supabase from '@/lib/supabaseClient';
 import { ProfileCardSkeleton, StatsCardSkeleton, ListSkeleton } from '@/components/common/SkeletonCard';
 import { analyzeMusicDNA, MusicDNA } from '@/services/musicDnaService';
 import { ProfileService, ProfileImageError } from '@/services/profileService';
+import { IMAGE_URLS } from '@/lib/constants';
 import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
@@ -78,7 +79,7 @@ export default function ProfilePage() {
       await ProfileService.updateProfileImage(user.id, imageUrl);
       
       // 로컬 상태 업데이트
-      setUser({ ...user, profileImage: imageUrl });
+      setUser({ ...user, profileImage: imageUrl, avatar_url: imageUrl });
       setImagePreview(null);
       setRetryFile(null);
       
@@ -199,7 +200,7 @@ export default function ProfilePage() {
               track: { 
                 title: w.track_info?.title || 'Unknown',
                 artist: w.track_info?.artist || 'Unknown',
-                thumbnailUrl: w.track_info?.thumbnailUrl || '/placeholder.png'
+                thumbnailUrl: w.track_info?.thumbnailUrl || IMAGE_URLS.DEFAULT_PLAYLIST
               }, 
               comment: w.comment || '',
               moodEmoji: w.mood_emoji, 
@@ -272,7 +273,7 @@ export default function ProfilePage() {
           <div className="text-center space-y-sk4-md">
             <div className="relative inline-block group">
               <img 
-                src={imagePreview || user?.profileImage || '/default-avatar.png'} 
+                src={imagePreview || user?.profileImage || user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.nickname || 'User')}&background=FF6B35&color=fff&size=200`} 
                 alt={(user?.nickname) || 'user'}
                 className={`w-24 h-24 rounded-full border-4 border-sk4-light-gray shadow-sk4-medium object-cover transition-all duration-300 ${
                   uploadingImage ? 'blur-sm' : ''

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Heart, MessageCircle, Bookmark, Share, Play, Trash2 } from 'lucide-react';
 import { Wave } from '@/types';
+import { IMAGE_URLS } from '@/lib/constants';
 import LPRecord from '@/components/music/LPRecord';
 
 interface WaveCardProps {
@@ -106,7 +107,7 @@ export default function WaveCard({
       <div className="flex items-center space-x-sk4-sm mb-sk4-md relative z-10">
         <div className="relative">
           <img
-            src={wave.user.profileImage || '/default-avatar.png'}
+            src={wave.user.profileImage || IMAGE_URLS.DEFAULT_AVATAR(wave.user.nickname)}
             alt={wave.user.nickname}
             className="w-9 h-9 rounded-full border-2 border-sk4-light-gray group-hover:border-sk4-orange transition-all duration-300 group-hover:scale-110"
           />

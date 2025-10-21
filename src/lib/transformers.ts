@@ -1,6 +1,7 @@
 import { Wave, User, TrackInfo } from '@/types';
 import { WaveData } from '@/services/waveService';
 import { AuthService } from '@/services/authService';
+import { IMAGE_URLS } from '@/lib/constants';
 
 /**
  * Transform raw wave data from database to Wave type
@@ -30,7 +31,7 @@ export function transformSingleWave(
   const defaultUser: User = {
     id: wave.user_id || '00000000-0000-0000-0000-000000000000',
     nickname: '사용자',
-    profileImage: '/default-avatar.png',
+    profileImage: IMAGE_URLS.DEFAULT_AVATAR('Unknown'),
     email: '',
     followers: 0,
     following: 0,

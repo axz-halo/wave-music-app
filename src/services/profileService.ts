@@ -215,8 +215,8 @@ export class ProfileService {
 
     try {
       const { error } = await supabase
-        .from('users')
-        .update({ profile_image: imageUrl })
+        .from('profiles')
+        .update({ avatar_url: imageUrl })
         .eq('id', userId);
 
       if (error) {
@@ -233,7 +233,7 @@ export class ProfileService {
    */
   static async updateProfile(userId: string, data: {
     nickname?: string;
-    profile_image?: string;
+    avatar_url?: string;
   }): Promise<void> {
     if (!supabase) {
       throw new Error('Supabase client not initialized');
@@ -241,7 +241,7 @@ export class ProfileService {
 
     try {
       const { error } = await supabase
-        .from('users')
+        .from('profiles')
         .update(data)
         .eq('id', userId);
 

@@ -9,6 +9,7 @@ import LPRecord from '@/components/music/LPRecord';
 import CommentSheet from '@/components/wave/CommentSheet';
 import { WaveService } from '@/services/waveService';
 import { ensureSignedIn } from '@/lib/authSupa';
+import { IMAGE_URLS } from '@/lib/constants';
 import toast from 'react-hot-toast';
 
 export default function WaveDetailPage() {
@@ -60,7 +61,7 @@ export default function WaveDetailPage() {
             user: {
               id: waveData.user_id,
               nickname: waveData.user?.nickname || '익명',
-              profileImage: waveData.user?.avatar_url || '/default-avatar.png',
+              profileImage: waveData.user?.avatar_url || IMAGE_URLS.DEFAULT_AVATAR(waveData.user?.nickname || 'User'),
               followers: 0,
               following: 0,
               createdAt: new Date().toISOString(),

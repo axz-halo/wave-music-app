@@ -156,3 +156,4 @@ AFTER INSERT OR DELETE ON wave_comments
 FOR EACH ROW EXECUTE FUNCTION update_wave_comments_count();
 
 
+

@@ -11,6 +11,7 @@ import TrackToWaveModal from '@/components/station/TrackToWaveModal';
 import StationCommentSheet from '@/components/station/StationCommentSheet';
 import { WaveService } from '@/services/waveService';
 import { StationService, StationTrack } from '@/services/stationService';
+import { IMAGE_URLS } from '@/lib/constants';
 import { Heart, MessageCircle, Share2 } from 'lucide-react';
 
 export default function StationDetailPage() {
@@ -186,7 +187,7 @@ export default function StationDetailPage() {
               {/* 사용자 정보 */}
               <div className="flex items-center space-x-2 mb-3">
                 <img
-                  src={playlist.creator.avatar_url || '/default-avatar.png'}
+                  src={playlist.creator.avatar_url || IMAGE_URLS.DEFAULT_AVATAR(playlist.creator.nickname || 'Creator')}
                   alt={playlist.creator.nickname}
                   className="w-6 h-6 rounded-full border border-gray-200"
                 />
@@ -197,7 +198,7 @@ export default function StationDetailPage() {
               {playlist.channelInfo && (
                 <div className="flex items-center space-x-2 mb-4">
                   <img
-                    src={playlist.channelInfo.profileImageUrl || '/default-avatar.png'}
+                    src={playlist.channelInfo.profileImageUrl || IMAGE_URLS.DEFAULT_AVATAR(playlist.channelInfo.channelName || 'Channel')}
                     alt={playlist.channelInfo.name}
                     className="w-6 h-6 rounded-full border border-gray-200"
                   />

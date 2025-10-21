@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Heart, MessageCircle, Share, Music, Play } from 'lucide-react';
 import { Station } from '@/types';
+import { IMAGE_URLS } from '@/lib/constants';
 import Link from 'next/link';
 
 interface StationFeedCardProps {
@@ -86,7 +87,7 @@ export default function StationFeedCard({
       <div className="flex items-center space-x-sk4-sm mb-sk4-md relative z-10">
         <div className="relative">
           <img
-            src={station.user.profileImage || '/default-avatar.png'}
+            src={station.user.profileImage || IMAGE_URLS.DEFAULT_AVATAR(station.user.nickname)}
             alt={station.user.nickname}
             className="w-9 h-9 rounded-full border-2 border-sk4-light-gray group-hover:border-sk4-orange transition-all duration-300 group-hover:scale-110"
           />

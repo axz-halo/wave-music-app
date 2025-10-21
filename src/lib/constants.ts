@@ -12,8 +12,9 @@ export const API_CONFIG = {
 
 // Image URLs
 export const IMAGE_URLS = {
-  DEFAULT_AVATAR: '/default-avatar.png',
-  DEFAULT_PLAYLIST: '/placeholder.png',
+  DEFAULT_AVATAR: (name: string = 'User') => 
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=FF6B35&color=fff&size=200`,
+  DEFAULT_PLAYLIST: 'https://via.placeholder.com/400x400/FF6B35/FFFFFF?text=Playlist',
   YOUTUBE_THUMBNAIL: (videoId: string, size = 'mqdefault') => 
     `https://img.youtube.com/vi/${videoId}/${size}.jpg`,
 } as const;

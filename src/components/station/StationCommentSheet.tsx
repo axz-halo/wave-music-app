@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, Send, Trash2 } from 'lucide-react';
 import { StationService } from '@/services/stationService';
+import { IMAGE_URLS } from '@/lib/constants';
 import toast from 'react-hot-toast';
 
 interface StationCommentSheetProps {
@@ -157,7 +158,7 @@ export default function StationCommentSheet({
             comments.map((comment) => (
               <div key={comment.id} className="flex space-x-sk4-sm group">
                 <img
-                  src={comment.user.profileImage || '/default-avatar.png'}
+                  src={comment.user.profileImage || IMAGE_URLS.DEFAULT_AVATAR(comment.user.nickname)}
                   alt={comment.user.nickname}
                   className="w-8 h-8 rounded-full flex-shrink-0"
                 />

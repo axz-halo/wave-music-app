@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import PlaylistCard from '@/components/station/PlaylistCard';
+import { IMAGE_URLS } from '@/lib/constants';
 import Navigation from '@/components/layout/Navigation';
 
 export default function ChannelDetailPage() {
@@ -33,7 +34,7 @@ export default function ChannelDetailPage() {
 
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center space-x-4">
-          <img src={meta?.thumb?.medium?.url || meta?.thumb?.default?.url || '/default-avatar.png'} alt={meta?.title || ''} className="w-20 h-20 rounded-full object-cover" />
+          <img src={meta?.thumb?.medium?.url || meta?.thumb?.default?.url || IMAGE_URLS.DEFAULT_AVATAR(meta?.title || 'Channel')} alt={meta?.title || ''} className="w-20 h-20 rounded-full object-cover" />
           <div>
             <h2 className="text-xl font-semibold text-gray-900">{meta?.title || '채널'}</h2>
             <div className="mt-2 flex items-center gap-2 text-xs">

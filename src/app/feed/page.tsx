@@ -29,7 +29,7 @@ import { WaveService } from '@/services/waveService';
 
 // Types & Constants
 import { TrackInfo, Wave } from '@/types';
-import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/lib/constants';
+import { SUCCESS_MESSAGES, ERROR_MESSAGES, IMAGE_URLS } from '@/lib/constants';
 import { dummyPlaylists, dummyTracks } from '@/lib/dummy-data';
 
 export default function FeedPage() {
@@ -250,7 +250,7 @@ export default function FeedPage() {
       creator: {
         id: '1',
         nickname: '나',
-        profileImage: '/default-avatar.png',
+        profileImage: IMAGE_URLS.DEFAULT_AVATAR('Anonymous'),
         followers: 0,
         following: 0,
         createdAt: new Date().toISOString(),
