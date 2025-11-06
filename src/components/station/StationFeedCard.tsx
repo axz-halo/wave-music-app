@@ -9,6 +9,7 @@ import Link from 'next/link';
 interface StationFeedCardProps {
   station: Station;
   isLiked?: boolean; // 서버에서 받은 좋아요 상태
+  currentUserId?: string | null; // 현재 사용자 ID (소유자 확인용)
   onLike?: (stationId: string) => Promise<{ isLiked: boolean; likeCount: number }>;
   onComment?: (stationId: string) => void;
   onShare?: (stationId: string) => void;
@@ -17,10 +18,13 @@ interface StationFeedCardProps {
 export default function StationFeedCard({ 
   station, 
   isLiked: initialIsLiked = false,
+  currentUserId,
   onLike, 
   onComment, 
   onShare 
 }: StationFeedCardProps) {
+  // Check if current user is the owner
+  const isOwner = currentUserId && station.user?.id === currentUserId;
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [likeCount, setLikeCount] = useState(station.likes || 0);
   const [commentCount, setCommentCount] = useState(station.comments || 0);
@@ -158,12 +162,16 @@ export default function StationFeedCard({
           </button>
         </div>
 
-        <button
-          onClick={() => onShare?.(station.id)}
-          className="p-2 rounded-sk4-soft text-sk4-medium-gray hover:bg-sk4-light-gray hover:text-sk4-orange transition-all duration-300"
-        >
-          <Share className="w-4 h-4" />
-        </button>
+        {/* Share button - only show for owner (to unshare) */}
+        {isOwner && onShare && (
+          <button
+            onClick={() => onShare(station.id)}
+            className="p-2 rounded-sk4-soft text-sk4-medium-gray hover:bg-sk4-light-gray hover:text-sk4-orange transition-all duration-300"
+            title="공유 취소"
+          >
+            <Share className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );

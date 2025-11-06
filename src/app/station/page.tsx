@@ -8,13 +8,15 @@ import toast from 'react-hot-toast';
 import Navigation from '@/components/layout/Navigation';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorMessage from '@/components/common/ErrorMessage';
+import TrackToWaveModal from '@/components/station/TrackToWaveModal';
 
 // Hooks
 import { useStations } from '@/hooks/useStations';
 import { useAuth } from '@/hooks/useAuth';
 
 // Services & Utils
-import { StationService, StationPlaylist } from '@/services/stationService';
+import { StationService, StationPlaylist, StationTrack } from '@/services/stationService';
+import { WaveService } from '@/services/waveService';
 import { parseYouTubeId, parseYouTubePlaylistId } from '@/lib/youtube';
 import { formatNumber } from '@/lib/transformers';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/lib/constants';
@@ -33,7 +35,7 @@ interface PreviewData {
 
 export default function StationPage() {
   const { playlists, isLoading, error, refreshPlaylists } = useStations();
-  const { ensureAuth } = useAuth();
+  const { ensureAuth, user } = useAuth();
 
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState<StationPlaylist | null>(null);
@@ -45,6 +47,13 @@ export default function StationPage() {
   const [uploadProgress, setUploadProgress] = useState<string>('');
   const [sharingStationId, setSharingStationId] = useState<string | null>(null);
   const [deletingStationId, setDeletingStationId] = useState<string | null>(null);
+  const [isWaveModalOpen, setIsWaveModalOpen] = useState(false);
+  const [selectedTrackForWave, setSelectedTrackForWave] = useState<StationTrack | null>(null);
+
+  // Helper function to check if current user is the owner
+  const isOwner = useCallback((playlist: StationPlaylist) => {
+    return user?.id && playlist.user_id === user.id;
+  }, [user]);
 
   const detectUrlType = useCallback((url: string) => {
     if (!url.trim()) {
@@ -262,6 +271,21 @@ export default function StationPage() {
     setSelectedPlaylist(null);
   }, []);
 
+  const handleCreateWaveFromTrack = useCallback(async (waveData: any) => {
+    try {
+      const u = await ensureAuth();
+      if (!u) return;
+
+      await WaveService.createWave(u.id, waveData);
+      toast.success('Wave가 생성되었습니다!');
+      setIsWaveModalOpen(false);
+      setSelectedTrackForWave(null);
+    } catch (error) {
+      console.error('Failed to create wave:', error);
+      toast.error('Wave 생성에 실패했습니다');
+    }
+  }, [ensureAuth]);
+
   if (error) {
     return (
       <div className="min-h-screen bg-sk4-off-white pb-20 lg:pb-0 lg:ml-56">
@@ -414,66 +438,68 @@ export default function StationPage() {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="mt-sk4-sm pt-sk4-sm border-t border-sk4-gray space-y-2">
-                    {/* Share Button */}
-                    {playlist.is_shared ? (
-                      <button
-                        onClick={(e) => handleUnshareStation(e, playlist.id)}
-                        disabled={sharingStationId === playlist.id}
-                        className="w-full px-3 py-2 text-xs rounded-lg border border-sk4-gray bg-sk4-light-gray hover:bg-sk4-gray text-sk4-dark-gray transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
-                      >
-                        {sharingStationId === playlist.id ? (
-                          <>
-                            <div className="w-3 h-3 border-2 border-sk4-dark-gray border-t-transparent rounded-full animate-spin" />
-                            <span>처리 중...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Share2 className="w-3 h-3" />
-                            <span>공유 취소</span>
-                          </>
-                        )}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={(e) => handleShareStation(e, playlist.id)}
-                        disabled={sharingStationId === playlist.id}
-                        className="w-full px-3 py-2 text-xs rounded-lg bg-sk4-orange text-white hover:bg-sk4-orange-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
-                      >
-                        {sharingStationId === playlist.id ? (
-                          <>
-                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            <span>공유 중...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Share2 className="w-3 h-3" />
-                            <span>Feed에 공유</span>
-                          </>
-                        )}
-                      </button>
-                    )}
-                    
-                    {/* Delete Button */}
-                    <button
-                      onClick={(e) => handleDeleteStation(e, playlist.id)}
-                      disabled={deletingStationId === playlist.id}
-                      className="w-full px-3 py-2 text-xs rounded-lg border border-red-300 bg-red-50 hover:bg-red-100 text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
-                    >
-                      {deletingStationId === playlist.id ? (
-                        <>
-                          <div className="w-3 h-3 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                          <span>삭제 중...</span>
-                        </>
+                  {/* Action Buttons - Only show for owner */}
+                  {isOwner(playlist) && (
+                    <div className="mt-sk4-sm pt-sk4-sm border-t border-sk4-gray space-y-2">
+                      {/* Share Button */}
+                      {playlist.is_shared ? (
+                        <button
+                          onClick={(e) => handleUnshareStation(e, playlist.id)}
+                          disabled={sharingStationId === playlist.id}
+                          className="w-full px-3 py-2 text-xs rounded-lg border border-sk4-gray bg-sk4-light-gray hover:bg-sk4-gray text-sk4-dark-gray transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
+                        >
+                          {sharingStationId === playlist.id ? (
+                            <>
+                              <div className="w-3 h-3 border-2 border-sk4-dark-gray border-t-transparent rounded-full animate-spin" />
+                              <span>처리 중...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Share2 className="w-3 h-3" />
+                              <span>공유 취소</span>
+                            </>
+                          )}
+                        </button>
                       ) : (
-                        <>
-                          <Trash2 className="w-3 h-3" />
-                          <span>삭제</span>
-                        </>
+                        <button
+                          onClick={(e) => handleShareStation(e, playlist.id)}
+                          disabled={sharingStationId === playlist.id}
+                          className="w-full px-3 py-2 text-xs rounded-lg bg-sk4-orange text-white hover:bg-sk4-orange-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
+                        >
+                          {sharingStationId === playlist.id ? (
+                            <>
+                              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              <span>공유 중...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Share2 className="w-3 h-3" />
+                              <span>Feed에 공유</span>
+                            </>
+                          )}
+                        </button>
                       )}
-                    </button>
-                  </div>
+                      
+                      {/* Delete Button */}
+                      <button
+                        onClick={(e) => handleDeleteStation(e, playlist.id)}
+                        disabled={deletingStationId === playlist.id}
+                        className="w-full px-3 py-2 text-xs rounded-lg border border-red-300 bg-red-50 hover:bg-red-100 text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
+                      >
+                        {deletingStationId === playlist.id ? (
+                          <>
+                            <div className="w-3 h-3 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                            <span>삭제 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="w-3 h-3" />
+                            <span>삭제</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
                 ))}
               </div>
@@ -727,31 +753,50 @@ export default function StationPage() {
                             '--:--'
                           }
                         </span>
-                        {track.youtube_url && (
-                          <>
-                            {track.youtube_url.includes('/results?') ? (
-                              <a
-                                href={track.youtube_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 hover:bg-sk4-orange hover:text-white rounded-full transition-all duration-200"
-                                title="YouTube에서 검색"
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                              </a>
-                            ) : (
-                              <a
-                                href={track.youtube_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 bg-sk4-orange text-white hover:bg-sk4-orange-dark rounded-full transition-all duration-200"
-                                title="YouTube에서 재생"
-                              >
-                                <Play className="w-4 h-4" fill="white" />
-                              </a>
-                            )}
-                          </>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedTrackForWave({
+                                id: track.id,
+                                title: track.title,
+                                artist: track.artist,
+                                thumbnail_url: track.thumbnail_url || `https://img.youtube.com/vi/${track.id}/mqdefault.jpg`,
+                                duration: track.duration || 0,
+                                youtube_url: track.youtube_url,
+                              });
+                              setIsWaveModalOpen(true);
+                            }}
+                            className="px-3 py-1.5 text-xs rounded-lg bg-sk4-orange text-white hover:bg-sk4-orange-dark transition-colors whitespace-nowrap"
+                            title="Wave로 공유"
+                          >
+                            Wave로 공유
+                          </button>
+                          {track.youtube_url && (
+                            <>
+                              {track.youtube_url.includes('/results?') ? (
+                                <a
+                                  href={track.youtube_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-2 hover:bg-sk4-orange hover:text-white rounded-full transition-all duration-200"
+                                  title="YouTube에서 검색"
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                </a>
+                              ) : (
+                                <a
+                                  href={track.youtube_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-2 bg-sk4-orange text-white hover:bg-sk4-orange-dark rounded-full transition-all duration-200"
+                                  title="YouTube에서 재생"
+                                >
+                                  <Play className="w-4 h-4" fill="white" />
+                                </a>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -761,6 +806,17 @@ export default function StationPage() {
           </div>
         </div>
       )}
+
+      {/* Track to Wave Modal */}
+      <TrackToWaveModal 
+        isOpen={isWaveModalOpen}
+        onClose={() => {
+          setIsWaveModalOpen(false);
+          setSelectedTrackForWave(null);
+        }}
+        track={selectedTrackForWave}
+        onSubmit={handleCreateWaveFromTrack}
+      />
     </>
   );
 }
