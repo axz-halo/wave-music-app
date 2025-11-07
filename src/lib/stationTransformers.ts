@@ -39,6 +39,7 @@ export function transformStationPlaylist(playlist: StationPlaylist): Station {
   // Station 객체 생성
   const station: Station = {
     id: playlist.id,
+    slug: playlist.slug,
     title: playlist.title,
     description: playlist.description,
     user,

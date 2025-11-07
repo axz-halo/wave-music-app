@@ -48,6 +48,7 @@ export interface Wave {
 
 export interface Playlist {
   id: string;
+  slug?: string;
   title: string;
   description?: string;
   creator: User;
@@ -65,6 +66,7 @@ export interface Playlist {
 // Station (공유 가능한 플레이리스트)
 export interface Station {
   id: string;
+  slug: string;
   title: string;
   description?: string;
   user: User;

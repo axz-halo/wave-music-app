@@ -5,7 +5,7 @@ import { Playlist } from '@/types';
 
 export default function PlaylistCard({ playlist, variant = 'grid' }: { playlist: Playlist; variant?: 'grid' | 'carousel' }) {
   return (
-    <Link href={`/station/${playlist.id}`} className="block h-full">
+    <Link href={`/station/${playlist.slug ?? playlist.id}`} className="block h-full">
       <div className={`bg-sk4-white border border-sk4-gray p-3 sk4-interactive h-full flex flex-col sk4-slide-in`}> 
         <div className={`${variant==='carousel' ? 'w-full h-[120px] sm:h-[140px]' : 'aspect-square w-full'} overflow-hidden mb-3`}>
           <img src={playlist.thumbnailUrl} alt={playlist.title} className="w-full h-full object-cover" />

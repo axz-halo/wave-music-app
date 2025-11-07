@@ -104,7 +104,7 @@ export default function StationFeedCard({
       </div>
 
       {/* Station Info */}
-      <Link href={`/station/${station.id}`} className="flex items-center space-x-sk4-md mb-sk4-md cursor-pointer relative z-10 group/link">
+      <Link href={`/station/${station.slug ?? station.id}`} className="flex items-center space-x-sk4-md mb-sk4-md cursor-pointer relative z-10 group/link">
         <div className="relative">
           <img
             src={station.thumbnailUrl || '/placeholder.png'}

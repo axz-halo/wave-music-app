@@ -18,6 +18,7 @@ export default function StationDetailPage() {
   const params = useParams();
   const id = Array.isArray(params?.id) ? params?.id[0] : (params?.id as string);
   const [playlist, setPlaylist] = useState<any>(() => dummyPlaylists.find(p => p.id === id) || dummyPlaylists[0]);
+  const [stationId, setStationId] = useState<string>(id);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [isWaveModalOpen, setIsWaveModalOpen] = useState(false);
   const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
@@ -36,20 +37,29 @@ export default function StationDetailPage() {
       setCurrentUserId(userId);
 
       // station_playlists 테이블에서 데이터 가져오기
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('station_playlists')
         .select('*')
-        .eq('id', id)
-        .maybeSingle();
+        .or(`id.eq.${id},slug.eq.${id}`)
+        .limit(1);
 
-      if (data) {
+      if (error) {
+        console.error('Error fetching station:', error);
+        toast.error('Station 정보를 불러오지 못했습니다.');
+        return;
+      }
+
+      const record = data?.[0];
+
+      if (record) {
+        setStationId(record.id);
         // 사용자 정보 가져오기
         let creator = { nickname: '사용자', avatar_url: null };
         try {
           const { data: userData } = await supabase
             .from('profiles')
             .select('nickname, avatar_url')
-            .eq('id', data.user_id)
+            .eq('id', record.user_id)
             .single();
           if (userData) {
             creator = userData;
@@ -59,16 +69,16 @@ export default function StationDetailPage() {
         }
 
         const p = {
-          id: data.id,
-          title: data.title,
-          description: data.description || '',
+          id: record.id,
+          title: record.title,
+          description: record.description || '',
           creator: creator,
-          tracks: data.tracks || [],
-          thumbnailUrl: data.thumbnail_url,
-          channelTitle: data.channel_title,
-          channelInfo: data.channel_info,
-          likes: data.likes || 0,
-          comments: data.comments || 0,
+          tracks: record.tracks || [],
+          thumbnailUrl: record.thumbnail_url,
+          channelTitle: record.channel_title,
+          channelInfo: record.channel_info,
+          likes: record.likes || 0,
+          comments: record.comments || 0,
           saves: 0,
           plays: 0,
         } as any;
@@ -81,12 +91,12 @@ export default function StationDetailPage() {
         });
         
         setPlaylist(p);
-        setLikeCount(data.likes || 0);
-        setCommentCount(data.comments || 0);
+        setLikeCount(record.likes || 0);
+        setCommentCount(record.comments || 0);
 
         // Check if user liked this station
         if (userId) {
-          const liked = await StationService.checkLikeStatus(id, userId);
+          const liked = await StationService.checkLikeStatus(record.id, userId);
           setIsLiked(liked);
         }
       }
@@ -114,7 +124,7 @@ export default function StationDetailPage() {
       const u = await ensureSignedIn();
       if (!u) return;
 
-      const result = await StationService.toggleLike(id, u.id);
+      const result = await StationService.toggleLike(stationId, u.id);
       setIsLiked(result.isLiked);
       setLikeCount(result.likeCount);
       toast.success(result.isLiked ? '좋아요!' : '좋아요 취소');
@@ -130,7 +140,7 @@ export default function StationDetailPage() {
     const { data } = await supabase
       .from('station_playlists')
       .select('comments')
-      .eq('id', id)
+      .eq('id', stationId)
       .single();
     
     if (data) {
@@ -337,7 +347,7 @@ export default function StationDetailPage() {
     <StationCommentSheet
       isOpen={isCommentSheetOpen}
       onClose={() => setIsCommentSheetOpen(false)}
-      stationId={id}
+      stationId={stationId}
       onAfterSubmit={handleCommentAfterSubmit}
     />
     </>

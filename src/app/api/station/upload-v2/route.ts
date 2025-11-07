@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { parseYouTubePlaylistId, parseYouTubeId } from '@/lib/youtube';
+import { slugify, withRandomSuffix } from '@/lib/slug';
 
 const YT_API_KEY = process.env.YT_API_KEY || 'AIzaSyCs23HnOg6r7VmpD_hEPqOr4wkx80hYmEg';
 
@@ -246,6 +247,8 @@ async function handlePlaylistUpload(url: string, userId: string, supabaseAdmin: 
     }
 
     // Save to database
+    const slug = await generateUniqueStationSlug(supabaseAdmin, metadata.title);
+
     const playlistData = {
       playlist_id: playlistId,
       title: metadata.title,
@@ -255,7 +258,8 @@ async function handlePlaylistUpload(url: string, userId: string, supabaseAdmin: 
       channel_id: metadata.channelId,
       channel_info: metadata.channelInfo,
       tracks: tracks,
-      user_id: userId
+      user_id: userId,
+      slug
     };
 
     const { data, error } = await supabaseAdmin
@@ -319,6 +323,8 @@ async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any
       const tracksWithLinks = await searchYouTubeForTracks(tracklist);
       console.log(`✅ [Video] Added links to ${tracksWithLinks.length} tracks`);
 
+      const slug = await generateUniqueStationSlug(supabaseAdmin, videoDetails.title);
+
       const playlistData = {
         playlist_id: `tracklist_${videoId}`,
         title: videoDetails.title,
@@ -328,7 +334,8 @@ async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any
         channel_id: videoDetails.channelId,
         channel_info: videoDetails.channelInfo,
         tracks: tracksWithLinks,
-        user_id: userId
+        user_id: userId,
+        slug
       };
 
       const { data, error } = await supabaseAdmin
@@ -394,6 +401,8 @@ async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any
         }
       }
 
+      const slug = await generateUniqueStationSlug(supabaseAdmin, videoDetails.title);
+
       const playlistData = {
         playlist_id: `video_${videoId}`,
         title: videoDetails.title,
@@ -403,7 +412,8 @@ async function handleVideoUpload(url: string, userId: string, supabaseAdmin: any
         channel_id: videoDetails.channelId,
         channel_info: videoDetails.channelInfo,
         tracks: tracks,
-        user_id: userId
+        user_id: userId,
+        slug
       };
 
       const { data, error } = await supabaseAdmin
@@ -489,6 +499,34 @@ async function fetchAllPlaylistItems(playlistId: string) {
   } while (nextPageToken && page < maxPages);
 
   return allItems;
+}
+
+async function generateUniqueStationSlug(supabaseAdmin: any, title: string): Promise<string> {
+  const baseSlug = slugify(title || 'station');
+  let candidate = baseSlug;
+  let attempt = 0;
+
+  while (attempt < 6) {
+    const { data, error } = await supabaseAdmin
+      .from('station_playlists')
+      .select('id')
+      .eq('slug', candidate)
+      .limit(1);
+
+    if (error) {
+      console.error('❌ [Slug] Failed to verify slug uniqueness:', error);
+      throw new Error(`Failed to verify slug uniqueness: ${error.message}`);
+    }
+
+    if (!data || data.length === 0) {
+      return candidate;
+    }
+
+    candidate = withRandomSuffix(baseSlug);
+    attempt += 1;
+  }
+
+  return `${baseSlug}-${Date.now().toString(36)}`;
 }
 
 /**

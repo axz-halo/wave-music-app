@@ -157,24 +157,30 @@ export default function TrackToWaveModal({ isOpen, onClose, track, onSubmit }: T
           </div>
 
           {/* Footer */}
-          <div className="p-sk4-lg border-t border-sk4-gray bg-sk4-off-white">
-            <button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="w-full sk4-spotify-btn disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  생성 중...
-                </>
-              ) : (
-                <>
-                  <Send className="w-5 h-5 mr-2" />
-                  Wave 만들기
-                </>
-              )}
-            </button>
+          <div className="p-sk4-lg border-t border-transparent bg-gradient-to-r from-sk4-orange to-sk4-orange/80 text-white shadow-[0_-10px_30px_rgba(255,122,69,0.35)]">
+            <div className="flex flex-col gap-sk4-md md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/70">Ready to share?</p>
+                <h3 className="text-lg font-semibold leading-snug">지금 Wave를 만들어 친구들과 감정을 나눠보세요</h3>
+              </div>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-white text-sk4-orange font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-sk4-orange border-t-transparent rounded-full animate-spin mr-2" />
+                    생성 중...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5 mr-2 text-sk4-orange" />
+                    Wave 만들기
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

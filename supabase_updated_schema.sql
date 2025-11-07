@@ -43,6 +43,30 @@ CREATE INDEX IF NOT EXISTS idx_comments_user_id ON public.comments(user_id);
 CREATE INDEX IF NOT EXISTS idx_interactions_user_id ON public.interactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_interactions_target ON public.interactions(target_type, target_id);
 
+-- 4. station_playlists 테이블에 slug 컬럼 추가 (고유 식별자)
+ALTER TABLE public.station_playlists
+ADD COLUMN IF NOT EXISTS slug TEXT;
+
+-- 고유 인덱스 생성 (NULL 허용이지만 값이 있는 경우엔 유일 값 유지)
+CREATE UNIQUE INDEX IF NOT EXISTS station_playlists_slug_key ON public.station_playlists(slug);
+
+-- 기존 데이터에 slug 채우기 (title 기반 + 고유 ID suffix)
+UPDATE public.station_playlists
+SET slug = LOWER(
+        REGEXP_REPLACE(
+            COALESCE(NULLIF(title, ''), 'station'),
+            '[^a-zA-Z0-9]+',
+            '-',
+            'g'
+        )
+    )
+    || '-' || RIGHT(id::text, 6)
+WHERE (slug IS NULL OR slug = '');
+
+-- slug는 필수 필드로 유지
+ALTER TABLE public.station_playlists
+ALTER COLUMN slug SET NOT NULL;
+
 -- 기존 데이터에 대한 기본값 설정
 UPDATE public.waves 
 SET 
@@ -60,6 +84,11 @@ ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.interactions ENABLE ROW LEVEL SECURITY;
 
 -- waves 테이블 정책
+DROP POLICY IF EXISTS "Users can view all waves" ON public.waves;
+DROP POLICY IF EXISTS "Users can insert their own waves" ON public.waves;
+DROP POLICY IF EXISTS "Users can update their own waves" ON public.waves;
+DROP POLICY IF EXISTS "Users can delete their own waves" ON public.waves;
+
 CREATE POLICY "Users can view all waves" ON public.waves
     FOR SELECT USING (true);
 
@@ -73,6 +102,11 @@ CREATE POLICY "Users can delete their own waves" ON public.waves
     FOR DELETE USING (auth.uid() = user_id);
 
 -- comments 테이블 정책
+DROP POLICY IF EXISTS "Users can view all comments" ON public.comments;
+DROP POLICY IF EXISTS "Users can insert their own comments" ON public.comments;
+DROP POLICY IF EXISTS "Users can update their own comments" ON public.comments;
+DROP POLICY IF EXISTS "Users can delete their own comments" ON public.comments;
+
 CREATE POLICY "Users can view all comments" ON public.comments
     FOR SELECT USING (true);
 
@@ -86,6 +120,11 @@ CREATE POLICY "Users can delete their own comments" ON public.comments
     FOR DELETE USING (auth.uid() = user_id);
 
 -- interactions 테이블 정책
+DROP POLICY IF EXISTS "Users can view all interactions" ON public.interactions;
+DROP POLICY IF EXISTS "Users can insert their own interactions" ON public.interactions;
+DROP POLICY IF EXISTS "Users can update their own interactions" ON public.interactions;
+DROP POLICY IF EXISTS "Users can delete their own interactions" ON public.interactions;
+
 CREATE POLICY "Users can view all interactions" ON public.interactions
     FOR SELECT USING (true);
 

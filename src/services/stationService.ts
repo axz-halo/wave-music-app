@@ -34,6 +34,7 @@ export interface StationPlaylist {
   comments?: number;
   shares?: number;
   created_at: string;
+  slug: string;
   user?: {
     id: string;
     nickname: string;
